@@ -1,10 +1,18 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { Sparkles, Check, Crown, ArrowRight } from "lucide-react";
+import { Sparkles, Check, Crown, ArrowRight, User, Briefcase } from "lucide-react";
 
 const plans = [
   {
@@ -71,6 +79,7 @@ const benefits = [
 
 export default function Join() {
   const [selectedPlan, setSelectedPlan] = useState("gold");
+  const [userType, setUserType] = useState("paciente");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -84,7 +93,7 @@ export default function Join() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form submitted:", { ...formData, plan: selectedPlan });
+    console.log("Form submitted:", { ...formData, plan: selectedPlan, userType });
   };
 
   return (
@@ -120,6 +129,86 @@ export default function Join() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left - Plans and Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* User Type Selection */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl bg-white">
+                <CardHeader>
+                  <CardTitle className="font-serif text-2xl text-gray-800">
+                    Tipo de Cadastro
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div
+                      onClick={() => setUserType("paciente")}
+                      className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                        userType === "paciente"
+                          ? 'border-[#D4AF37] bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] shadow-lg'
+                          : 'border-[#E8DCC4] hover:border-[#C8A882] bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
+                          userType === "paciente" ? 'from-[#D4AF37] to-[#C8A882]' : 'from-gray-400 to-gray-500'
+                        } flex items-center justify-center shadow-lg transition-all`}>
+                          <User className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-serif text-xl font-bold text-gray-800 mb-2">
+                            Paciente
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Acesse conteúdos educacionais, descontos exclusivos e a rede de profissionais
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => setUserType("profissional")}
+                      className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                        userType === "profissional"
+                          ? 'border-[#D4AF37] bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] shadow-lg'
+                          : 'border-[#E8DCC4] hover:border-[#C8A882] bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
+                          userType === "profissional" ? 'from-[#D4AF37] to-[#C8A882]' : 'from-gray-400 to-gray-500'
+                        } flex items-center justify-center shadow-lg transition-all`}>
+                          <Briefcase className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-serif text-xl font-bold text-gray-800 mb-2">
+                            Profissional
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Compartilhe conteúdos, alcance clientes e tenha acesso a ferramentas profissionais
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {userType === "profissional" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                    >
+                      <p className="text-sm text-blue-800">
+                        <strong>Profissionais:</strong> Após o cadastro, você poderá assinar os planos EdBeauty para enviar conteúdos educacionais.
+                      </p>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
             {/* Plan Selection */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}

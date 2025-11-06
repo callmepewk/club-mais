@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -69,6 +70,13 @@ export default function EdBeauty() {
     return planHierarchy[userPlan] >= planHierarchy[contentPlanMin];
   };
 
+  const canUploadContent = () => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    // Apenas profissionais com plano EdBeauty podem enviar conteúdo
+    return user.tipo_usuario === 'profissional' && user.edbeauty_plano !== 'none';
+  };
+
   const filteredContents = useMemo(() => {
     return contents.filter(content => {
       const matchSearch = !searchQuery || 
@@ -125,7 +133,7 @@ export default function EdBeauty() {
               </p>
             </div>
 
-            {user?.role !== 'admin' && user?.edbeauty_plano !== 'none' && (
+            {canUploadContent() && (
               <Link to={createPageUrl("EdBeautyUpload")}>
                 <Button 
                   size="lg"
@@ -318,38 +326,40 @@ export default function EdBeauty() {
       </div>
 
       {/* CTA for Professionals */}
-      <div className="py-20 px-6 bg-gradient-to-br from-[#F5EFE6] to-white">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="space-y-6"
-          >
-            <GraduationCap className="w-16 h-16 text-[#D4AF37] mx-auto" />
-            
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">
-              <span className="text-gray-800">Você é um</span>
-              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Profissional?</span>
-            </h2>
+      {user?.tipo_usuario === 'paciente' && (
+        <div className="py-20 px-6 bg-gradient-to-br from-[#F5EFE6] to-white">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <GraduationCap className="w-16 h-16 text-[#D4AF37] mx-auto" />
+              
+              <h2 className="font-serif text-3xl md:text-4xl font-bold">
+                <span className="text-gray-800">Você é um</span>
+                <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Profissional?</span>
+              </h2>
 
-            <p className="text-lg text-gray-600">
-              Compartilhe seu conhecimento e alcance milhares de profissionais de estética
-            </p>
+              <p className="text-lg text-gray-600">
+                Compartilhe seu conhecimento e alcance milhares de profissionais de estética
+              </p>
 
-            <Link to={createPageUrl("EdBeautyPlans")}>
-              <Button 
-                size="lg"
-                className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
-              >
-                Ver Planos para Profissionais
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </motion.div>
+              <Link to={createPageUrl("EdBeautyPlans")}>
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
+                >
+                  Ver Planos para Profissionais
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

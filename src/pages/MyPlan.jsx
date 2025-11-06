@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -104,6 +105,7 @@ export default function MyPlan() {
 
   const clubePlan = user?.clube_plano || 'none';
   const edbeautyPlan = user?.edbeauty_plano || 'none';
+  const userType = user?.tipo_usuario || 'paciente';
   const clubePlanInfo = planDetails[clubePlan];
   const edbeautyPlanInfo = edbeautyPlanDetails[edbeautyPlan];
 
@@ -164,6 +166,22 @@ export default function MyPlan() {
       ) : (
         <div className="py-20 px-6">
           <div className="max-w-5xl mx-auto space-y-8">
+            {/* User Type Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center"
+            >
+              <Badge className={`${
+                userType === 'profissional' 
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white' 
+                  : 'bg-gray-100 text-gray-800'
+              } px-6 py-2 text-base`}>
+                {userType === 'profissional' ? '👨‍⚕️ Conta Profissional' : '👤 Conta Paciente'}
+              </Badge>
+            </motion.div>
+
             {/* Club da Beleza Plan */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -238,80 +256,109 @@ export default function MyPlan() {
               </Card>
             </motion.div>
 
-            {/* EdBeauty Plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <Card className="border-[#E8DCC4] shadow-xl overflow-hidden">
-                <div className={`bg-gradient-to-r ${edbeautyPlanInfo.color} p-6`}>
-                  <div className="flex items-center justify-between text-white">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                        <GraduationCap className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <p className="text-white/80 text-sm">EdBeauty (Profissional)</p>
-                        <h2 className="font-serif text-3xl font-bold">
-                          {edbeautyPlanInfo.name}
-                        </h2>
-                      </div>
-                    </div>
-                    {edbeautyPlan !== 'none' && (
-                      <Badge className="bg-white/20 border-white/30 text-white">
-                        Ativo
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                <CardContent className="p-8">
-                  {edbeautyPlan === 'none' ? (
-                    <div className="text-center py-8 space-y-6">
-                      <p className="text-gray-600 text-lg">
-                        Você não possui um plano EdBeauty para profissionais
-                      </p>
-                      <Link to={createPageUrl("EdBeautyPlans")}>
-                        <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
-                          Ver Planos EdBeauty
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800 mb-4">
-                          Benefícios EdBeauty:
-                        </h3>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          {edbeautyPlanInfo.benefits.map((benefit, index) => (
-                            <div key={index} className="flex items-start gap-3">
-                              <CheckCircle className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700">{benefit}</span>
-                            </div>
-                          ))}
+            {/* EdBeauty Plan - Only show for professionals */}
+            {userType === 'profissional' && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <Card className="border-[#E8DCC4] shadow-xl overflow-hidden">
+                  <div className={`bg-gradient-to-r ${edbeautyPlanInfo.color} p-6`}>
+                    <div className="flex items-center justify-between text-white">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                          <GraduationCap className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <p className="text-white/80 text-sm">EdBeauty (Profissional)</p>
+                          <h2 className="font-serif text-3xl font-bold">
+                            {edbeautyPlanInfo.name}
+                          </h2>
                         </div>
                       </div>
+                      {edbeautyPlan !== 'none' && (
+                        <Badge className="bg-white/20 border-white/30 text-white">
+                          Ativo
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
 
-                      <div className="pt-6 border-t border-[#E8DCC4] flex justify-between items-center">
-                        <Link to={createPageUrl("EdBeautyUpload")}>
-                          <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
-                            Enviar Conteúdo
-                          </Button>
-                        </Link>
+                  <CardContent className="p-8">
+                    {edbeautyPlan === 'none' ? (
+                      <div className="text-center py-8 space-y-6">
+                        <p className="text-gray-600 text-lg">
+                          Você não possui um plano EdBeauty para profissionais
+                        </p>
                         <Link to={createPageUrl("EdBeautyPlans")}>
-                          <Button variant="outline" className="border-[#D4AF37] text-[#D4AF37]">
-                            Fazer Upgrade
+                          <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
+                            Ver Planos EdBeauty
+                            <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
                         </Link>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="font-semibold text-lg text-gray-800 mb-4">
+                            Benefícios EdBeauty:
+                          </h3>
+                          <div className="grid md:grid-cols-2 gap-3">
+                            {edbeautyPlanInfo.benefits.map((benefit, index) => (
+                              <div key={index} className="flex items-start gap-3">
+                                <CheckCircle className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                                <span className="text-gray-700">{benefit}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-[#E8DCC4] flex justify-between items-center">
+                          <Link to={createPageUrl("EdBeautyUpload")}>
+                            <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
+                              Enviar Conteúdo
+                            </Button>
+                          </Link>
+                          <Link to={createPageUrl("EdBeautyPlans")}>
+                            <Button variant="outline" className="border-[#D4AF37] text-[#D4AF37]">
+                              Fazer Upgrade
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Show message for patients */}
+            {userType === 'paciente' && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <Card className="border-[#E8DCC4] shadow-xl overflow-hidden">
+                  <CardContent className="p-8 text-center space-y-4">
+                    <GraduationCap className="w-12 h-12 text-[#D4AF37] mx-auto" />
+                    <h3 className="font-serif text-2xl font-bold text-gray-800">
+                      Você é um profissional?
+                    </h3>
+                    <p className="text-gray-600">
+                      Se você é profissional da área de estética e deseja compartilhar conteúdos, entre em contato conosco para converter sua conta.
+                    </p>
+                    <Link to={createPageUrl("Contact")}>
+                      <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
+                        Falar com Suporte
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Summary Stats */}
             {(clubePlan !== 'none' || edbeautyPlan !== 'none') && (
