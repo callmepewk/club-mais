@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package, CreditCard, Bot } from "lucide-react";
+import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package, CreditCard, Bot, MapPin } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +40,11 @@ const navigationItems = [
     title: "Dr. Beleza",
     url: createPageUrl("DrBeleza"),
     icon: Bot,
+  },
+  {
+    title: "Mapa da Estética",
+    url: createPageUrl("MapaDaEstetica"),
+    icon: MapPin,
   },
   {
     title: "Sobre Nós",

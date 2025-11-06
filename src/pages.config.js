@@ -8,6 +8,7 @@ import News from './pages/News';
 import Contact from './pages/Contact';
 import ClubePlus from './pages/ClubePlus';
 import DrBeleza from './pages/DrBeleza';
+import MapaDaEstetica from './pages/MapaDaEstetica';
 import Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Contact": Contact,
     "ClubePlus": ClubePlus,
     "DrBeleza": DrBeleza,
+    "MapaDaEstetica": MapaDaEstetica,
 }
 
 export const pagesConfig = {
