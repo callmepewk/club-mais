@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,8 +14,11 @@ import {
 export default function AvatarScanner() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const holisticRef = useRef(null); // Changed: Added holisticRef
+  const animationFrameRef = useRef(null); // Changed: Added animationFrameRef
+  const isProcessingRef = useRef(false); // Changed: Added isProcessingRef
+  
   const [stream, setStream] = useState(null);
-  const [holistic, setHolistic] = useState(null);
   const [status, setStatus] = useState("Pronto para iniciar");
   const [isScanning, setIsScanning] = useState(false);
   const [lastPolygons, setLastPolygons] = useState(null);
@@ -115,6 +119,9 @@ export default function AvatarScanner() {
   };
 
   const onResults = (results) => {
+    // Changed: Check isProcessingRef.current
+    if (!isProcessingRef.current) return;
+    
     const canvas = canvasRef.current;
     if (!canvas || !results) return;
 
@@ -136,20 +143,6 @@ export default function AvatarScanner() {
       }
     }
 
-    // Face polygon
-    let facePoly = [];
-    if (face && face.length > 0) {
-      const facePixels = face.map(lm => lmToPixel(lm, canvas));
-      const hullIdx = convexHull(facePixels);
-      facePoly = hullIdx.map(i => ({ x: face[i].x, y: face[i].y, z: face[i].z ?? 0 }));
-      const facePixForDraw = hullIdx.map(i => facePixels[i]);
-      drawPolygon(ctx, facePixForDraw, { 
-        stroke: '#D4AF37', 
-        fill: 'rgba(212,175,55,0.1)', 
-        lineWidth: 2 
-      });
-    }
-
     const polygons = {
       face: face ? lmListToNormalized(face) : [],
       neck: [],
@@ -159,6 +152,18 @@ export default function AvatarScanner() {
       leftLeg: [],
       rightLeg: []
     };
+
+    // Face polygon
+    if (face && face.length > 0) {
+      const facePixels = face.map(lm => lmToPixel(lm, canvas));
+      const hullIdx = convexHull(facePixels);
+      const facePixForDraw = hullIdx.map(i => facePixels[i]);
+      drawPolygon(ctx, facePixForDraw, { 
+        stroke: '#D4AF37', 
+        fill: 'rgba(212,175,55,0.1)', 
+        lineWidth: 2 
+      });
+    }
 
     if (pose) {
       const idx = (i) => pose[i];
@@ -253,6 +258,9 @@ export default function AvatarScanner() {
 
   const startCamera = async () => {
     try {
+      // Changed: Stop any existing camera first to prevent multiple instances
+      stopCamera();
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 1280 },
         audio: false
@@ -265,6 +273,11 @@ export default function AvatarScanner() {
         fitCanvas();
 
         // Load MediaPipe Holistic
+        // Changed: Check if Holistic is globally available before using
+        if (!window.Holistic) {
+          throw new Error('MediaPipe Holistic não foi carregado. Verifique a conexão com a internet ou os scripts.');
+        }
+
         const { Holistic } = window;
         const holisticInstance = new Holistic({
           locateFile: (file) => {
@@ -282,17 +295,32 @@ export default function AvatarScanner() {
         });
 
         holisticInstance.onResults(onResults);
-        setHolistic(holisticInstance);
+        holisticRef.current = holisticInstance; // Changed: Use ref instead of state
+        isProcessingRef.current = true; // Changed: Set processing flag
 
         // Feed frames
         const sendFrame = async () => {
-          if (holisticInstance && videoRef.current) {
-            await holisticInstance.send({ image: videoRef.current });
-            if (mediaStream.active) {
-              requestAnimationFrame(sendFrame);
-            }
+          // Changed: Check refs and processing flag
+          if (!isProcessingRef.current || !holisticRef.current || !videoRef.current) {
+            return;
+          }
+
+          try {
+            // Changed: Use ref for holistic instance
+            await holisticRef.current.send({ image: videoRef.current });
+          } catch (err) {
+            console.error('Error sending frame:', err);
+            // Optionally stop camera or set error status here
+            return;
+          }
+
+          // Changed: Check processing flag and mediaStream.active
+          if (isProcessingRef.current && mediaStream.active) {
+            animationFrameRef.current = requestAnimationFrame(sendFrame); // Changed: Store animation frame ID
           }
         };
+        
+        // Start sending frames
         sendFrame();
 
         setIsScanning(true);
@@ -302,18 +330,36 @@ export default function AvatarScanner() {
       console.error(err);
       setStatus('Erro ao abrir câmera');
       alert('Necessário permitir acesso à câmera. Erro: ' + err.message);
+      stopCamera(); // Ensure cleanup if start fails
     }
   };
 
   const stopCamera = () => {
+    // Changed: Stop processing flag first
+    isProcessingRef.current = false;
+
+    // Changed: Cancel any pending animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // Stop video stream
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
-    if (holistic) {
-      holistic.close();
-      setHolistic(null);
+
+    // Changed: Close holistic instance using ref
+    if (holisticRef.current) {
+      try {
+        holisticRef.current.close();
+      } catch (err) {
+        console.error('Error closing holistic:', err);
+      }
+      holisticRef.current = null;
     }
+
     setIsScanning(false);
     setStatus('Câmera desligada');
   };
@@ -370,6 +416,12 @@ export default function AvatarScanner() {
     // Load MediaPipe scripts
     const loadScript = (src) => {
       return new Promise((resolve, reject) => {
+        // Changed: Check if script is already loaded to prevent duplicates
+        if (document.querySelector(`script[src="${src}"]`)) {
+          resolve();
+          return;
+        }
+
         const script = document.createElement('script');
         script.src = src;
         script.crossOrigin = 'anonymous';
@@ -387,6 +439,7 @@ export default function AvatarScanner() {
       setStatus('Erro ao carregar bibliotecas');
     });
 
+    // Cleanup on unmount
     return () => {
       stopCamera();
     };
