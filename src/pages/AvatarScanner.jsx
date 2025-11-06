@@ -232,28 +232,36 @@ export default function AvatarScanner() {
 
   const startCamera = async () => {
     try {
+      setStatus('Iniciando câmera...');
       stopCamera();
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 1280, height: 720 }, // Updated resolution
+        video: { facingMode: 'user', width: 1280, height: 720 },
         audio: false
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.setAttribute('autoplay', 'true');
         await videoRef.current.play();
         setStream(mediaStream);
         
-        // Wait for video to be ready before fitting canvas
         await new Promise(resolve => {
           videoRef.current.onloadedmetadata = () => {
             fitCanvas();
+            setStatus('Vídeo carregado, inicializando detecção...');
             resolve();
           };
         });
 
         if (!window.Holistic) {
-          throw new Error('MediaPipe Holistic não foi carregado');
+          setStatus('Carregando MediaPipe...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        if (!window.Holistic) {
+          throw new Error('MediaPipe Holistic não foi carregado. Aguarde e tente novamente.');
         }
 
         const { Holistic } = window;
@@ -295,12 +303,22 @@ export default function AvatarScanner() {
         sendFrame();
 
         setIsScanning(true);
-        setStatus('Câmera ativa — detectando...');
+        setStatus('Câmera ativa — posicione-se e aguarde a detecção...');
       }
     } catch (err) {
       console.error(err);
       setStatus('Erro ao abrir câmera');
-      alert('Necessário permitir acesso à câmera. Erro: ' + err.message);
+      
+      let errorMsg = 'Erro ao acessar câmera: ';
+      if (err.name === 'NotAllowedError') {
+        errorMsg += 'Permissão negada. Por favor, permita o acesso à câmera.';
+      } else if (err.name === 'NotFoundError') {
+        errorMsg += 'Câmera não encontrada.';
+      } else {
+        errorMsg += err.message;
+      }
+      
+      alert(errorMsg);
       stopCamera();
     }
   };
@@ -523,14 +541,15 @@ export default function AvatarScanner() {
       });
     };
 
+    setStatus('Carregando bibliotecas MediaPipe...');
     Promise.all([
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js'),
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.1/holistic.js')
     ]).then(() => {
-      setStatus('Bibliotecas carregadas. Pronto para iniciar!'); // Updated status message
+      setStatus('✓ Pronto! Clique em "Iniciar Câmera" para começar.');
     }).catch(err => {
       console.error('Erro ao carregar MediaPipe:', err);
-      setStatus('Erro ao carregar bibliotecas. Verifique a conexão.');
+      setStatus('❌ Erro ao carregar bibliotecas. Recarregue a página.');
     });
 
     // Cleanup on unmount
@@ -626,7 +645,7 @@ export default function AvatarScanner() {
                   {!showEditor ? (
                     <>
                       {/* Video Stage */}
-                      <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}> {/* Updated aspect ratio */}
+                      <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
                         <video
                           ref={videoRef}
                           className="w-full h-full object-cover"
@@ -638,6 +657,16 @@ export default function AvatarScanner() {
                           ref={canvasRef}
                           className="absolute inset-0 w-full h-full pointer-events-none"
                         />
+                        
+                        {!isScanning && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div className="text-center text-white space-y-3 p-6">
+                              <Camera className="w-16 h-16 mx-auto mb-4" />
+                              <p className="text-xl font-semibold">Câmera Desligada</p>
+                              <p className="text-sm opacity-80">Clique em "Iniciar Câmera" para começar</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Controls */}
@@ -688,16 +717,29 @@ export default function AvatarScanner() {
                           <Download className="w-4 h-4 mr-2" />
                           Export JSON
                         </Button>
+                      </div>
 
-                        <div className="ml-auto flex items-center gap-2 text-sm text-gray-600">
+                      {/* Status */}
+                      <div className={`p-4 rounded-lg text-center ${
+                        lastPolygons ? 'bg-green-50 border border-green-200' : 
+                        isScanning ? 'bg-blue-50 border border-blue-200' : 
+                        'bg-gray-50 border border-gray-200'
+                      }`}>
+                        <div className="flex items-center justify-center gap-2">
                           {lastPolygons ? (
-                            <>
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              <span>{status}</span>
-                            </>
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          ) : isScanning ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
                           ) : (
-                            <span>{status}</span>
+                            <AlertCircle className="w-5 h-5 text-gray-600" />
                           )}
+                          <span className={`font-medium ${
+                            lastPolygons ? 'text-green-800' : 
+                            isScanning ? 'text-blue-800' : 
+                            'text-gray-700'
+                          }`}>
+                            {status}
+                          </span>
                         </div>
                       </div>
 
@@ -708,10 +750,10 @@ export default function AvatarScanner() {
                           Instruções
                         </h4>
                         <ul className="text-sm text-blue-800 space-y-1">
-                          <li>• Posicione-se de frente para a câmera</li>
-                          <li>• Certifique-se de que seu rosto e corpo estejam bem iluminados</li>
-                          <li>• Aguarde os polígonos coloridos aparecerem</li> {/* Updated text */}
-                          <li>• Clique em "Salvar Avatar" quando a captura estiver completa</li>
+                          <li>• Permita o acesso à câmera quando solicitado</li>
+                          <li>• Posicione-se de frente para a câmera com boa iluminação</li>
+                          <li>• Aguarde os polígonos coloridos aparecerem em seu rosto e corpo</li>
+                          <li>• Quando aparecer "Detectado — pronto para salvar", clique em "Salvar Avatar"</li>
                         </ul>
                       </div>
 

@@ -11,9 +11,14 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
   useEffect(() => {
     if (!mountRef.current) return;
 
+    // Clear previous content
+    while (mountRef.current.firstChild) {
+      mountRef.current.removeChild(mountRef.current.firstChild);
+    }
+
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb); // Sky blue
+    scene.background = new THREE.Color(0x87ceeb);
     sceneRef.current = scene;
 
     // Camera
@@ -58,14 +63,13 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Create avatar based on edits
+    // Create avatar
     createAvatar(scene, avatarEdits);
 
     // Animation loop
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
       
-      // Gentle rotation
       if (scene.userData.avatar) {
         scene.userData.avatar.rotation.y += 0.005;
       }
@@ -99,19 +103,19 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
   const createAvatar = (scene, edits) => {
     const avatar = new THREE.Group();
     
-    // Skin color
-    const skinColor = 0xFFDBB3;
-    const hairColor = 0x8B4513;
+    // Parse colors from hex to THREE.Color
+    const skinColor = new THREE.Color(edits.skinColor || '#f5d1b3');
+    const hairColor = new THREE.Color(edits.hairColor || '#2b1b10');
     const shirtColor = 0xFF6B6B;
     const pantsColor = 0x4A5568;
 
-    // Body proportions based on bodyType
+    // Body proportions
     let bodyScale = 1;
     if (edits.bodyType === 'magro') bodyScale = 0.85;
     else if (edits.bodyType === 'atletico') bodyScale = 1.1;
     else if (edits.bodyType === 'plus') bodyScale = 1.25;
 
-    // Head - varies by faceShape
+    // Head scaling
     let headScaleX = 1, headScaleY = 1, headScaleZ = 1;
     if (edits.faceShape === 'redondo') {
       headScaleX = headScaleZ = 1.15;
@@ -126,6 +130,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
       headScaleX = headScaleZ = 0.9;
     }
 
+    // Head
     const headGeometry = new THREE.SphereGeometry(0.25, 32, 32);
     const headMaterial = new THREE.MeshStandardMaterial({ color: skinColor });
     const head = new THREE.Mesh(headGeometry, headMaterial);
@@ -134,16 +139,33 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     head.castShadow = true;
     avatar.add(head);
 
-    // Hair
-    const hairGeometry = new THREE.SphereGeometry(0.27, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6);
-    const hairMaterial = new THREE.MeshStandardMaterial({ color: hairColor });
-    const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-    hair.scale.set(headScaleX, headScaleY * 0.8, headScaleZ);
-    hair.position.y = 1.65;
-    hair.castShadow = true;
-    avatar.add(hair);
+    // Hair - only if hairStyle is not 'none'
+    if (edits.hairStyle !== 'none') {
+      let hairGeometry;
+      
+      if (edits.hairStyle === 'long') {
+        hairGeometry = new THREE.SphereGeometry(0.27, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.8);
+      } else if (edits.hairStyle === 'bun') {
+        hairGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+      } else {
+        hairGeometry = new THREE.SphereGeometry(0.27, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6);
+      }
+      
+      const hairMaterial = new THREE.MeshStandardMaterial({ color: hairColor });
+      const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+      
+      if (edits.hairStyle === 'bun') {
+        hair.position.set(0, 1.75, -0.15);
+      } else {
+        hair.scale.set(headScaleX, headScaleY * 0.8, headScaleZ);
+        hair.position.y = 1.65;
+      }
+      
+      hair.castShadow = true;
+      avatar.add(hair);
+    }
 
-    // Nose - varies by noseShape
+    // Nose
     let noseScaleX = 0.08, noseScaleY = 0.12, noseScaleZ = 0.08;
     if (edits.noseShape === 'fino') {
       noseScaleX = noseScaleZ = 0.06;
@@ -161,7 +183,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     nose.castShadow = true;
     avatar.add(nose);
 
-    // Eyes - varies by eyeSize
+    // Eyes
     let eyeScale = 0.05;
     if (edits.eyeSize === 'pequeno') eyeScale = 0.04;
     else if (edits.eyeSize === 'grande') eyeScale = 0.06;
@@ -177,7 +199,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     rightEye.position.set(0.1 * headScaleX, 1.65, 0.2 * headScaleZ);
     avatar.add(rightEye);
 
-    // Eyebrows - varies by eyebrowStyle
+    // Eyebrows
     let browThickness = 0.02;
     let browCurve = 0;
     if (edits.eyebrowStyle === 'fina') browThickness = 0.015;
@@ -190,7 +212,6 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     const leftBrow = new THREE.Mesh(browGeometry, browMaterial);
     leftBrow.position.set(-0.1 * headScaleX, 1.7 + browCurve, 0.22 * headScaleZ);
     if (edits.eyebrowStyle === 'arqueada') leftBrow.rotation.z = 0.1;
-    else if (edits.eyebrowStyle === 'reta') leftBrow.rotation.z = 0;
     avatar.add(leftBrow);
     
     const rightBrow = new THREE.Mesh(browGeometry, browMaterial);
@@ -198,7 +219,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     if (edits.eyebrowStyle === 'arqueada') rightBrow.rotation.z = -0.1;
     avatar.add(rightBrow);
 
-    // Mouth - varies by mouthSize
+    // Mouth
     let mouthWidth = 0.15, mouthHeight = 0.03;
     if (edits.mouthSize === 'pequena') mouthWidth = 0.12;
     else if (edits.mouthSize === 'grande') mouthWidth = 0.18;
@@ -213,7 +234,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     mouth.position.set(0, 1.48, 0.23 * headScaleZ);
     avatar.add(mouth);
 
-    // Cheeks - varies by cheekSize
+    // Cheeks
     if (edits.cheekSize !== 'fino') {
       let cheekSize = 0.08;
       if (edits.cheekSize === 'volumoso') cheekSize = 0.12;
@@ -242,7 +263,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     neck.castShadow = true;
     avatar.add(neck);
 
-    // Torso (shirt)
+    // Torso
     const torsoGeometry = new THREE.BoxGeometry(0.5 * bodyScale, 0.6, 0.25);
     const torsoMaterial = new THREE.MeshStandardMaterial({ color: shirtColor });
     const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
@@ -264,7 +285,7 @@ export default function AvatarPreview3D({ avatarEdits, className = '' }) {
     rightArm.castShadow = true;
     avatar.add(rightArm);
 
-    // Legs (pants)
+    // Legs
     const legGeometry = new THREE.CylinderGeometry(0.08, 0.09, 0.9, 16);
     const legMaterial = new THREE.MeshStandardMaterial({ color: pantsColor });
     
