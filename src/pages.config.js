@@ -15,6 +15,7 @@ import EdBeauty from './pages/EdBeauty';
 import EdBeautyUpload from './pages/EdBeautyUpload';
 import EdBeautyPlans from './pages/EdBeautyPlans';
 import MyPlan from './pages/MyPlan';
+import AvatarScanner from './pages/AvatarScanner';
 import Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "EdBeautyUpload": EdBeautyUpload,
     "EdBeautyPlans": EdBeautyPlans,
     "MyPlan": MyPlan,
+    "AvatarScanner": AvatarScanner,
 }
 
 export const pagesConfig = {

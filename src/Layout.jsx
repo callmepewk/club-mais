@@ -47,6 +47,11 @@ const navigationItems = [
     icon: Bot,
   },
   {
+    title: "Crie seu Avatar",
+    url: createPageUrl("AvatarScanner"),
+    icon: Bot,
+  },
+  {
     title: "Mapa da Estética",
     url: createPageUrl("MapaDaEstetica"),
     icon: MapPin,
