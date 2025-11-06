@@ -337,7 +337,7 @@ export default function DrBeleza() {
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6),
             city: city,
-            state: state.substring(0, 2).toUpperCase() // Use substring to get 2-letter code
+            state: state.substring(0, 2).toUpperCase()
           }));
 
           setLoadingLocation(false);
@@ -345,16 +345,7 @@ export default function DrBeleza() {
         (error) => {
           console.error("Error getting location:", error);
           setLoadingLocation(false);
-          setUserLocation(null); // Clear user location on error
-          setFormData(prev => ({ // Clear related form fields
-            ...prev,
-            latitude: "",
-            longitude: "",
-            // Optionally clear city/state if they were purely from geo
-            // city: "",
-            // state: "",
-            maxDistance: "all" // Reset distance if no location
-          }));
+          alert("Não foi possível obter sua localização. Verifique as permissões do navegador.");
         },
         {
           enableHighAccuracy: true,
@@ -391,8 +382,8 @@ export default function DrBeleza() {
         ) : null
       }))
       .filter(est => {
-        if (formData.maxDistance === "all" || !userLocation) return true; // If no user location, distance filter doesn't apply
-        if (!est.distancia) return true;
+        if (formData.maxDistance === "all") return true;
+        if (!est.distancia) return true; // If distance cannot be calculated (e.g., no user location), or is explicitly null
         return est.distancia <= parseFloat(formData.maxDistance);
       })
       .sort((a, b) => {
@@ -631,7 +622,7 @@ export default function DrBeleza() {
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleInputChange("city", e.target.value)}
-                        placeholder="Preenchido automaticamente"
+                        placeholder="Digite sua cidade ou use geolocalização"
                         className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
                       />
                     </div>
@@ -641,14 +632,20 @@ export default function DrBeleza() {
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
                         Estado
                       </Label>
-                      <Input
-                        id="state"
+                      <Select
                         value={formData.state}
-                        onChange={(e) => handleInputChange("state", e.target.value)}
-                        placeholder="Preenchido automaticamente"
-                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                        maxLength={2}
-                      />
+                        onValueChange={(value) => handleInputChange("state", value)}
+                      >
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                          <SelectValue placeholder="Selecione ou use geolocalização" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          <SelectItem value={null}>Todos os estados</SelectItem>
+                          {estados.map((estado) => (
+                            <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2 w-full">
@@ -687,10 +684,9 @@ export default function DrBeleza() {
                       <Select
                         value={formData.maxDistance}
                         onValueChange={(value) => handleInputChange("maxDistance", value)}
-                        disabled={!userLocation}
                       >
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                          <SelectValue placeholder={userLocation ? "Selecione a distância" : "Ative a localização primeiro"} />
+                          <SelectValue placeholder="Selecione a distância" />
                         </SelectTrigger>
                         <SelectContent>
                           {distanceRanges.map((range) => (
@@ -698,6 +694,11 @@ export default function DrBeleza() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {!userLocation && formData.maxDistance !== "all" && (
+                        <p className="text-xs text-amber-600">
+                          ⚠️ Distância será calculada apenas com geolocalização ativa
+                        </p>
+                      )}
                     </div>
                   </div>
 

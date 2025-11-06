@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,27 @@ export default function DrBelezaChat() {
     }
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const chatRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Handle click outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (chatRef.current && !chatRef.current.contains(event.target) && isOpen) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleQuickQuestion = (question, answer) => {
     setMessages(prev => [
@@ -100,6 +121,7 @@ export default function DrBelezaChat() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={chatRef}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -162,6 +184,7 @@ export default function DrBelezaChat() {
                       </div>
                     </motion.div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Quick Questions */}
@@ -196,13 +219,19 @@ export default function DrBelezaChat() {
                     <Input
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
                       placeholder="Digite sua mensagem..."
                       className="border-[#E8DCC4] focus:border-[#D4AF37]"
                     />
                     <Button
                       onClick={handleSendMessage}
-                      className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37]"
+                      disabled={!inputMessage.trim()}
+                      className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] disabled:opacity-50"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
