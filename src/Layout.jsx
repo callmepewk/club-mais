@@ -1,8 +1,11 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package, CreditCard, Bot, MapPin, Map as MapIcon, Coins } from "lucide-react";
+import { 
+  Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, 
+  Package, CreditCard, Bot, MapPin, Map as MapIcon, Coins, 
+  GraduationCap, User as UserIcon, Scan, Heart
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -34,12 +37,12 @@ const navigationItems = [
   {
     title: "Clube+",
     url: createPageUrl("ClubePlus"),
-    icon: CreditCard,
+    icon: Heart,
   },
   {
     title: "EdBeauty",
     url: createPageUrl("EdBeauty"),
-    icon: Bot,
+    icon: GraduationCap,
   },
   {
     title: "Dr. Beleza",
@@ -49,7 +52,7 @@ const navigationItems = [
   {
     title: "Crie seu Avatar",
     url: createPageUrl("AvatarScanner"),
-    icon: Bot,
+    icon: Scan,
   },
   {
     title: "Mapa da Estética",

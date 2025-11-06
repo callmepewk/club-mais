@@ -5,18 +5,31 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { 
-  Camera, CameraOff, Download, Save, RotateCcw, 
-  CheckCircle, AlertCircle, User, Sparkles
+  Camera, CameraOff, Download, Save, 
+  CheckCircle, AlertCircle, User, Sparkles,
+  Edit3, MapPin, DollarSign, Locate, Search
 } from "lucide-react";
 
 export default function AvatarScanner() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const holisticRef = useRef(null); // Changed: Added holisticRef
-  const animationFrameRef = useRef(null); // Changed: Added animationFrameRef
-  const isProcessingRef = useRef(false); // Changed: Added isProcessingRef
+  const holisticRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const isProcessingRef = useRef(false);
   
   const [stream, setStream] = useState(null);
   const [status, setStatus] = useState("Pronto para iniciar");
@@ -24,6 +37,29 @@ export default function AvatarScanner() {
   const [lastPolygons, setLastPolygons] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
+
+  const [showEditor, setShowEditor] = useState(false);
+  const [avatarEdits, setAvatarEdits] = useState({
+    faceShape: 'oval',
+    noseShape: 'medium',
+    eyeSize: 'medium',
+    cheekSize: 'medium',
+    mouthSize: 'medium',
+    eyebrowStyle: 'normal',
+    bodyType: 'medium'
+  });
+  const [showDrBelezaDialog, setShowDrBelezaDialog] = useState(false);
+  const [wantsTreatments, setWantsTreatments] = useState(null);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [questionnaire, setQuestionnaire] = useState({
+    priceRange: '',
+    city: '',
+    state: '',
+    latitude: '',
+    longitude: ''
+  });
+  const [recommendedTreatments, setRecommendedTreatments] = useState([]);
+  const navigate = useNavigate();
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['current-user'],
@@ -119,7 +155,6 @@ export default function AvatarScanner() {
   };
 
   const onResults = (results) => {
-    // Changed: Check isProcessingRef.current
     if (!isProcessingRef.current) return;
     
     const canvas = canvasRef.current;
@@ -258,7 +293,6 @@ export default function AvatarScanner() {
 
   const startCamera = async () => {
     try {
-      // Changed: Stop any existing camera first to prevent multiple instances
       stopCamera();
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -272,8 +306,6 @@ export default function AvatarScanner() {
         setStream(mediaStream);
         fitCanvas();
 
-        // Load MediaPipe Holistic
-        // Changed: Check if Holistic is globally available before using
         if (!window.Holistic) {
           throw new Error('MediaPipe Holistic não foi carregado. Verifique a conexão com a internet ou os scripts.');
         }
@@ -295,32 +327,26 @@ export default function AvatarScanner() {
         });
 
         holisticInstance.onResults(onResults);
-        holisticRef.current = holisticInstance; // Changed: Use ref instead of state
-        isProcessingRef.current = true; // Changed: Set processing flag
+        holisticRef.current = holisticInstance;
+        isProcessingRef.current = true;
 
-        // Feed frames
         const sendFrame = async () => {
-          // Changed: Check refs and processing flag
           if (!isProcessingRef.current || !holisticRef.current || !videoRef.current) {
             return;
           }
 
           try {
-            // Changed: Use ref for holistic instance
             await holisticRef.current.send({ image: videoRef.current });
           } catch (err) {
             console.error('Error sending frame:', err);
-            // Optionally stop camera or set error status here
             return;
           }
 
-          // Changed: Check processing flag and mediaStream.active
           if (isProcessingRef.current && mediaStream.active) {
-            animationFrameRef.current = requestAnimationFrame(sendFrame); // Changed: Store animation frame ID
+            animationFrameRef.current = requestAnimationFrame(sendFrame);
           }
         };
         
-        // Start sending frames
         sendFrame();
 
         setIsScanning(true);
@@ -330,27 +356,23 @@ export default function AvatarScanner() {
       console.error(err);
       setStatus('Erro ao abrir câmera');
       alert('Necessário permitir acesso à câmera. Erro: ' + err.message);
-      stopCamera(); // Ensure cleanup if start fails
+      stopCamera();
     }
   };
 
   const stopCamera = () => {
-    // Changed: Stop processing flag first
     isProcessingRef.current = false;
 
-    // Changed: Cancel any pending animation frame
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
 
-    // Stop video stream
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
 
-    // Changed: Close holistic instance using ref
     if (holisticRef.current) {
       try {
         holisticRef.current.close();
@@ -412,11 +434,130 @@ export default function AvatarScanner() {
     URL.revokeObjectURL(url);
   };
 
+  const getTreatmentRecommendations = () => {
+    const treatments = new Set();
+    
+    // Baseado nas edições do avatar, recomendar tratamentos
+    if (avatarEdits.faceShape !== 'oval') {
+      treatments.add('Harmonização Facial (HOF)');
+      treatments.add('Bioestimuladores de Colágeno');
+    }
+    
+    if (avatarEdits.noseShape !== 'medium') {
+      treatments.add('Preenchimento Facial');
+      treatments.add('Rinoplastia');
+    }
+    
+    if (avatarEdits.cheekSize !== 'medium') {
+      treatments.add('Preenchimento de Maçãs do Rosto');
+      treatments.add('Ácido Hialurônico');
+    }
+    
+    if (avatarEdits.mouthSize !== 'medium') {
+      treatments.add('Preenchimento Labial');
+      treatments.add('Micropigmentação Labial');
+    }
+    
+    if (avatarEdits.eyebrowStyle !== 'normal') {
+      treatments.add('Design de Sobrancelhas');
+      treatments.add('Micropigmentação Fio a Fio');
+    }
+    
+    if (avatarEdits.bodyType !== 'medium') {
+      treatments.add('Criolipólise');
+      treatments.add('Radiofrequência Corporal');
+      treatments.add('Tratamento de Flacidez');
+    }
+    
+    return Array.from(treatments);
+  };
+
+  const handleSaveEdits = () => {
+    const treatments = getTreatmentRecommendations();
+    setRecommendedTreatments(treatments);
+    setShowDrBelezaDialog(true);
+    setShowQuestionnaire(false); // Reset questionnaire state
+  };
+
+  const handleWantsTreatments = (wants) => {
+    setWantsTreatments(wants);
+    if (wants) {
+      setShowQuestionnaire(true);
+    } else {
+      setShowDrBelezaDialog(false);
+    }
+  };
+
+  const getCityFromCoordinates = async (latitude, longitude) => {
+    // This is a placeholder. In a real app, you'd use a reverse geocoding API.
+    // Example with Nominatim (OpenStreetMap):
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const city = data.address.city || data.address.town || data.address.village || '';
+        const state = data.address.state || '';
+        return { city, state };
+    } catch (error) {
+        console.error("Error fetching city from coordinates:", error);
+        return { city: "São Paulo", state: "SP" }; // Fallback
+    }
+  };
+
+  const getUserLocationForTreatment = async () => {
+    if (navigator.geolocation) {
+      setStatus("Obtendo sua localização...");
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { city, state } = await getCityFromCoordinates(
+            position.coords.latitude,
+            position.coords.longitude
+          );
+          
+          setQuestionnaire(prev => ({
+            ...prev,
+            latitude: position.coords.latitude.toFixed(6),
+            longitude: position.coords.longitude.toFixed(6),
+            city: city,
+            state: state.substring(0, 2).toUpperCase()
+          }));
+          setStatus("Localização obtida!");
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setStatus("Erro ao obter localização.");
+          alert("Não foi possível obter sua localização. Por favor, insira manualmente.");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      alert("Geolocalização não é suportada pelo seu navegador.");
+    }
+  };
+
+  const handleSearchTreatments = () => {
+    if (!recommendedTreatments.length) {
+      alert("Nenhum tratamento recomendado para buscar.");
+      return;
+    }
+    // Use the first recommended treatment as the primary search term
+    const treatmentQuery = recommendedTreatments[0]; 
+    navigate(createPageUrl("DrBeleza"), {
+      state: {
+        treatment: treatmentQuery,
+        city: questionnaire.city,
+        state: questionnaire.state,
+        budget: questionnaire.priceRange,
+        autoSearch: true
+      }
+    });
+    setShowDrBelezaDialog(false); // Close the dialog after navigating
+  };
+
   useEffect(() => {
     // Load MediaPipe scripts
     const loadScript = (src) => {
       return new Promise((resolve, reject) => {
-        // Changed: Check if script is already loaded to prevent duplicates
         if (document.querySelector(`script[src="${src}"]`)) {
           resolve();
           return;
@@ -512,130 +653,518 @@ export default function AvatarScanner() {
 
       {/* Scanner */}
       <div className="py-12 px-4 md:px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <Card className="border-[#E8DCC4] shadow-2xl bg-white overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] border-b border-[#E8DCC4]">
-                <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-[#D4AF37]" />
-                  Scanner de Avatar
-                </CardTitle>
-              </CardHeader>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Left: Camera/Editor */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-2xl bg-white overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] border-b border-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-[#D4AF37]" />
+                    {showEditor ? 'Editor de Avatar' : 'Scanner de Avatar'}
+                  </CardTitle>
+                </CardHeader>
 
-              <CardContent className="p-6 space-y-6">
-                {/* Video Stage */}
-                <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                  <video
-                    ref={videoRef}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                  />
-                </div>
+                <CardContent className="p-6 space-y-6">
+                  {!showEditor ? (
+                    <>
+                      {/* Video Stage */}
+                      <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <video
+                          ref={videoRef}
+                          className="w-full h-full object-cover"
+                          autoPlay
+                          playsInline
+                          muted
+                        />
+                        <canvas
+                          ref={canvasRef}
+                          className="absolute inset-0 w-full h-full pointer-events-none"
+                        />
+                      </div>
 
-                {/* Controls */}
-                <div className="flex flex-wrap gap-3">
-                  {!isScanning ? (
-                    <Button
-                      onClick={startCamera}
-                      className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white"
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      Iniciar Câmera
-                    </Button>
+                      {/* Controls */}
+                      <div className="flex flex-wrap gap-3">
+                        {!isScanning ? (
+                          <Button
+                            onClick={startCamera}
+                            className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Iniciar Câmera
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={stopCamera}
+                            variant="outline"
+                            className="border-red-500 text-red-600 hover:bg-red-50"
+                          >
+                            <CameraOff className="w-4 h-4 mr-2" />
+                            Parar Câmera
+                          </Button>
+                        )}
+
+                        <Button
+                          onClick={handleSave}
+                          disabled={!lastPolygons || isSaving}
+                          className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                        >
+                          {isSaving ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                              Salvando...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-2" />
+                              Salvar Avatar
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={exportJSON}
+                          disabled={!lastPolygons}
+                          variant="outline"
+                          className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Export JSON
+                        </Button>
+
+                        <div className="ml-auto flex items-center gap-2 text-sm text-gray-600">
+                          {lastPolygons ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <span>{status}</span>
+                            </>
+                          ) : (
+                            <span>{status}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Instructions */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          Instruções
+                        </h4>
+                        <ul className="text-sm text-blue-800 space-y-1">
+                          <li>• Posicione-se de frente para a câmera</li>
+                          <li>• Certifique-se de que seu rosto e corpo estejam bem iluminados</li>
+                          <li>• Aguarde os polígonos coloridos aparecerem no seu corpo</li>
+                          <li>• Clique em "Salvar Avatar" quando a captura estiver completa</li>
+                        </ul>
+                      </div>
+
+                      {/* Existing Avatar Info */}
+                      {existingAvatar && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <h4 className="font-semibold text-green-900 mb-2">
+                            Você já possui um avatar salvo
+                          </h4>
+                          <p className="text-sm text-green-800">
+                            Capturado em: {new Date(existingAvatar.capture_timestamp).toLocaleString('pt-BR')}
+                          </p>
+                          <p className="text-xs text-green-700 mt-1">
+                            Fazer uma nova captura irá substituir o avatar anterior
+                          </p>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <Button
-                      onClick={stopCamera}
-                      variant="outline"
-                      className="border-red-500 text-red-600 hover:bg-red-50"
-                    >
-                      <CameraOff className="w-4 h-4 mr-2" />
-                      Parar Câmera
-                    </Button>
+                    <>
+                      {/* Avatar Preview */}
+                      <div className="relative w-full aspect-square bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-xl overflow-hidden flex items-center justify-center">
+                        <User className="w-32 h-32 text-[#D4AF37]/30" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <p className="text-gray-600">Preview do Avatar</p>
+                        </div>
+                      </div>
+
+                      {/* Editor Controls */}
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <Label>Formato do Rosto</Label>
+                          <Select 
+                            value={avatarEdits.faceShape} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, faceShape: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="oval">Oval</SelectItem>
+                              <SelectItem value="redondo">Redondo</SelectItem>
+                              <SelectItem value="quadrado">Quadrado</SelectItem>
+                              <SelectItem value="triangular">Triangular</SelectItem>
+                              <SelectItem value="alongado">Alongado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Formato do Nariz</Label>
+                          <Select 
+                            value={avatarEdits.noseShape} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, noseShape: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fino">Fino</SelectItem>
+                              <SelectItem value="medium">Médio</SelectItem>
+                              <SelectItem value="largo">Largo</SelectItem>
+                              <SelectItem value="arrebitado">Arrebitado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Tamanho dos Olhos</Label>
+                          <Select 
+                            value={avatarEdits.eyeSize} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, eyeSize: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pequeno">Pequeno</SelectItem>
+                              <SelectItem value="medium">Médio</SelectItem>
+                              <SelectItem value="grande">Grande</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Tamanho das Bochechas</Label>
+                          <Select 
+                            value={avatarEdits.cheekSize} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, cheekSize: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fino">Fino</SelectItem>
+                              <SelectItem value="medium">Médio</SelectItem>
+                              <SelectItem value="volumoso">Volumoso</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Tamanho da Boca</Label>
+                          <Select 
+                            value={avatarEdits.mouthSize} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, mouthSize: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pequena">Pequena</SelectItem>
+                              <SelectItem value="medium">Média</SelectItem>
+                              <SelectItem value="grande">Grande</SelectItem>
+                              <SelectItem value="volumosa">Volumosa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Estilo das Sobrancelhas</Label>
+                          <Select 
+                            value={avatarEdits.eyebrowStyle} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, eyebrowStyle: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">Natural</SelectItem>
+                              <SelectItem value="arqueada">Arqueada</SelectItem>
+                              <SelectItem value="reta">Reta</SelectItem>
+                              <SelectItem value="fina">Fina</SelectItem>
+                              <SelectItem value="grossa">Grossa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label>Tipo de Corpo</Label>
+                          <Select 
+                            value={avatarEdits.bodyType} 
+                            onValueChange={(value) => setAvatarEdits({...avatarEdits, bodyType: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="magro">Magro</SelectItem>
+                              <SelectItem value="medium">Médio</SelectItem>
+                              <SelectItem value="atletico">Atlético</SelectItem>
+                              <SelectItem value="plus">Plus Size</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => setShowEditor(false)}
+                          variant="outline"
+                          className="flex-1 border-[#E8DCC4]"
+                        >
+                          Voltar ao Scanner
+                        </Button>
+                        <Button
+                          onClick={handleSaveEdits}
+                          className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar Alterações
+                        </Button>
+                      </div>
+                    </>
                   )}
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                  <Button
-                    onClick={handleSave}
-                    disabled={!lastPolygons || isSaving}
-                    className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar Avatar
-                      </>
-                    )}
-                  </Button>
+            {/* Right: Avatar Display & Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-6"
+            >
+              {/* Captured Avatar Display */}
+              {existingAvatar && (
+                <Card className="border-[#E8DCC4] shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="font-serif text-xl flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      Seu Avatar Capturado
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative w-full aspect-square bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-xl overflow-hidden flex items-center justify-center">
+                      <User className="w-32 h-32 text-[#D4AF37]/30" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <Badge className="bg-white/90 text-gray-800">
+                          Capturado em: {new Date(existingAvatar.capture_timestamp).toLocaleString('pt-BR')}
+                        </Badge>
+                      </div>
+                    </div>
 
-                  <Button
-                    onClick={exportJSON}
-                    disabled={!lastPolygons}
-                    variant="outline"
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export JSON
-                  </Button>
-
-                  <div className="ml-auto flex items-center gap-2 text-sm text-gray-600">
-                    {lastPolygons ? (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span>{status}</span>
-                      </>
-                    ) : (
-                      <span>{status}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Instructions */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Instruções
-                  </h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• Posicione-se de frente para a câmera</li>
-                    <li>• Certifique-se de que seu rosto e corpo estejam bem iluminados</li>
-                    <li>• Aguarde os polígonos coloridos aparecerem no seu corpo</li>
-                    <li>• Clique em "Salvar Avatar" quando a captura estiver completa</li>
-                  </ul>
-                </div>
-
-                {/* Existing Avatar Info */}
-                {existingAvatar && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-900 mb-2">
-                      Você já possui um avatar salvo
-                    </h4>
-                    <p className="text-sm text-green-800">
-                      Capturado em: {new Date(existingAvatar.capture_timestamp).toLocaleString('pt-BR')}
+                    <Button
+                      onClick={() => setShowEditor(true)}
+                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Editar Avatar
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+               {!existingAvatar && (
+                <Card className="border-[#E8DCC4] shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="font-serif text-xl flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-amber-600" />
+                      Nenhum Avatar Salvo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">
+                      Capture seu avatar com a câmera para começar a editar e explorar tratamentos!
                     </p>
-                    <p className="text-xs text-green-700 mt-1">
-                      Fazer uma nova captura irá substituir o avatar anterior
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+                  </CardContent>
+                </Card>
+              )}
+            </motion.div>
+          </div>
         </div>
       </div>
+
+      {/* Dr. Beleza Dialog */}
+      <AnimatePresence>
+        {showDrBelezaDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowDrBelezaDialog(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl"
+            >
+              <Card className="border-[#E8DCC4] shadow-2xl">
+                <CardHeader className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex-shrink-0">
+                      <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                        alt="Dr. Beleza"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-serif">Dr. Beleza</CardTitle>
+                      <p className="text-white/90">Seu Assistente de Beleza</p>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-6 space-y-6">
+                  {!showQuestionnaire ? (
+                    <>
+                      <div className="space-y-4">
+                        <p className="text-lg text-gray-800">
+                          Olá! Notei que você fez algumas alterações no seu avatar. 
+                          Gostaria de conhecer tratamentos estéticos que podem te ajudar a alcançar esse visual?
+                        </p>
+
+                        <div className="bg-[#F5EFE6] rounded-lg p-4">
+                          <p className="font-semibold text-gray-800 mb-2">Tratamentos Recomendados:</p>
+                          <ul className="space-y-2">
+                            {recommendedTreatments.length > 0 ? (
+                              recommendedTreatments.map((treatment, index) => (
+                                <li key={index} className="flex items-center gap-2 text-gray-700">
+                                  <CheckCircle className="w-4 h-4 text-[#D4AF37]" />
+                                  {treatment}
+                                </li>
+                              ))
+                            ) : (
+                              <li className="text-gray-700">Nenhum tratamento específico recomendado com base nas edições.</li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => handleWantsTreatments(false)}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          Não, obrigado
+                        </Button>
+                        <Button
+                          onClick={() => handleWantsTreatments(true)}
+                          className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+                        >
+                          Sim, quero saber mais!
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-4">
+                        <p className="text-lg text-gray-800 font-semibold">
+                          Ótimo! Vamos encontrar os melhores profissionais para você:
+                        </p>
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Faixa de Investimento</Label>
+                            <Select 
+                              value={questionnaire.priceRange} 
+                              onValueChange={(value) => setQuestionnaire({...questionnaire, priceRange: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Até R$ 500">Até R$ 500</SelectItem>
+                                <SelectItem value="R$ 500 - R$ 1.000">R$ 500 - R$ 1.000</SelectItem>
+                                <SelectItem value="R$ 1.000 - R$ 2.000">R$ 1.000 - R$ 2.000</SelectItem>
+                                <SelectItem value="R$ 2.000 - R$ 5.000">R$ 2.000 - R$ 5.000</SelectItem>
+                                <SelectItem value="Acima de R$ 5.000">Acima de R$ 5.000</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-2">
+                              <Locate className="w-4 h-4 text-[#D4AF37]" />
+                              Localização
+                            </Label>
+                            <Button
+                              onClick={getUserLocationForTreatment}
+                              variant="outline"
+                              className="w-full border-[#E8DCC4]"
+                            >
+                              <Locate className="w-4 h-4 mr-2" />
+                              Usar Minha Localização
+                            </Button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Cidade</Label>
+                              <Input
+                                value={questionnaire.city}
+                                onChange={(e) => setQuestionnaire({...questionnaire, city: e.target.value})}
+                                placeholder="Sua cidade"
+                                className="border-[#E8DCC4]"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Estado</Label>
+                              <Input
+                                value={questionnaire.state}
+                                onChange={(e) => setQuestionnaire({...questionnaire, state: e.target.value})}
+                                placeholder="UF"
+                                maxLength={2}
+                                className="border-[#E8DCC4]"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => {
+                            setShowQuestionnaire(false);
+                            setWantsTreatments(null);
+                          }}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          Voltar
+                        </Button>
+                        <Button
+                          onClick={handleSearchTreatments}
+                          disabled={!questionnaire.priceRange || !questionnaire.city || !questionnaire.state}
+                          className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white disabled:opacity-50"
+                        >
+                          <Search className="w-4 h-4 mr-2" />
+                          Buscar Tratamentos
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
