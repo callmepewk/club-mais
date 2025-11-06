@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// Slider is removed as it's not used in the new outline
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -1044,7 +1043,7 @@ export default function AvatarScanner() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" {/* Added max-h and overflow */}
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
               <Card className="border-[#E8DCC4] shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
