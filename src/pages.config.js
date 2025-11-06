@@ -9,6 +9,8 @@ import Contact from './pages/Contact';
 import ClubePlus from './pages/ClubePlus';
 import DrBeleza from './pages/DrBeleza';
 import MapaDaEstetica from './pages/MapaDaEstetica';
+import BeautyCoin from './pages/BeautyCoin';
+import MapaInterativo from './pages/MapaInterativo';
 import Layout from './Layout.jsx';
 
 
@@ -24,6 +26,8 @@ export const PAGES = {
     "ClubePlus": ClubePlus,
     "DrBeleza": DrBeleza,
     "MapaDaEstetica": MapaDaEstetica,
+    "BeautyCoin": BeautyCoin,
+    "MapaInterativo": MapaInterativo,
 }
 
 export const pagesConfig = {

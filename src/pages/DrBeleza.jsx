@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,10 +126,8 @@ export default function DrBeleza() {
     setIsSearching(true);
     console.log("Searching with:", formData);
     
-    // Simulate search
     setTimeout(() => {
       setIsSearching(false);
-      // Redirect to Mapa da Estética with filters
       window.open('https://mapa-da-estetica.base44.app', '_blank');
     }, 2000);
   };
@@ -140,7 +139,7 @@ export default function DrBeleza() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
-      <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
+      <div className="relative py-12 md:py-20 px-4 md:px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             animate={{
@@ -161,14 +160,14 @@ export default function DrBeleza() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center space-y-8"
+            className="text-center space-y-6 md:space-y-8"
           >
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="inline-block"
             >
-              <div className="w-32 h-32 md:w-40 md:h-40 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-2xl border-4 border-white">
+              <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-2xl border-4 border-white">
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                   alt="Dr. Beleza"
@@ -178,21 +177,21 @@ export default function DrBeleza() {
             </motion.div>
 
             <div className="space-y-4">
-              <Badge className="bg-white/80 text-[#D4AF37] border-[#D4AF37]/20 px-4 py-2 text-base backdrop-blur-sm">
+              <Badge className="bg-white/80 text-[#D4AF37] border-[#D4AF37]/20 px-4 py-2 text-sm md:text-base backdrop-blur-sm">
                 Seu Assistente Inteligente
               </Badge>
               
-              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold">
+              <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold px-4">
                 <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                   Dr. Beleza
                 </span>
               </h1>
 
-              <p className="text-2xl md:text-3xl text-gray-700 font-medium">
+              <p className="text-xl md:text-2xl lg:text-3xl text-gray-700 font-medium px-4">
                 Encontre o Tratamento Ideal Para Você
               </p>
 
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
                 Com inteligência artificial avançada, o Dr. Beleza te ajuda a encontrar os 
                 melhores profissionais e tratamentos personalizados para suas necessidades
               </p>
@@ -202,9 +201,9 @@ export default function DrBeleza() {
       </div>
 
       {/* About Dr. Beleza */}
-      <div className="py-24 px-6">
+      <div className="py-12 md:py-24 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center mb-12 md:mb-24">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -272,42 +271,43 @@ export default function DrBeleza() {
             </motion.div>
           </div>
 
-          {/* Search Form */}
+          {/* Search Form - GARANTIR RESPONSIVIDADE TOTAL */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="w-full"
           >
-            <Card className="border-[#E8DCC4] shadow-2xl bg-white">
-              <CardHeader className="text-center p-8 border-b border-[#E8DCC4]">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-lg border-4 border-white">
+            <Card className="border-[#E8DCC4] shadow-2xl bg-white w-full">
+              <CardHeader className="text-center p-4 md:p-8 border-b border-[#E8DCC4]">
+                <div className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-lg border-4 border-white">
                   <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                     alt="Dr. Beleza"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <CardTitle className="font-serif text-3xl md:text-4xl font-bold">
+                <CardTitle className="font-serif text-2xl md:text-3xl lg:text-4xl font-bold px-2">
                   <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                     Encontre Seu Tratamento Ideal
                   </span>
                 </CardTitle>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 mt-2 text-sm md:text-base px-2">
                   Preencha os campos abaixo e deixe o Dr. Beleza encontrar os melhores profissionais para você
                 </p>
               </CardHeader>
 
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="treatment" className="text-gray-700 flex items-center gap-2">
+              <CardContent className="p-4 md:p-8 w-full">
+                <div className="space-y-6 w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="treatment" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <Search className="w-4 h-4 text-[#D4AF37]" />
                         Qual tratamento deseja?
                       </Label>
                       <Select value={formData.treatment} onValueChange={(value) => handleInputChange("treatment", value)}>
-                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione o tratamento" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
@@ -318,13 +318,13 @@ export default function DrBeleza() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="area" className="text-gray-700 flex items-center gap-2">
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="area" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
                         Área desejada
                       </Label>
                       <Select value={formData.area} onValueChange={(value) => handleInputChange("area", value)}>
-                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione a área" />
                         </SelectTrigger>
                         <SelectContent>
@@ -335,13 +335,13 @@ export default function DrBeleza() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="budget" className="text-gray-700 flex items-center gap-2">
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="budget" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <DollarSign className="w-4 h-4 text-[#D4AF37]" />
                         Valor de investimento
                       </Label>
                       <Select value={formData.budget} onValueChange={(value) => handleInputChange("budget", value)}>
-                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione o orçamento" />
                         </SelectTrigger>
                         <SelectContent>
@@ -352,13 +352,13 @@ export default function DrBeleza() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="timeframe" className="text-gray-700 flex items-center gap-2">
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="timeframe" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <Calendar className="w-4 h-4 text-[#D4AF37]" />
                         Quando deseja o tratamento?
                       </Label>
                       <Select value={formData.timeframe} onValueChange={(value) => handleInputChange("timeframe", value)}>
-                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione o prazo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -370,8 +370,8 @@ export default function DrBeleza() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-gray-700 flex items-center gap-2">
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="location" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                       <MapPin className="w-4 h-4 text-[#D4AF37]" />
                       Sua localização (opcional)
                     </Label>
@@ -380,15 +380,15 @@ export default function DrBeleza() {
                       value={formData.location}
                       onChange={(e) => handleInputChange("location", e.target.value)}
                       placeholder="Digite sua cidade ou CEP"
-                      className="border-[#E8DCC4] focus:border-[#D4AF37]"
+                      className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <div className="flex flex-col gap-4 pt-4 w-full">
                     <Button
                       onClick={handleSearch}
                       disabled={isSearching}
-                      className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
+                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-5 md:py-6 text-base md:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
                     >
                       {isSearching ? (
                         <>
@@ -407,16 +407,16 @@ export default function DrBeleza() {
                     <Button
                       onClick={handleTeleconsulta}
                       variant="outline"
-                      className="flex-1 border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] py-6 text-lg font-semibold"
+                      className="w-full border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] py-5 md:py-6 text-base md:text-lg font-semibold"
                     >
                       <Phone className="w-5 h-5 mr-2" />
                       Agendar Teleconsulta
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500 pt-4">
+                  <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-gray-500 pt-4">
                     <CheckCircle className="w-4 h-4 text-[#D4AF37]" />
-                    <span>Integrado com o Mapa da Estética - Mais de 500 profissionais verificados</span>
+                    <span className="text-center">Integrado com o Mapa da Estética - Mais de 500 profissionais verificados</span>
                   </div>
                 </div>
               </CardContent>
@@ -426,9 +426,9 @@ export default function DrBeleza() {
       </div>
 
       {/* Mapa da Estética Section */}
-      <div className="py-24 px-6 bg-gradient-to-br from-white to-[#F5EFE6]">
+      <div className="py-12 md:py-24 px-4 md:px-6 bg-gradient-to-br from-white to-[#F5EFE6]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
