@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package } from "lucide-react";
+import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package, CreditCard, Bot } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import Footer from "./components/Footer";
+import DrBelezaChat from "./components/DrBelezaChat";
 
 const navigationItems = [
   {
@@ -28,6 +29,16 @@ const navigationItems = [
     title: "Benefícios",
     url: createPageUrl("Benefits"),
     icon: Award,
+  },
+  {
+    title: "Clube+",
+    url: createPageUrl("ClubePlus"),
+    icon: CreditCard,
+  },
+  {
+    title: "Dr. Beleza",
+    url: createPageUrl("DrBeleza"),
+    icon: Bot,
   },
   {
     title: "Sobre Nós",
@@ -148,6 +159,9 @@ export default function Layout({ children, currentPageName }) {
             <Footer />
           </div>
         </main>
+
+        {/* Dr Beleza Chatbot */}
+        <DrBelezaChat />
       </div>
     </SidebarProvider>
   );
