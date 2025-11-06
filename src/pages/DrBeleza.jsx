@@ -1,5 +1,6 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,14 +14,71 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import { 
   Sparkles, Search, Calendar, DollarSign, 
   MapPin, Phone, ArrowRight, Award,
-  CheckCircle, Heart
+  CheckCircle, Heart, Locate, Map as MapIcon
 } from "lucide-react";
+import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
+
+// Fix leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const userIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+      <circle cx="12" cy="12" r="10" fill="#3B82F6" fill-opacity="0.2"/>
+      <circle cx="12" cy="12" r="3" fill="#3B82F6"/>
+    </svg>
+  `),
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+});
+
+const estabelecimentoIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 24 36">
+      <path d="M12 0C7.589 0 4 3.589 4 8c0 6.5 8 14 8 14s8-7.5 8-14c0-4.411-3.589-8-8-8z" fill="#D4AF37"/>
+      <circle cx="12" cy="8" r="3" fill="white"/>
+    </svg>
+  `),
+  iconSize: [32, 42],
+  iconAnchor: [16, 42],
+  popupAnchor: [0, -42]
+});
+
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function MapController({ center }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, 14, { duration: 1 });
+    }
+  }, [center, map]);
+  
+  return null;
+}
 
 const treatmentCategories = [
-  // Estética Facial
   "Limpeza de Pele", "Hidratação Facial", "Esfoliação", "Revitalização Facial",
   "Microagulhamento", "Skinbooster", "Preenchimento Facial", "Ácido Hialurônico",
   "Toxina Botulínica (Botox)", "Peeling Químico", "Peeling Físico", "Peeling Enzimático",
@@ -28,8 +86,6 @@ const treatmentCategories = [
   "Tratamento de Acne", "Tratamento de Melasma", "Tratamento de Manchas",
   "Tratamento de Olheiras", "Tratamento de Cicatrizes", "Tratamento de Flacidez Facial",
   "Harmonização Facial (HOF)", "Bioestimuladores de Colágeno", "Fios de Sustentação",
-  
-  // Estética Corporal
   "Criolipólise", "Ultracavitação", "Radiofrequência Corporal", "Carboxiterapia",
   "Lipoenzimática (Intradermoterapia)", "Massagem Modeladora",
   "Ondas de Choque", "Subcisão", "Endermologia",
@@ -37,37 +93,114 @@ const treatmentCategories = [
   "Ultrassom Micro e Macrofocado (HIFU)", "Correntes Russa", "Correntes Aussie",
   "Depilação a Laser", "Luz Intensa Pulsada (IPL)", "Depilação a LED",
   "Drenagem Linfática Manual", "Drenagem Pós-operatória", "Drenagem Gestacional",
-  
-  // Estética Capilar
   "Tratamento de Queda de Cabelo", "Tratamento de Alopécia", "Tratamento de Caspa",
   "Tratamento de Oleosidade Capilar", "Tratamento de Dermatite Seborreica",
   "Microagulhamento Capilar", "Mesoterapia Capilar", "Laser Capilar", "LED Capilar",
   "Transplante Capilar",
-  
-  // Estética de Mãos e Pés
   "Manicure", "Pedicure", "Estética Avançada dos Pés", "Podologia",
   "Tratamento de Unhas Encravadas", "Tratamento de Calosidades",
   "Tratamento de Micoses", "Pé Diabético",
-  
-  // Micropigmentação e Design
   "Design de Sobrancelhas", "Micropigmentação Fio a Fio", "Shadow",
   "Microblading", "Delineador Permanente", "Micropigmentação Labial",
   "Revitalização Labial", "Extensão de Cílios", "Alongamento de Cílios", "Lash Lifting",
-  
-  // Medicina Estética e Cirurgia
   "Cirurgia Plástica", "Dermatologia", "Medicina Integrativa",
   "Nutrologia", "Fisioterapia Dermato Funcional", "Pilates",
   "Nutrição Esportiva", "Nutrição Clínica", "Nutrição Funcional",
   "Psicologia da Autoestima", "Coaching de Imagem Corporal",
-  
-  // Outros
   "Acupuntura Estética", "Aromaterapia", "Terapias Holísticas",
   "Personal Training Estético", "Spa e Relaxamento"
 ];
 
-const areas = [
-  "Rosto", "Corpo", "Cabelo", "Unhas", "Pele", "Múltiplas Áreas"
-];
+// Mapeamento de tratamentos para áreas corporais
+const treatmentToAreasMap = {
+  "Limpeza de Pele": ["Rosto"],
+  "Hidratação Facial": ["Rosto"],
+  "Esfoliação": ["Rosto", "Corpo"],
+  "Revitalização Facial": ["Rosto"],
+  "Microagulhamento": ["Rosto", "Corpo", "Couro Cabeludo"],
+  "Skinbooster": ["Rosto", "Pescoço", "Colo", "Mãos"],
+  "Preenchimento Facial": ["Rosto", "Lábios", "Olheiras", "Maçãs do Rosto"],
+  "Ácido Hialurônico": ["Rosto", "Lábios", "Olheiras"],
+  "Toxina Botulínica (Botox)": ["Rosto", "Testa", "Olhos", "Pescoço"],
+  "Peeling Químico": ["Rosto", "Pescoço", "Colo", "Mãos"],
+  "Peeling Físico": ["Rosto", "Corpo"],
+  "Peeling Enzimático": ["Rosto"],
+  "Radiofrequência Facial": ["Rosto", "Pescoço", "Papada"],
+  "Microdermoabrasão": ["Rosto"],
+  "Tratamento de Acne": ["Rosto", "Costas", "Peito"],
+  "Tratamento de Melasma": ["Rosto"],
+  "Tratamento de Manchas": ["Rosto", "Corpo", "Mãos"],
+  "Tratamento de Olheiras": ["Olhos", "Área Periocular"],
+  "Tratamento de Cicatrizes": ["Rosto", "Corpo"],
+  "Tratamento de Flacidez Facial": ["Rosto", "Pescoço", "Papada"],
+  "Harmonização Facial (HOF)": ["Rosto", "Mandíbula", "Queixo", "Nariz"],
+  "Bioestimuladores de Colágeno": ["Rosto", "Pescoço", "Colo", "Glúteos"],
+  "Fios de Sustentação": ["Rosto", "Pescoço"],
+  "Criolipólise": ["Abdômen", "Flancos", "Coxas", "Braços", "Costas", "Papada"],
+  "Ultracavitação": ["Abdômen", "Flancos", "Coxas", "Braços"],
+  "Radiofrequência Corporal": ["Abdômen", "Coxas", "Braços", "Glúteos", "Costas"],
+  "Carboxiterapia": ["Abdômen", "Coxas", "Olheiras"],
+  "Lipoenzimática (Intradermoterapia)": ["Abdômen", "Flancos", "Coxas", "Papada"],
+  "Massagem Modeladora": ["Abdômen", "Coxas", "Glúteos", "Braços", "Costas"],
+  "Ondas de Choque": ["Celulite (Coxas, Glúteos)", "Estrias"],
+  "Subcisão": ["Celulite", "Cicatrizes"],
+  "Endermologia": ["Celulite", "Flacidez Corporal"],
+  "Tratamento de Celulite": ["Coxas", "Glúteos", "Abdômen"],
+  "Tratamento de Estrias": ["Abdômen", "Coxas", "Glúteos", "Seios"],
+  "Ultrassom Micro e Macrofocado (HIFU)": ["Rosto", "Pescoço", "Abdômen"],
+  "Correntes Russa": ["Abdômen", "Glúteos", "Coxas"],
+  "Correntes Aussie": ["Abdômen", "Glúteos"],
+  "Depilação a Laser": ["Rosto", "Buço", "Axilas", "Virilha", "Pernas", "Braços", "Costas", "Peito", "Abdômen"],
+  "Luz Intensa Pulsada (IPL)": ["Rosto", "Buço", "Axilas", "Virilha", "Pernas", "Braços"],
+  "Depilação a LED": ["Rosto", "Corpo"],
+  "Drenagem Linfática Manual": ["Corpo Todo", "Rosto", "Membros"],
+  "Drenagem Pós-operatória": ["Área Operada"],
+  "Drenagem Gestacional": ["Corpo Todo", "Pernas"],
+  "Tratamento de Queda de Cabelo": ["Couro Cabeludo"],
+  "Tratamento de Alopécia": ["Couro Cabeludo"],
+  "Tratamento de Caspa": ["Couro Cabeludo"],
+  "Tratamento de Oleosidade Capilar": ["Couro Cabeludo"],
+  "Tratamento de Dermatite Seborreica": ["Couro Cabeludo"],
+  "Microagulhamento Capilar": ["Couro Cabeludo"],
+  "Mesoterapia Capilar": ["Couro Cabeludo"],
+  "Laser Capilar": ["Couro Cabeludo"],
+  "LED Capilar": ["Couro Cabeludo"],
+  "Transplante Capilar": ["Couro Cabeludo"],
+  "Manicure": ["Mãos", "Unhas"],
+  "Pedicure": ["Pés", "Unhas"],
+  "Estética Avançada dos Pés": ["Pés"],
+  "Podologia": ["Pés", "Unhas"],
+  "Tratamento de Unhas Encravadas": ["Pés", "Unhas"],
+  "Tratamento de Calosidades": ["Pés"],
+  "Tratamento de Micoses": ["Pés", "Unhas"],
+  "Pé Diabético": ["Pés"],
+  "Design de Sobrancelhas": ["Sobrancelhas"],
+  "Micropigmentação Fio a Fio": ["Sobrancelhas"],
+  "Shadow": ["Sobrancelhas"],
+  "Microblading": ["Sobrancelhas"],
+  "Delineador Permanente": ["Olhos", "Pálpebras"],
+  "Micropigmentação Labial": ["Lábios"],
+  "Revitalização Labial": ["Lábios"],
+  "Extensão de Cílios": ["Cílios"],
+  "Alongamento de Cílios": ["Cílios"],
+  "Lash Lifting": ["Cílios"],
+  "Cirurgia Plástica": ["Múltiplas Áreas"],
+  "Dermatologia": ["Pele (Corpo Todo)"],
+  "Medicina Integrativa": ["Corpo Todo"],
+  "Nutrologia": ["Corpo Todo"],
+  "Fisioterapia Dermato Funcional": ["Múltiplas Áreas"],
+  "Pilates": ["Corpo Todo"],
+  "Nutrição Esportiva": ["Corpo Todo"],
+  "Nutrição Clínica": ["Corpo Todo"],
+  "Nutrição Funcional": ["Corpo Todo"],
+  "Psicologia da Autoestima": ["Mental"],
+  "Coaching de Imagem Corporal": ["Mental"],
+  "Acupuntura Estética": ["Rosto", "Corpo"],
+  "Aromaterapia": ["Corpo Todo"],
+  "Terapias Holísticas": ["Corpo Todo"],
+  "Personal Training Estético": ["Corpo Todo"],
+  "Spa e Relaxamento": ["Corpo Todo"]
+};
 
 const budgets = [
   "Até R$ 500",
@@ -83,6 +216,25 @@ const timeframes = [
   "Próximos 30 dias",
   "Próximos 3 meses",
   "Planejando para depois"
+];
+
+const estados = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
+  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
+  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
+
+const distanceRanges = [
+  { value: "0.5", label: "Até 500m" },
+  { value: "1", label: "500m - 1km" },
+  { value: "2", label: "1km - 2km" },
+  { value: "5", label: "2km - 5km" },
+  { value: "10", label: "5km - 10km" },
+  { value: "20", label: "10km - 20km" },
+  { value: "50", label: "20km - 50km" },
+  { value: "100", label: "50km - 100km" },
+  { value: "500", label: "100km - 500km" },
+  { value: "all", label: "Todas as distâncias" }
 ];
 
 const features = [
@@ -114,26 +266,118 @@ export default function DrBeleza() {
     area: "",
     budget: "",
     timeframe: "",
-    location: ""
+    city: "",
+    state: "",
+    useCurrentLocation: false,
+    maxDistance: "all"
   });
   const [isSearching, setIsSearching] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
+  const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]);
+  const [showResults, setShowResults] = useState(false);
+
+  const { data: estabelecimentos = [] } = useQuery({
+    queryKey: ['estabelecimentos'],
+    queryFn: () => base44.entities.EstabelecimentoParceiro.list(),
+    initialData: [],
+  });
+
+  const availableAreas = useMemo(() => {
+    if (!formData.treatment) {
+      return ["Selecione um tratamento primeiro"];
+    }
+    return treatmentToAreasMap[formData.treatment] || ["Área não especificada"];
+  }, [formData.treatment]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      if (field === "treatment") {
+        newData.area = "";
+      }
+      return newData;
+    });
   };
+
+  const getUserLocation = () => {
+    setLoadingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = [position.coords.latitude, position.coords.longitude];
+          setUserLocation(location);
+          setMapCenter(location);
+          setFormData(prev => ({ ...prev, useCurrentLocation: true }));
+          setLoadingLocation(false);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+  };
+
+  const filteredEstabelecimentos = useMemo(() => {
+    if (!showResults) return [];
+
+    return estabelecimentos
+      .filter(est => {
+        const matchCity = !formData.city || 
+          est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
+        
+        const matchState = !formData.state || 
+          est.estado === formData.state;
+
+        return matchCity && matchState;
+      })
+      .map(est => ({
+        ...est,
+        distancia: userLocation ? calcularDistancia(
+          userLocation[0],
+          userLocation[1],
+          est.latitude,
+          est.longitude
+        ) : null
+      }))
+      .filter(est => {
+        if (formData.maxDistance === "all") return true;
+        if (!est.distancia) return true;
+        return est.distancia <= parseFloat(formData.maxDistance);
+      })
+      .sort((a, b) => {
+        if (a.distancia === null) return 1;
+        if (b.distancia === null) return -1;
+        return a.distancia - b.distancia;
+      });
+  }, [estabelecimentos, formData.city, formData.state, formData.maxDistance, userLocation, showResults]);
 
   const handleSearch = () => {
     setIsSearching(true);
-    console.log("Searching with:", formData);
+    setShowResults(true);
     
     setTimeout(() => {
       setIsSearching(false);
-      window.open('https://mapa-da-estetica.base44.app', '_blank');
-    }, 2000);
+      if (filteredEstabelecimentos.length > 0 && filteredEstabelecimentos[0].latitude) {
+        setMapCenter([filteredEstabelecimentos[0].latitude, filteredEstabelecimentos[0].longitude]);
+      }
+    }, 1000);
   };
 
   const handleTeleconsulta = () => {
     window.open('https://wa.me/5531972595643?text=Olá! Gostaria de agendar uma teleconsulta.', '_blank');
+  };
+
+  const handleSelectEstabelecimento = (est) => {
+    setSelectedEstabelecimento(est);
+    setMapCenter([est.latitude, est.longitude]);
   };
 
   return (
@@ -200,78 +444,9 @@ export default function DrBeleza() {
         </div>
       </div>
 
-      {/* About Dr. Beleza */}
+      {/* Search Form */}
       <div className="py-12 md:py-24 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center mb-12 md:mb-24">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="space-y-6"
-            >
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#F5EFE6] rounded-full border border-[#D4AF37]/20">
-                  <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                  <span className="text-sm font-medium text-[#C8A882]">
-                    Tecnologia de Ponta
-                  </span>
-                </div>
-
-                <h2 className="font-serif text-4xl md:text-5xl font-bold">
-                  <span className="text-gray-800">Quem é o</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                    Dr. Beleza?
-                  </span>
-                </h2>
-              </div>
-
-              <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
-                <p>
-                  O <strong className="text-[#C8A882]">Dr. Beleza</strong> é seu assistente virtual 
-                  inteligente, desenvolvido com tecnologia de IA avançada para ajudar você a encontrar 
-                  o tratamento estético perfeito.
-                </p>
-
-                <p>
-                  Conectado ao <strong className="text-[#C8A882]">Mapa da Estética</strong>, nossa 
-                  plataforma com mais de 500 profissionais verificados em todo Brasil, o Dr. Beleza 
-                  analisa suas necessidades, preferências e localização para recomendar os melhores 
-                  profissionais e tratamentos.
-                </p>
-
-                <p>
-                  Com poucos cliques, você terá acesso a informações detalhadas, avaliações reais, 
-                  preços transparentes e poderá agendar consultas diretamente com os profissionais.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="grid grid-cols-2 gap-6">
-                {features.map((feature, index) => (
-                  <Card key={index} className="border-[#E8DCC4] hover:border-[#D4AF37] transition-all duration-300 hover:shadow-xl bg-white">
-                    <CardContent className="p-6 space-y-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#C8A882] flex items-center justify-center shadow-lg">
-                        <feature.icon className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-semibold text-gray-800">{feature.title}</h3>
-                      <p className="text-sm text-gray-600">{feature.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Search Form - GARANTIR RESPONSIVIDADE TOTAL */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -323,12 +498,16 @@ export default function DrBeleza() {
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
                         Área desejada
                       </Label>
-                      <Select value={formData.area} onValueChange={(value) => handleInputChange("area", value)}>
+                      <Select 
+                        value={formData.area} 
+                        onValueChange={(value) => handleInputChange("area", value)}
+                        disabled={!formData.treatment}
+                      >
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                          <SelectValue placeholder="Selecione a área" />
+                          <SelectValue placeholder={formData.treatment ? "Selecione a área" : "Selecione primeiro o tratamento"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {areas.map((area) => (
+                          {availableAreas.map((area) => (
                             <SelectItem key={area} value={area}>{area}</SelectItem>
                           ))}
                         </SelectContent>
@@ -368,20 +547,90 @@ export default function DrBeleza() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
 
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="location" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                      <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                      Sua localização (opcional)
-                    </Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange("location", e.target.value)}
-                      placeholder="Digite sua cidade ou CEP"
-                      className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                    />
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Cidade
+                      </Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange("city", e.target.value)}
+                        placeholder="Digite sua cidade"
+                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Estado
+                      </Label>
+                      <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                          <SelectValue placeholder="Selecione o estado" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          <SelectItem value={null}>Todos os estados</SelectItem>
+                          {estados.map((estado) => (
+                            <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <Locate className="w-4 h-4 text-[#D4AF37]" />
+                        Localização
+                      </Label>
+                      <Button
+                        type="button"
+                        onClick={getUserLocation}
+                        disabled={loadingLocation}
+                        variant="outline"
+                        className="w-full border-[#E8DCC4] hover:border-[#D4AF37] hover:bg-[#F5EFE6]"
+                      >
+                        {loadingLocation ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37] mr-2" />
+                            Obtendo...
+                          </>
+                        ) : userLocation ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                            Localização Ativada
+                          </>
+                        ) : (
+                          <>
+                            <Locate className="w-4 h-4 mr-2" />
+                            Usar Localização Atual
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="maxDistance" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapIcon className="w-4 h-4 text-[#D4AF37]" />
+                        Distância Máxima
+                      </Label>
+                      <Select 
+                        value={formData.maxDistance} 
+                        onValueChange={(value) => handleInputChange("maxDistance", value)}
+                        disabled={!userLocation}
+                      >
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                          <SelectValue placeholder={userLocation ? "Selecione a distância" : "Ative a localização primeiro"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {distanceRanges.map((range) => (
+                            <SelectItem key={range.value} value={range.value}>{range.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-4 pt-4 w-full">
@@ -422,105 +671,104 @@ export default function DrBeleza() {
               </CardContent>
             </Card>
           </motion.div>
-        </div>
-      </div>
 
-      {/* Mapa da Estética Section */}
-      <div className="py-12 md:py-24 px-4 md:px-6 bg-gradient-to-br from-white to-[#F5EFE6]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center">
+          {/* Results Section with Map */}
+          {showResults && (
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-6"
+              className="mt-12"
             >
-              <div className="space-y-4">
-                <h2 className="font-serif text-4xl md:text-5xl font-bold">
-                  <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                    Mapa da Estética
-                  </span>
-                  <br />
-                  <span className="text-gray-800">Conectando Você aos Melhores</span>
-                </h2>
-              </div>
-
-              <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
-                <p>
-                  O <strong className="text-[#C8A882]">Mapa da Estética</strong> é a maior plataforma 
-                  de busca e conexão com profissionais de beleza e estética do Brasil.
-                </p>
-
-                <p>
-                  Com mais de <strong className="text-[#C8A882]">500 profissionais certificados</strong> e 
-                  verificados, você encontra especialistas em mais de 12 categorias diferentes, desde 
-                  depilação a laser até harmonização facial e cirurgia plástica.
-                </p>
-
-                <ul className="space-y-3">
-                  {[
-                    "Busca por localização e geolocalização",
-                    "Perfis completos com fotos e portfólio",
-                    "Avaliações e depoimentos reais de clientes",
-                    "Preços transparentes e comparação fácil",
-                    "Agendamento online direto com o profissional",
-                    "Assistente virtual Dr. Beleza com IA"
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <a href="https://mapa-da-estetica.base44.app" target="_blank" rel="noopener noreferrer">
-                <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
-                >
-                  Acessar Mapa da Estética
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </a>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative"
-            >
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/0067369f9_mapainicioimg.jpg"
-                  alt="Mapa da Estética"
-                  className="w-full h-[600px] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                
-                {/* Stats Overlay */}
-                <div className="absolute bottom-8 left-8 right-8 space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: "Profissionais", value: "500+" },
-                      { label: "Cidades", value: "50+" },
-                      { label: "Categorias", value: "12+" }
-                    ].map((stat, index) => (
-                      <div key={index} className="bg-white/90 backdrop-blur-sm rounded-xl p-4 text-center">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                          {stat.value}
+              <Card className="border-[#E8DCC4] shadow-2xl bg-white">
+                <CardHeader>
+                  <CardTitle className="font-serif text-2xl md:text-3xl">
+                    <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                      Resultados da Busca
+                    </span>
+                  </CardTitle>
+                  <p className="text-gray-600 mt-2">
+                    {filteredEstabelecimentos.length} estabelecimento(s) encontrado(s)
+                  </p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="grid lg:grid-cols-3 gap-0">
+                    {/* List */}
+                    <div className="lg:col-span-1 p-4 md:p-6 space-y-4 max-h-[600px] overflow-y-auto border-r border-[#E8DCC4]">
+                      {filteredEstabelecimentos.length === 0 ? (
+                        <div className="text-center py-8">
+                          <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                          <p className="text-gray-600">Nenhum estabelecimento encontrado</p>
+                          <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros</p>
                         </div>
-                        <div className="text-xs text-gray-600 mt-1">{stat.label}</div>
-                      </div>
-                    ))}
+                      ) : (
+                        filteredEstabelecimentos.map((est) => (
+                          <CardEstabelecimento
+                            key={est.id}
+                            estabelecimento={est}
+                            distancia={est.distancia}
+                            onSelect={handleSelectEstabelecimento}
+                            isSelected={selectedEstabelecimento?.id === est.id}
+                          />
+                        ))
+                      )}
+                    </div>
+
+                    {/* Map */}
+                    <div className="lg:col-span-2 h-[400px] md:h-[600px]">
+                      <MapContainer
+                        center={mapCenter}
+                        zoom={13}
+                        style={{ height: '100%', width: '100%' }}
+                        className="z-0"
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        
+                        <MapController center={mapCenter} />
+
+                        {userLocation && (
+                          <Marker position={userLocation} icon={userIcon}>
+                            <Popup>
+                              <div className="text-center p-2">
+                                <p className="font-semibold text-blue-600">Você está aqui</p>
+                              </div>
+                            </Popup>
+                          </Marker>
+                        )}
+
+                        {filteredEstabelecimentos.map((est) => (
+                          <Marker
+                            key={est.id}
+                            position={[est.latitude, est.longitude]}
+                            icon={estabelecimentoIcon}
+                            eventHandlers={{
+                              click: () => handleSelectEstabelecimento(est)
+                            }}
+                          >
+                            <Popup>
+                              <div className="p-2 min-w-[200px]">
+                                <h3 className="font-serif font-bold text-gray-800 mb-1">{est.nome}</h3>
+                                <p className="text-sm text-[#C8A882] mb-2">{est.categoria}</p>
+                                <p className="text-xs text-gray-600 mb-2">{est.endereco}</p>
+                                {est.distancia !== null && (
+                                  <Badge className="bg-[#F5EFE6] text-[#D4AF37] text-xs">
+                                    {est.distancia.toFixed(1)} km de você
+                                  </Badge>
+                                )}
+                              </div>
+                            </Popup>
+                          </Marker>
+                        ))}
+                      </MapContainer>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </motion.div>
-          </div>
+          )}
         </div>
       </div>
     </div>
