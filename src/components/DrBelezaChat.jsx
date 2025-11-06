@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Sparkles } from "lucide-react";
+import { X, Send, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -84,9 +84,13 @@ export default function DrBelezaChat() {
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] shadow-2xl hover:shadow-3xl transition-all duration-300 group"
+              className="w-20 h-20 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] shadow-2xl hover:shadow-3xl transition-all duration-300 group p-0 overflow-hidden border-4 border-white"
             >
-              <MessageCircle className="w-7 h-7 text-white group-hover:scale-110 transition-transform" />
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                alt="Dr. Beleza"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+              />
             </Button>
           </motion.div>
         )}
@@ -105,8 +109,12 @@ export default function DrBelezaChat() {
               <CardHeader className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                      <Sparkles className="w-5 h-5" />
+                    <div className="w-12 h-12 bg-white rounded-full overflow-hidden border-2 border-white/20">
+                      <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                        alt="Dr. Beleza"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <CardTitle className="text-lg font-serif">Dr. Beleza</CardTitle>
@@ -134,6 +142,15 @@ export default function DrBelezaChat() {
                       animate={{ opacity: 1, y: 0 }}
                       className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
                     >
+                      {message.type === "bot" && (
+                        <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex-shrink-0">
+                          <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                            alt="Dr. Beleza"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
                       <div
                         className={`max-w-[80%] p-3 rounded-2xl ${
                           message.type === "user"

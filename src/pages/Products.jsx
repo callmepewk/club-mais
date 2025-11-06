@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ const products = [
     icon: MapPin,
     color: "from-[#D4AF37] to-[#C8A882]",
     url: "https://mapa-da-estetica.base44.app",
-    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/0067369f9_mapainicioimg.jpg",
     features: [
       "Busca por localização e especialidade",
       "Perfis verificados de profissionais",
@@ -37,7 +38,7 @@ const products = [
     icon: Zap,
     color: "from-[#C8A882] to-[#E8DCC4]",
     url: "https://laser-code-pro.base44.app",
-    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/b5c2dbd3d_lasercodeinicioimg.jpg",
     features: [
       "Protocolos personalizados por tipo de pele",
       "Gestão completa de clientes",
@@ -58,7 +59,7 @@ const products = [
     icon: Stethoscope,
     color: "from-[#D4AF37] to-[#C8A882]",
     url: "https://dr-spok-pd.base44.app",
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/c7ece5305_drspokinicioimg.jpg",
     features: [
       "Consultas online com especialistas",
       "Prontuário eletrônico seguro",

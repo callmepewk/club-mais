@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Crown, Award, Users, Sparkles, Star, 
   TrendingUp, CheckCircle, Gift, Target, Briefcase,
-  ArrowRight, Zap
+  ArrowRight, Zap, Stethoscope
 } from "lucide-react";
 
 const benefits = [
@@ -79,7 +80,7 @@ export default function GoldenDoctors() {
               className="inline-block"
             >
               <div className="w-24 h-24 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl border-4 border-white/30">
-                <Crown className="w-12 h-12 text-white" />
+                <Stethoscope className="w-12 h-12 text-white" />
               </div>
             </motion.div>
 

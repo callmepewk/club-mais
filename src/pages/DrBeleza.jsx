@@ -13,30 +13,59 @@ import {
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { 
-  Bot, Sparkles, Search, Calendar, DollarSign, 
-  MapPin, Phone, ArrowRight, Stethoscope, Award,
+  Sparkles, Search, Calendar, DollarSign, 
+  MapPin, Phone, ArrowRight, Award,
   CheckCircle, Heart
 } from "lucide-react";
 
 const treatmentCategories = [
-  "Depilação a Laser",
-  "Harmonização Facial",
-  "Estética Corporal",
-  "Estética Facial",
-  "Massoterapia",
-  "Micropigmentação",
-  "Dermatologia",
-  "Cirurgia Plástica",
-  "Outros"
+  // Estética Facial
+  "Limpeza de Pele", "Hidratação Facial", "Esfoliação", "Revitalização Facial",
+  "Microagulhamento", "Skinbooster", "Preenchimento Facial", "Ácido Hialurônico",
+  "Toxina Botulínica (Botox)", "Peeling Químico", "Peeling Físico", "Peeling Enzimático",
+  "Radiofrequência Facial", "Microdermoabrasão",
+  "Tratamento de Acne", "Tratamento de Melasma", "Tratamento de Manchas",
+  "Tratamento de Olheiras", "Tratamento de Cicatrizes", "Tratamento de Flacidez Facial",
+  "Harmonização Facial (HOF)", "Bioestimuladores de Colágeno", "Fios de Sustentação",
+  
+  // Estética Corporal
+  "Criolipólise", "Ultracavitação", "Radiofrequência Corporal", "Carboxiterapia",
+  "Lipoenzimática (Intradermoterapia)", "Massagem Modeladora",
+  "Ondas de Choque", "Subcisão", "Endermologia",
+  "Tratamento de Celulite", "Tratamento de Estrias",
+  "Ultrassom Micro e Macrofocado (HIFU)", "Correntes Russa", "Correntes Aussie",
+  "Depilação a Laser", "Luz Intensa Pulsada (IPL)", "Depilação a LED",
+  "Drenagem Linfática Manual", "Drenagem Pós-operatória", "Drenagem Gestacional",
+  
+  // Estética Capilar
+  "Tratamento de Queda de Cabelo", "Tratamento de Alopécia", "Tratamento de Caspa",
+  "Tratamento de Oleosidade Capilar", "Tratamento de Dermatite Seborreica",
+  "Microagulhamento Capilar", "Mesoterapia Capilar", "Laser Capilar", "LED Capilar",
+  "Transplante Capilar",
+  
+  // Estética de Mãos e Pés
+  "Manicure", "Pedicure", "Estética Avançada dos Pés", "Podologia",
+  "Tratamento de Unhas Encravadas", "Tratamento de Calosidades",
+  "Tratamento de Micoses", "Pé Diabético",
+  
+  // Micropigmentação e Design
+  "Design de Sobrancelhas", "Micropigmentação Fio a Fio", "Shadow",
+  "Microblading", "Delineador Permanente", "Micropigmentação Labial",
+  "Revitalização Labial", "Extensão de Cílios", "Alongamento de Cílios", "Lash Lifting",
+  
+  // Medicina Estética e Cirurgia
+  "Cirurgia Plástica", "Dermatologia", "Medicina Integrativa",
+  "Nutrologia", "Fisioterapia Dermato Funcional", "Pilates",
+  "Nutrição Esportiva", "Nutrição Clínica", "Nutrição Funcional",
+  "Psicologia da Autoestima", "Coaching de Imagem Corporal",
+  
+  // Outros
+  "Acupuntura Estética", "Aromaterapia", "Terapias Holísticas",
+  "Personal Training Estético", "Spa e Relaxamento"
 ];
 
 const areas = [
-  "Rosto",
-  "Corpo",
-  "Cabelo",
-  "Unhas",
-  "Pele",
-  "Múltiplas Áreas"
+  "Rosto", "Corpo", "Cabelo", "Unhas", "Pele", "Múltiplas Áreas"
 ];
 
 const budgets = [
@@ -57,7 +86,7 @@ const timeframes = [
 
 const features = [
   {
-    icon: Bot,
+    icon: Heart,
     title: "Inteligência Artificial",
     description: "Tecnologia avançada para encontrar o tratamento perfeito"
   },
@@ -139,8 +168,12 @@ export default function DrBeleza() {
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="inline-block"
             >
-              <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center shadow-2xl">
-                <Bot className="w-12 h-12 text-white" />
+              <div className="w-32 h-32 md:w-40 md:h-40 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-2xl border-4 border-white">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                  alt="Dr. Beleza"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </motion.div>
 
@@ -248,8 +281,12 @@ export default function DrBeleza() {
           >
             <Card className="border-[#E8DCC4] shadow-2xl bg-white">
               <CardHeader className="text-center p-8 border-b border-[#E8DCC4]">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center shadow-lg">
-                  <Search className="w-8 h-8 text-white" />
+                <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-lg border-4 border-white">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                    alt="Dr. Beleza"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <CardTitle className="font-serif text-3xl md:text-4xl font-bold">
                   <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
@@ -266,14 +303,14 @@ export default function DrBeleza() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="treatment" className="text-gray-700 flex items-center gap-2">
-                        <Stethoscope className="w-4 h-4 text-[#D4AF37]" />
+                        <Search className="w-4 h-4 text-[#D4AF37]" />
                         Qual tratamento deseja?
                       </Label>
                       <Select value={formData.treatment} onValueChange={(value) => handleInputChange("treatment", value)}>
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
                           <SelectValue placeholder="Selecione o tratamento" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px]">
                           {treatmentCategories.map((cat) => (
                             <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                           ))}
@@ -458,7 +495,7 @@ export default function DrBeleza() {
             >
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/0067369f9_mapainicioimg.jpg"
                   alt="Mapa da Estética"
                   className="w-full h-[600px] object-cover"
                 />
