@@ -11,6 +11,10 @@ import DrBeleza from './pages/DrBeleza';
 import MapaDaEstetica from './pages/MapaDaEstetica';
 import BeautyCoin from './pages/BeautyCoin';
 import MapaInterativo from './pages/MapaInterativo';
+import EdBeauty from './pages/EdBeauty';
+import EdBeautyUpload from './pages/EdBeautyUpload';
+import EdBeautyPlans from './pages/EdBeautyPlans';
+import MyPlan from './pages/MyPlan';
 import Layout from './Layout.jsx';
 
 
@@ -28,6 +32,10 @@ export const PAGES = {
     "MapaDaEstetica": MapaDaEstetica,
     "BeautyCoin": BeautyCoin,
     "MapaInterativo": MapaInterativo,
+    "EdBeauty": EdBeauty,
+    "EdBeautyUpload": EdBeautyUpload,
+    "EdBeautyPlans": EdBeautyPlans,
+    "MyPlan": MyPlan,
 }
 
 export const pagesConfig = {

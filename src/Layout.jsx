@@ -37,6 +37,11 @@ const navigationItems = [
     icon: CreditCard,
   },
   {
+    title: "EdBeauty",
+    url: createPageUrl("EdBeauty"),
+    icon: Bot,
+  },
+  {
     title: "Dr. Beleza",
     url: createPageUrl("DrBeleza"),
     icon: Bot,
@@ -55,6 +60,11 @@ const navigationItems = [
     title: "Beauty Coin",
     url: createPageUrl("BeautyCoin"),
     icon: Coins,
+  },
+  {
+    title: "Meu Plano",
+    url: createPageUrl("MyPlan"),
+    icon: CreditCard,
   },
   {
     title: "Sobre Nós",
