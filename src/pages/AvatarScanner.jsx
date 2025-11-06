@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+// Slider is removed as it's not used in the new outline
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -47,7 +47,10 @@ export default function AvatarScanner() {
     cheekSize: 'medium',
     mouthSize: 'medium',
     eyebrowStyle: 'normal',
-    bodyType: 'medium'
+    bodyType: 'medium',
+    skinColor: '#f5d1b3', // Added
+    hairStyle: 'short',   // Added
+    hairColor: '#2b1b10'  // Added
   });
   const [showDrBelezaDialog, setShowDrBelezaDialog] = useState(false);
   const [wantsTreatments, setWantsTreatments] = useState(null);
@@ -97,8 +100,7 @@ export default function AvatarScanner() {
 
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
-    canvas.style.width = video.offsetWidth + 'px';
-    canvas.style.height = video.offsetHeight + 'px';
+    // Removed canvas.style.width and canvas.style.height, relying on CSS for display
   };
 
   const lmToPixel = (lm, canvas) => {
@@ -109,29 +111,7 @@ export default function AvatarScanner() {
     };
   };
 
-  const lmListToNormalized = (landmarks) => {
-    return landmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-  };
-
-  const convexHull = (points) => {
-    if (points.length <= 3) return points.map((_, i) => i);
-    const pts = points.map((p, i) => ({ x: p.x, y: p.y, i }));
-    pts.sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
-    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-    const lower = [];
-    for (const p of pts) {
-      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
-      lower.push(p);
-    }
-    const upper = [];
-    for (let i = pts.length - 1; i >= 0; i--) {
-      const p = pts[i];
-      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
-      upper.push(p);
-    }
-    const hull = lower.slice(0, lower.length - 1).concat(upper.slice(0, upper.length - 1));
-    return Array.from(new Set(hull.map(h => h.i)));
-  };
+  // lmListToNormalized and convexHull are removed as they are no longer used by the new onResults logic.
 
   const drawPolygon = (ctx, points, style = {}) => {
     const defaults = { 
@@ -168,116 +148,71 @@ export default function AvatarScanner() {
     const pose = results.poseLandmarks || null;
     const face = results.faceLandmarks || null;
 
-    // Draw pose keypoints
-    if (pose) {
-      for (const lm of pose) {
-        const p = lmToPixel(lm, canvas);
-        ctx.fillStyle = 'rgba(0,200,255,0.6)';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    const polygons = {
-      face: face ? lmListToNormalized(face) : [],
-      neck: [],
-      torso: [],
-      leftArm: [],
-      rightArm: [],
-      leftLeg: [],
-      rightLeg: []
-    };
-
-    // Face polygon
+    // Draw face mesh with golden color
     if (face && face.length > 0) {
-      const facePixels = face.map(lm => lmToPixel(lm, canvas));
-      const hullIdx = convexHull(facePixels);
-      const facePixForDraw = hullIdx.map(i => facePixels[i]);
-      drawPolygon(ctx, facePixForDraw, { 
-        stroke: '#D4AF37', 
-        fill: 'rgba(212,175,55,0.1)', 
-        lineWidth: 2 
+      // Draw face contour
+      const faceContour = [
+        10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
+        397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
+        172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
+      ];
+      
+      const contourPoints = faceContour.map(i => lmToPixel(face[i], canvas));
+      drawPolygon(ctx, contourPoints, {
+        stroke: '#D4AF37',
+        fill: 'rgba(212,175,55,0.15)',
+        lineWidth: 3
       });
+
+      // Draw eyes
+      const leftEyeIndices = [33, 160, 158, 133, 153, 144];
+      const rightEyeIndices = [362, 385, 387, 263, 373, 380];
+      
+      const leftEyePoints = leftEyeIndices.map(i => lmToPixel(face[i], canvas));
+      const rightEyePoints = rightEyeIndices.map(i => lmToPixel(face[i], canvas));
+      
+      drawPolygon(ctx, leftEyePoints, { stroke: '#8ecae6', fill: 'rgba(142,202,230,0.2)', lineWidth: 2 });
+      drawPolygon(ctx, rightEyePoints, { stroke: '#8ecae6', fill: 'rgba(142,202,230,0.2)', lineWidth: 2 });
+
+      // Draw mouth
+      const mouthIndices = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291];
+      const mouthPoints = mouthIndices.map(i => lmToPixel(face[i], canvas));
+      drawPolygon(ctx, mouthPoints, { stroke: '#FF6B9D', fill: 'rgba(255,107,157,0.2)', lineWidth: 2 });
+
+      // Draw nose
+      const noseIndices = [1, 2, 98, 327];
+      const nosePoints = noseIndices.map(i => lmToPixel(face[i], canvas));
+      drawPolygon(ctx, nosePoints, { stroke: '#C8A882', fill: 'rgba(200,168,130,0.15)', lineWidth: 2 });
     }
 
-    if (pose) {
-      const idx = (i) => pose[i];
-      const leftShoulder = idx(11), rightShoulder = idx(12);
-      const leftHip = idx(23), rightHip = idx(24);
-      const leftElbow = idx(13), leftWrist = idx(15);
-      const rightElbow = idx(14), rightWrist = idx(16);
-      const leftKnee = idx(25), rightKnee = idx(26);
-      const leftAnkle = idx(27), rightAnkle = idx(28);
-      const nose = idx(0);
+    // Draw pose skeleton
+    if (pose && pose.length >= 33) {
+      const connections = [
+        [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
+        [11, 23], [12, 24], [23, 24], // Torso
+        [23, 25], [25, 27], [24, 26], [26, 28] // Legs
+      ];
 
-      // Torso
-      if (leftShoulder && rightShoulder && leftHip && rightHip) {
-        const torsoPixels = [leftShoulder, rightShoulder, rightHip, leftHip].map(lm => lmToPixel(lm, canvas));
-        drawPolygon(ctx, torsoPixels, { 
-          stroke: '#C8A882', 
-          fill: 'rgba(200,168,130,0.08)' 
-        });
-        polygons.torso = [leftShoulder, rightShoulder, rightHip, leftHip].map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-      }
-
-      // Neck
-      if (leftShoulder && rightShoulder && nose) {
-        const midShoulder = {
-          x: (leftShoulder.x + rightShoulder.x) / 2,
-          y: (leftShoulder.y + rightShoulder.y) / 2,
-          z: ((leftShoulder.z || 0) + (rightShoulder.z || 0)) / 2
-        };
-        const neckPoint = {
-          x: (midShoulder.x + nose.x) / 2,
-          y: (midShoulder.y + nose.y) / 2,
-          z: (midShoulder.z + (nose.z || 0)) / 2
-        };
-        const neckPixel = lmToPixel(neckPoint, canvas);
-        ctx.fillStyle = 'rgba(212,175,55,0.9)';
+      connections.forEach(([i, j]) => {
+        const pt1 = lmToPixel(pose[i], canvas);
+        const pt2 = lmToPixel(pose[j], canvas);
+        
         ctx.beginPath();
-        ctx.arc(neckPixel.x, neckPixel.y, 4, 0, Math.PI * 2);
+        ctx.moveTo(pt1.x, pt1.y);
+        ctx.lineTo(pt2.x, pt2.y);
+        ctx.strokeStyle = '#00c2a8';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      });
+
+      // Draw joints
+      [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
+        const pt = lmToPixel(pose[i], canvas);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#D4AF37';
         ctx.fill();
-        polygons.neck = [{ x: neckPoint.x, y: neckPoint.y, z: neckPoint.z }];
-      }
-
-      // Arms
-      if (leftShoulder && leftElbow && leftWrist) {
-        const leftArmPts = [leftShoulder, leftElbow, leftWrist].map(lm => lmToPixel(lm, canvas));
-        drawPolygon(ctx, leftArmPts, { 
-          stroke: '#8ecae6', 
-          fill: 'rgba(142,202,230,0.04)' 
-        });
-        polygons.leftArm = [leftShoulder, leftElbow, leftWrist].map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-      }
-
-      if (rightShoulder && rightElbow && rightWrist) {
-        const rightArmPts = [rightShoulder, rightElbow, rightWrist].map(lm => lmToPixel(lm, canvas));
-        drawPolygon(ctx, rightArmPts, { 
-          stroke: '#8ecae6', 
-          fill: 'rgba(142,202,230,0.04)' 
-        });
-        polygons.rightArm = [rightShoulder, rightElbow, rightWrist].map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-      }
-
-      // Legs
-      if (leftHip && leftKnee && leftAnkle) {
-        const leftLegPts = [leftHip, leftKnee, leftAnkle].map(lm => lmToPixel(lm, canvas));
-        drawPolygon(ctx, leftLegPts, { 
-          stroke: '#f28482', 
-          fill: 'rgba(242,132,130,0.04)' 
-        });
-        polygons.leftLeg = [leftHip, leftKnee, leftAnkle].map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-      }
-
-      if (rightHip && rightKnee && rightAnkle) {
-        const rightLegPts = [rightHip, rightKnee, rightAnkle].map(lm => lmToPixel(lm, canvas));
-        drawPolygon(ctx, rightLegPts, { 
-          stroke: '#f28482', 
-          fill: 'rgba(242,132,130,0.04)' 
-        });
-        polygons.rightLeg = [rightHip, rightKnee, rightAnkle].map(lm => ({ x: lm.x, y: lm.y, z: lm.z ?? 0 }));
-      }
+      });
     }
 
     setLastPolygons({
@@ -286,7 +221,10 @@ export default function AvatarScanner() {
         height: canvas.height,
         timestamp: Date.now()
       },
-      parts: polygons
+      parts: {
+        face: face || [],
+        pose: pose || []
+      }
     });
 
     setStatus('Detectado — pronto para salvar');
@@ -297,7 +235,7 @@ export default function AvatarScanner() {
       stopCamera();
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 1280 },
+        video: { facingMode: 'user', width: 1280, height: 720 }, // Updated resolution
         audio: false
       });
 
@@ -305,10 +243,17 @@ export default function AvatarScanner() {
         videoRef.current.srcObject = mediaStream;
         await videoRef.current.play();
         setStream(mediaStream);
-        fitCanvas();
+        
+        // Wait for video to be ready before fitting canvas
+        await new Promise(resolve => {
+          videoRef.current.onloadedmetadata = () => {
+            fitCanvas();
+            resolve();
+          };
+        });
 
         if (!window.Holistic) {
-          throw new Error('MediaPipe Holistic não foi carregado. Verifique a conexão com a internet ou os scripts.');
+          throw new Error('MediaPipe Holistic não foi carregado');
         }
 
         const { Holistic } = window;
@@ -340,7 +285,6 @@ export default function AvatarScanner() {
             await holisticRef.current.send({ image: videoRef.current });
           } catch (err) {
             console.error('Error sending frame:', err);
-            return;
           }
 
           if (isProcessingRef.current && mediaStream.active) {
@@ -397,7 +341,7 @@ export default function AvatarScanner() {
     try {
       const avatarData = {
         user_email: user.email,
-        polygons_data: lastPolygons,
+        polygons_data: { ...lastPolygons, edits: avatarEdits }, // Include avatarEdits
         meta_width: lastPolygons.meta.width,
         meta_height: lastPolygons.meta.height,
         capture_timestamp: new Date(lastPolygons.meta.timestamp).toISOString()
@@ -406,6 +350,8 @@ export default function AvatarScanner() {
       await saveAvatarMutation.mutateAsync(avatarData);
       setStatus('Avatar salvo com sucesso!');
       alert('Avatar salvo no seu perfil!');
+      setShowEditor(true); // Show editor after saving
+      stopCamera();       // Stop camera after saving
     } catch (error) {
       console.error(error);
       setStatus('Erro ao salvar avatar');
@@ -421,11 +367,7 @@ export default function AvatarScanner() {
       return;
     }
 
-    const payload = JSON.parse(JSON.stringify(lastPolygons, (k, v) => {
-      if (typeof v === 'number') return Number(v.toFixed(6));
-      return v;
-    }));
-
+    const payload = { ...lastPolygons, edits: avatarEdits }; // Include avatarEdits
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -475,9 +417,14 @@ export default function AvatarScanner() {
 
   const handleSaveEdits = () => {
     const treatments = getTreatmentRecommendations();
-    setRecommendedTreatments(treatments);
-    setShowDrBelezaDialog(true);
-    setShowQuestionnaire(false); // Reset questionnaire state
+    if (treatments.length > 0) {
+      setRecommendedTreatments(treatments);
+      setShowDrBelezaDialog(true);
+      setShowQuestionnaire(false); // Reset questionnaire state
+    } else {
+      alert('Nenhuma mudança significativa detectada. Avatar salvo!'); // New alert
+      handleSave(); // Automatically save if no treatments are recommended
+    }
   };
 
   const handleWantsTreatments = (wants) => {
@@ -486,6 +433,7 @@ export default function AvatarScanner() {
       setShowQuestionnaire(true);
     } else {
       setShowDrBelezaDialog(false);
+      handleSave(); // Automatically save if user declines treatments
     }
   };
 
@@ -501,7 +449,7 @@ export default function AvatarScanner() {
         return { city, state };
     } catch (error) {
         console.error("Error fetching city from coordinates:", error);
-        return { city: "São Paulo", state: "SP" }; // Fallback
+        return { city: "", state: "" }; // Fallback to empty strings
     }
   };
 
@@ -528,8 +476,7 @@ export default function AvatarScanner() {
           console.error("Error getting location:", error);
           setStatus("Erro ao obter localização.");
           alert("Não foi possível obter sua localização. Por favor, insira manualmente.");
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        }
       );
     } else {
       alert("Geolocalização não é suportada pelo seu navegador.");
@@ -541,6 +488,9 @@ export default function AvatarScanner() {
       alert("Nenhum tratamento recomendado para buscar.");
       return;
     }
+    
+    handleSave(); // Save edits before navigating to Dr. Beleza
+    
     // Use the first recommended treatment as the primary search term
     const treatmentQuery = recommendedTreatments[0]; 
     navigate(createPageUrl("DrBeleza"), {
@@ -575,10 +525,12 @@ export default function AvatarScanner() {
 
     Promise.all([
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js'),
-      loadScript('https://cdn.jsdelivr.jsdelivr.net/npm/@mediapipe/holistic@0.1/holistic.js')
-    ]).catch(err => {
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.1/holistic.js')
+    ]).then(() => {
+      setStatus('Bibliotecas carregadas. Pronto para iniciar!'); // Updated status message
+    }).catch(err => {
       console.error('Erro ao carregar MediaPipe:', err);
-      setStatus('Erro ao carregar bibliotecas');
+      setStatus('Erro ao carregar bibliotecas. Verifique a conexão.');
     });
 
     // Cleanup on unmount
@@ -674,7 +626,7 @@ export default function AvatarScanner() {
                   {!showEditor ? (
                     <>
                       {/* Video Stage */}
-                      <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                      <div className="relative w-full bg-black rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}> {/* Updated aspect ratio */}
                         <video
                           ref={videoRef}
                           className="w-full h-full object-cover"
@@ -758,7 +710,7 @@ export default function AvatarScanner() {
                         <ul className="text-sm text-blue-800 space-y-1">
                           <li>• Posicione-se de frente para a câmera</li>
                           <li>• Certifique-se de que seu rosto e corpo estejam bem iluminados</li>
-                          <li>• Aguarde os polígonos coloridos aparecerem no seu corpo</li>
+                          <li>• Aguarde os polígonos coloridos aparecerem</li> {/* Updated text */}
                           <li>• Clique em "Salvar Avatar" quando a captura estiver completa</li>
                         </ul>
                       </div>
@@ -786,131 +738,173 @@ export default function AvatarScanner() {
                       </div>
 
                       {/* Editor Controls */}
-                      <div className="space-y-6">
-                        <div className="space-y-3">
-                          <Label>Formato do Rosto</Label>
-                          <Select 
-                            value={avatarEdits.faceShape} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, faceShape: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="oval">Oval</SelectItem>
-                              <SelectItem value="redondo">Redondo</SelectItem>
-                              <SelectItem value="quadrado">Quadrado</SelectItem>
-                              <SelectItem value="triangular">Triangular</SelectItem>
-                              <SelectItem value="alongado">Alongado</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2"> {/* Added max-h and overflow */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm">Formato do Rosto</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.faceShape} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, faceShape: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="oval">Oval</SelectItem>
+                                <SelectItem value="redondo">Redondo</SelectItem>
+                                <SelectItem value="quadrado">Quadrado</SelectItem>
+                                <SelectItem value="triangular">Triangular</SelectItem>
+                                <SelectItem value="alongado">Alongado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Formato do Nariz</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.noseShape} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, noseShape: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fino">Fino</SelectItem>
+                                <SelectItem value="medium">Médio</SelectItem>
+                                <SelectItem value="largo">Largo</SelectItem>
+                                <SelectItem value="arrebitado">Arrebitado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Tamanho dos Olhos</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.eyeSize} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, eyeSize: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pequeno">Pequeno</SelectItem>
+                                <SelectItem value="medium">Médio</SelectItem>
+                                <SelectItem value="grande">Grande</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Bochechas</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.cheekSize} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, cheekSize: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fino">Fino</SelectItem>
+                                <SelectItem value="medium">Médio</SelectItem>
+                                <SelectItem value="volumoso">Volumoso</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Tamanho da Boca</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.mouthSize} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, mouthSize: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pequena">Pequena</SelectItem>
+                                <SelectItem value="medium">Média</SelectItem>
+                                <SelectItem value="grande">Grande</SelectItem>
+                                <SelectItem value="volumosa">Volumosa</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Sobrancelhas</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.eyebrowStyle} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, eyebrowStyle: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="normal">Natural</SelectItem>
+                                <SelectItem value="arqueada">Arqueada</SelectItem>
+                                <SelectItem value="reta">Reta</SelectItem>
+                                <SelectItem value="fina">Fina</SelectItem>
+                                <SelectItem value="grossa">Grossa</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Tipo de Corpo</Label> {/* Label size updated */}
+                            <Select 
+                              value={avatarEdits.bodyType} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, bodyType: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="magro">Magro</SelectItem>
+                                <SelectItem value="medium">Médio</SelectItem>
+                                <SelectItem value="atletico">Atlético</SelectItem>
+                                <SelectItem value="plus">Plus Size</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm">Estilo de Cabelo</Label> {/* NEW */}
+                            <Select 
+                              value={avatarEdits.hairStyle} 
+                              onValueChange={(value) => setAvatarEdits({...avatarEdits, hairStyle: value})}
+                            >
+                              <SelectTrigger className="border-[#E8DCC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="short">Curto</SelectItem>
+                                <SelectItem value="long">Longo</SelectItem>
+                                <SelectItem value="bun">Coque</SelectItem>
+                                <SelectItem value="none">Sem cabelo</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
 
-                        <div className="space-y-3">
-                          <Label>Formato do Nariz</Label>
-                          <Select 
-                            value={avatarEdits.noseShape} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, noseShape: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="fino">Fino</SelectItem>
-                              <SelectItem value="medium">Médio</SelectItem>
-                              <SelectItem value="largo">Largo</SelectItem>
-                              <SelectItem value="arrebitado">Arrebitado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm">Cor da Pele</Label> {/* NEW */}
+                            <Input
+                              type="color"
+                              value={avatarEdits.skinColor}
+                              onChange={(e) => setAvatarEdits({...avatarEdits, skinColor: e.target.value})}
+                              className="h-10 cursor-pointer"
+                            />
+                          </div>
 
-                        <div className="space-y-3">
-                          <Label>Tamanho dos Olhos</Label>
-                          <Select 
-                            value={avatarEdits.eyeSize} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, eyeSize: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pequeno">Pequeno</SelectItem>
-                              <SelectItem value="medium">Médio</SelectItem>
-                              <SelectItem value="grande">Grande</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label>Tamanho das Bochechas</Label>
-                          <Select 
-                            value={avatarEdits.cheekSize} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, cheekSize: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="fino">Fino</SelectItem>
-                              <SelectItem value="medium">Médio</SelectItem>
-                              <SelectItem value="volumoso">Volumoso</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label>Tamanho da Boca</Label>
-                          <Select 
-                            value={avatarEdits.mouthSize} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, mouthSize: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pequena">Pequena</SelectItem>
-                              <SelectItem value="medium">Média</SelectItem>
-                              <SelectItem value="grande">Grande</SelectItem>
-                              <SelectItem value="volumosa">Volumosa</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label>Estilo das Sobrancelhas</Label>
-                          <Select 
-                            value={avatarEdits.eyebrowStyle} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, eyebrowStyle: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="normal">Natural</SelectItem>
-                              <SelectItem value="arqueada">Arqueada</SelectItem>
-                              <SelectItem value="reta">Reta</SelectItem>
-                              <SelectItem value="fina">Fina</SelectItem>
-                              <SelectItem value="grossa">Grossa</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label>Tipo de Corpo</Label>
-                          <Select 
-                            value={avatarEdits.bodyType} 
-                            onValueChange={(value) => setAvatarEdits({...avatarEdits, bodyType: value})}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4]">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="magro">Magro</SelectItem>
-                              <SelectItem value="medium">Médio</SelectItem>
-                              <SelectItem value="atletico">Atlético</SelectItem>
-                              <SelectItem value="plus">Plus Size</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Cor do Cabelo</Label> {/* NEW */}
+                            <Input
+                              type="color"
+                              value={avatarEdits.hairColor}
+                              onChange={(e) => setAvatarEdits({...avatarEdits, hairColor: e.target.value})}
+                              className="h-10 cursor-pointer"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -954,7 +948,8 @@ export default function AvatarScanner() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="relative w-full aspect-square bg-gradient-to-br from-[#87CEEB] to-[#B0E0E6] rounded-xl overflow-hidden shadow-inner">
-                      <AvatarPreview3D avatarEdits={avatarEdits} />
+                      {/* Updated AvatarPreview3D prop */}
+                      <AvatarPreview3D avatarEdits={existingAvatar.polygons_data?.edits || avatarEdits} />
                       <div className="absolute bottom-4 left-4 right-4">
                         <Badge className="bg-white/90 text-gray-800">
                           Capturado em: {new Date(existingAvatar.capture_timestamp).toLocaleString('pt-BR')}
@@ -1007,7 +1002,7 @@ export default function AvatarScanner() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" {/* Added max-h and overflow */}
             >
               <Card className="border-[#E8DCC4] shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
@@ -1046,7 +1041,7 @@ export default function AvatarScanner() {
                                 </li>
                               ))
                             ) : (
-                              <li className="text-gray-700">Nenhum tratamento específico recomendado com base nas edições.</li>
+                              <li className="text-gray-700">Nenhum tratamento específico recomendado.</li>
                             )}
                           </ul>
                         </div>
