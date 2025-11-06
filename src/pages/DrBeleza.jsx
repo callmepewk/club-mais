@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -17,8 +18,8 @@ import { motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { 
-  Sparkles, Search, Calendar, DollarSign, 
+import {
+  Sparkles, Search, Calendar, DollarSign,
   MapPin, Phone, ArrowRight, Award,
   CheckCircle, Heart, Locate, Map as MapIcon
 } from "lucide-react";
@@ -68,13 +69,13 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 function MapController({ center }) {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center) {
       map.flyTo(center, 14, { duration: 1 });
     }
   }, [center, map]);
-  
+
   return null;
 }
 
@@ -111,7 +112,6 @@ const treatmentCategories = [
   "Personal Training Estético", "Spa e Relaxamento"
 ];
 
-// Mapeamento de tratamentos para áreas corporais
 const treatmentToAreasMap = {
   "Limpeza de Pele": ["Rosto"],
   "Hidratação Facial": ["Rosto"],
@@ -260,6 +260,22 @@ const features = [
   }
 ];
 
+// Função para geocoding reverso (obter cidade e estado a partir de coordenadas)
+async function getCityFromCoordinates(lat, lng) {
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`);
+    const data = await response.json();
+
+    const city = data.address.city || data.address.town || data.address.village || data.address.municipality || data.address.suburb || '';
+    const state = data.address.state_code || data.address.state || '';
+
+    return { city, state };
+  } catch (error) {
+    console.error("Erro ao obter cidade/estado a partir das coordenadas:", error);
+    return { city: '', state: '' };
+  }
+}
+
 export default function DrBeleza() {
   const [formData, setFormData] = useState({
     treatment: "",
@@ -268,7 +284,8 @@ export default function DrBeleza() {
     timeframe: "",
     city: "",
     state: "",
-    useCurrentLocation: false,
+    latitude: "",
+    longitude: "",
     maxDistance: "all"
   });
   const [isSearching, setIsSearching] = useState(false);
@@ -301,20 +318,43 @@ export default function DrBeleza() {
     });
   };
 
-  const getUserLocation = () => {
+  const getUserLocation = async () => {
     setLoadingLocation(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const location = [position.coords.latitude, position.coords.longitude];
           setUserLocation(location);
           setMapCenter(location);
-          setFormData(prev => ({ ...prev, useCurrentLocation: true }));
+
+          const { city, state } = await getCityFromCoordinates(
+            position.coords.latitude,
+            position.coords.longitude
+          );
+
+          setFormData(prev => ({
+            ...prev,
+            latitude: position.coords.latitude.toFixed(6),
+            longitude: position.coords.longitude.toFixed(6),
+            city: city,
+            state: state.substring(0, 2).toUpperCase() // Use substring to get 2-letter code
+          }));
+
           setLoadingLocation(false);
         },
         (error) => {
           console.error("Error getting location:", error);
           setLoadingLocation(false);
+          setUserLocation(null); // Clear user location on error
+          setFormData(prev => ({ // Clear related form fields
+            ...prev,
+            latitude: "",
+            longitude: "",
+            // Optionally clear city/state if they were purely from geo
+            // city: "",
+            // state: "",
+            maxDistance: "all" // Reset distance if no location
+          }));
         },
         {
           enableHighAccuracy: true,
@@ -322,6 +362,9 @@ export default function DrBeleza() {
           maximumAge: 0
         }
       );
+    } else {
+      alert("Geolocalização não é suportada pelo seu navegador.");
+      setLoadingLocation(false);
     }
   };
 
@@ -330,10 +373,10 @@ export default function DrBeleza() {
 
     return estabelecimentos
       .filter(est => {
-        const matchCity = !formData.city || 
+        const matchCity = !formData.city ||
           est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
-        
-        const matchState = !formData.state || 
+
+        const matchState = !formData.state ||
           est.estado === formData.state;
 
         return matchCity && matchState;
@@ -348,7 +391,7 @@ export default function DrBeleza() {
         ) : null
       }))
       .filter(est => {
-        if (formData.maxDistance === "all") return true;
+        if (formData.maxDistance === "all" || !userLocation) return true; // If no user location, distance filter doesn't apply
         if (!est.distancia) return true;
         return est.distancia <= parseFloat(formData.maxDistance);
       })
@@ -362,7 +405,7 @@ export default function DrBeleza() {
   const handleSearch = () => {
     setIsSearching(true);
     setShowResults(true);
-    
+
     setTimeout(() => {
       setIsSearching(false);
       if (filteredEstabelecimentos.length > 0 && filteredEstabelecimentos[0].latitude) {
@@ -412,7 +455,7 @@ export default function DrBeleza() {
               className="inline-block"
             >
               <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-2xl border-4 border-white">
-                <img 
+                <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                   alt="Dr. Beleza"
                   className="w-full h-full object-cover"
@@ -424,7 +467,7 @@ export default function DrBeleza() {
               <Badge className="bg-white/80 text-[#D4AF37] border-[#D4AF37]/20 px-4 py-2 text-sm md:text-base backdrop-blur-sm">
                 Seu Assistente Inteligente
               </Badge>
-              
+
               <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold px-4">
                 <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                   Dr. Beleza
@@ -436,7 +479,7 @@ export default function DrBeleza() {
               </p>
 
               <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
-                Com inteligência artificial avançada, o Dr. Beleza te ajuda a encontrar os 
+                Com inteligência artificial avançada, o Dr. Beleza te ajuda a encontrar os
                 melhores profissionais e tratamentos personalizados para suas necessidades
               </p>
             </div>
@@ -457,7 +500,7 @@ export default function DrBeleza() {
             <Card className="border-[#E8DCC4] shadow-2xl bg-white w-full">
               <CardHeader className="text-center p-4 md:p-8 border-b border-[#E8DCC4]">
                 <div className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-lg border-4 border-white">
-                  <img 
+                  <img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                     alt="Dr. Beleza"
                     className="w-full h-full object-cover"
@@ -498,8 +541,8 @@ export default function DrBeleza() {
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
                         Área desejada
                       </Label>
-                      <Select 
-                        value={formData.area} 
+                      <Select
+                        value={formData.area}
                         onValueChange={(value) => handleInputChange("area", value)}
                         disabled={!formData.treatment}
                       >
@@ -549,41 +592,9 @@ export default function DrBeleza() {
                     </div>
 
                     <div className="space-y-2 w-full">
-                      <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                        Cidade
-                      </Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange("city", e.target.value)}
-                        placeholder="Digite sua cidade"
-                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                        Estado
-                      </Label>
-                      <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
-                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                          <SelectValue placeholder="Selecione o estado" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          <SelectItem value={null}>Todos os estados</SelectItem>
-                          {estados.map((estado) => (
-                            <SelectItem key={estado} value={estado}>{estado}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2 w-full">
                       <Label className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <Locate className="w-4 h-4 text-[#D4AF37]" />
-                        Localização
+                        Localização Automática
                       </Label>
                       <Button
                         type="button"
@@ -595,20 +606,77 @@ export default function DrBeleza() {
                         {loadingLocation ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37] mr-2" />
-                            Obtendo...
+                            Obtendo localização...
                           </>
                         ) : userLocation ? (
                           <>
                             <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                            Localização Ativada
+                            Localização Obtida
                           </>
                         ) : (
                           <>
                             <Locate className="w-4 h-4 mr-2" />
-                            Usar Localização Atual
+                            Usar Minha Localização
                           </>
                         )}
                       </Button>
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Cidade
+                      </Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange("city", e.target.value)}
+                        placeholder="Preenchido automaticamente"
+                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Estado
+                      </Label>
+                      <Input
+                        id="state"
+                        value={formData.state}
+                        onChange={(e) => handleInputChange("state", e.target.value)}
+                        placeholder="Preenchido automaticamente"
+                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                        maxLength={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="latitude" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapIcon className="w-4 h-4 text-[#D4AF37]" />
+                        Latitude
+                      </Label>
+                      <Input
+                        id="latitude"
+                        value={formData.latitude}
+                        readOnly
+                        placeholder="Obtida automaticamente"
+                        className="border-[#E8DCC4] bg-gray-50 w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="longitude" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapIcon className="w-4 h-4 text-[#D4AF37]" />
+                        Longitude
+                      </Label>
+                      <Input
+                        id="longitude"
+                        value={formData.longitude}
+                        readOnly
+                        placeholder="Obtida automaticamente"
+                        className="border-[#E8DCC4] bg-gray-50 w-full"
+                      />
                     </div>
 
                     <div className="space-y-2 w-full">
@@ -616,8 +684,8 @@ export default function DrBeleza() {
                         <MapIcon className="w-4 h-4 text-[#D4AF37]" />
                         Distância Máxima
                       </Label>
-                      <Select 
-                        value={formData.maxDistance} 
+                      <Select
+                        value={formData.maxDistance}
                         onValueChange={(value) => handleInputChange("maxDistance", value)}
                         disabled={!userLocation}
                       >
@@ -691,18 +759,72 @@ export default function DrBeleza() {
                     {filteredEstabelecimentos.length} estabelecimento(s) encontrado(s)
                   </p>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="grid lg:grid-cols-3 gap-0">
-                    {/* List */}
-                    <div className="lg:col-span-1 p-4 md:p-6 space-y-4 max-h-[600px] overflow-y-auto border-r border-[#E8DCC4]">
-                      {filteredEstabelecimentos.length === 0 ? (
-                        <div className="text-center py-8">
-                          <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                          <p className="text-gray-600">Nenhum estabelecimento encontrado</p>
-                          <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros</p>
-                        </div>
-                      ) : (
-                        filteredEstabelecimentos.map((est) => (
+                <CardContent className="p-4 md:p-6 space-y-6">
+                  {/* Map - Full Width */}
+                  <div className="w-full h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-xl border-4 border-[#E8DCC4]">
+                    <MapContainer
+                      center={mapCenter}
+                      zoom={13}
+                      style={{ height: '100%', width: '100%' }}
+                      className="z-0"
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+
+                      <MapController center={mapCenter} />
+
+                      {userLocation && (
+                        <Marker position={userLocation} icon={userIcon}>
+                          <Popup>
+                            <div className="text-center p-2">
+                              <p className="font-semibold text-blue-600">Você está aqui</p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      )}
+
+                      {filteredEstabelecimentos.map((est) => (
+                        <Marker
+                          key={est.id}
+                          position={[est.latitude, est.longitude]}
+                          icon={estabelecimentoIcon}
+                          eventHandlers={{
+                            click: () => handleSelectEstabelecimento(est)
+                          }}
+                        >
+                          <Popup>
+                            <div className="p-2 min-w-[200px]">
+                              <h3 className="font-serif font-bold text-gray-800 mb-1">{est.nome}</h3>
+                              <p className="text-sm text-[#C8A882] mb-2">{est.categoria}</p>
+                              <p className="text-xs text-gray-600 mb-2">{est.endereco}</p>
+                              {est.distancia !== null && (
+                                <Badge className="bg-[#F5EFE6] text-[#D4AF37] text-xs">
+                                  {est.distancia.toFixed(1)} km de você
+                                </Badge>
+                              )}
+                            </div>
+                          </Popup>
+                        </Marker>
+                      ))}
+                    </MapContainer>
+                  </div>
+
+                  {/* List - Below Map in Grid */}
+                  <div>
+                    <h3 className="font-serif text-xl md:text-2xl font-bold text-gray-800 mb-6">
+                      Estabelecimentos Encontrados
+                    </h3>
+                    {filteredEstabelecimentos.length === 0 ? (
+                      <div className="text-center py-12">
+                        <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 text-lg">Nenhum estabelecimento encontrado</p>
+                        <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros ou aumentar a distância de busca</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredEstabelecimentos.map((est) => (
                           <CardEstabelecimento
                             key={est.id}
                             estabelecimento={est}
@@ -710,60 +832,9 @@ export default function DrBeleza() {
                             onSelect={handleSelectEstabelecimento}
                             isSelected={selectedEstabelecimento?.id === est.id}
                           />
-                        ))
-                      )}
-                    </div>
-
-                    {/* Map */}
-                    <div className="lg:col-span-2 h-[400px] md:h-[600px]">
-                      <MapContainer
-                        center={mapCenter}
-                        zoom={13}
-                        style={{ height: '100%', width: '100%' }}
-                        className="z-0"
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        
-                        <MapController center={mapCenter} />
-
-                        {userLocation && (
-                          <Marker position={userLocation} icon={userIcon}>
-                            <Popup>
-                              <div className="text-center p-2">
-                                <p className="font-semibold text-blue-600">Você está aqui</p>
-                              </div>
-                            </Popup>
-                          </Marker>
-                        )}
-
-                        {filteredEstabelecimentos.map((est) => (
-                          <Marker
-                            key={est.id}
-                            position={[est.latitude, est.longitude]}
-                            icon={estabelecimentoIcon}
-                            eventHandlers={{
-                              click: () => handleSelectEstabelecimento(est)
-                            }}
-                          >
-                            <Popup>
-                              <div className="p-2 min-w-[200px]">
-                                <h3 className="font-serif font-bold text-gray-800 mb-1">{est.nome}</h3>
-                                <p className="text-sm text-[#C8A882] mb-2">{est.categoria}</p>
-                                <p className="text-xs text-gray-600 mb-2">{est.endereco}</p>
-                                {est.distancia !== null && (
-                                  <Badge className="bg-[#F5EFE6] text-[#D4AF37] text-xs">
-                                    {est.distancia.toFixed(1)} km de você
-                                  </Badge>
-                                )}
-                              </div>
-                            </Popup>
-                          </Marker>
                         ))}
-                      </MapContainer>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

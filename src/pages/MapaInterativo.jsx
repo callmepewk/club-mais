@@ -240,45 +240,12 @@ export default function MapaInterativo() {
 
       {/* Map and List */}
       <div className="max-w-7xl mx-auto p-4 md:p-6">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Sidebar - Filters and List */}
-          <div className="lg:col-span-1 space-y-6">
-            <FiltrosMapa filtros={filtros} onChange={setFiltros} />
+        <div className="space-y-6">
+          {/* Filters - Full Width */}
+          <FiltrosMapa filtros={filtros} onChange={setFiltros} />
 
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              <div className="flex items-center justify-between px-2">
-                <p className="text-sm text-gray-600">
-                  {estabelecimentosFiltrados.length} estabelecimento(s) encontrado(s)
-                </p>
-              </div>
-
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-sm text-gray-600 mt-4">Carregando...</p>
-                </div>
-              ) : estabelecimentosFiltrados.length === 0 ? (
-                <Card className="border-[#E8DCC4] p-8 text-center">
-                  <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhum estabelecimento encontrado</p>
-                  <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros</p>
-                </Card>
-              ) : (
-                estabelecimentosFiltrados.map((est) => (
-                  <CardEstabelecimento
-                    key={est.id}
-                    estabelecimento={est}
-                    distancia={est.distancia}
-                    onSelect={handleSelectEstabelecimento}
-                    isSelected={selectedEstabelecimento?.id === est.id}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Map */}
-          <div className="lg:col-span-2 h-[500px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl border-4 border-white">
+          {/* Map - Full Width */}
+          <div className="w-full h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl border-4 border-white">
             <MapContainer
               center={mapCenter}
               zoom={13}
@@ -326,6 +293,43 @@ export default function MapaInterativo() {
                 </Marker>
               ))}
             </MapContainer>
+          </div>
+
+          {/* List - Below Map in Grid */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-serif text-2xl md:text-3xl font-bold text-gray-800">
+                Estabelecimentos Encontrados
+              </h2>
+              <p className="text-sm text-gray-600">
+                {estabelecimentosFiltrados.length} estabelecimento(s)
+              </p>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-gray-600 mt-4">Carregando estabelecimentos...</p>
+              </div>
+            ) : estabelecimentosFiltrados.length === 0 ? (
+              <Card className="border-[#E8DCC4] p-12 text-center">
+                <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg text-gray-600">Nenhum estabelecimento encontrado</p>
+                <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros para encontrar mais resultados</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {estabelecimentosFiltrados.map((est) => (
+                  <CardEstabelecimento
+                    key={est.id}
+                    estabelecimento={est}
+                    distancia={est.distancia}
+                    onSelect={handleSelectEstabelecimento}
+                    isSelected={selectedEstabelecimento?.id === est.id}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
