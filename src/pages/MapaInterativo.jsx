@@ -3,13 +3,13 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { Card, CardContent } from "@/components/ui/card"; // Added Card and CardContent import
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { Locate, MapPin, Sparkles, Navigation } from "lucide-react";
+import { Locate, MapPin, Sparkles, Navigation, AlertCircle } from "lucide-react";
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
 import FiltrosMapa from "../components/mapa/FiltrosMapa";
 
@@ -72,9 +72,14 @@ export default function MapaInterativo() {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
   const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]); // Belo Horizonte default
+  const [locationError, setLocationError] = useState(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
   const [filtros, setFiltros] = useState({
     busca: "",
+    cidade: "",
+    estado: "Todos",
     categoria: "Todas",
+    procedimento: "Todos",
     plano: "todos"
   });
 
@@ -89,18 +94,48 @@ export default function MapaInterativo() {
   }, []);
 
   const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = [position.coords.latitude, position.coords.longitude];
-          setUserLocation(location);
-          setMapCenter(location);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
+    setLoadingLocation(true);
+    setLocationError(null);
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocalização não é suportada pelo seu navegador");
+      setLoadingLocation(false);
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = [position.coords.latitude, position.coords.longitude];
+        setUserLocation(location);
+        setMapCenter(location);
+        setLoadingLocation(false);
+        setLocationError(null);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        let errorMessage = "Não foi possível obter sua localização";
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Você negou o acesso à localização. Por favor, habilite nas configurações do navegador.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Informação de localização não disponível";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Tempo esgotado ao tentar obter localização";
+            break;
+        }
+        
+        setLocationError(errorMessage);
+        setLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   const estabelecimentosFiltrados = useMemo(() => {
@@ -111,10 +146,24 @@ export default function MapaInterativo() {
           est.cidade?.toLowerCase().includes(filtros.busca.toLowerCase()) ||
           est.endereco?.toLowerCase().includes(filtros.busca.toLowerCase());
         
-        const matchCategoria = filtros.categoria === "Todas" || est.categoria === filtros.categoria;
-        const matchPlano = filtros.plano === "todos" || est.plano_desconto === filtros.plano;
+        const matchCidade = !filtros.cidade || 
+          est.cidade?.toLowerCase().includes(filtros.cidade.toLowerCase());
         
-        return matchBusca && matchCategoria && matchPlano;
+        const matchEstado = filtros.estado === "Todos" || 
+          est.estado === filtros.estado;
+        
+        const matchCategoria = filtros.categoria === "Todas" || 
+          est.categoria === filtros.categoria;
+        
+        const matchPlano = filtros.plano === "todos" || 
+          est.plano_desconto === filtros.plano;
+        
+        // Para procedimento, podemos adicionar um campo na entidade futuramente
+        // Por enquanto, aceita todos se "Todos" estiver selecionado
+        const matchProcedimento = filtros.procedimento === "Todos" || 
+          est.descricao?.toLowerCase().includes(filtros.procedimento.toLowerCase());
+        
+        return matchBusca && matchCidade && matchEstado && matchCategoria && matchPlano && matchProcedimento;
       })
       .map(est => ({
         ...est,
@@ -152,13 +201,39 @@ export default function MapaInterativo() {
               </p>
             </div>
 
-            <Button
-              onClick={getUserLocation}
-              className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-lg"
-            >
-              <Locate className="w-4 h-4 mr-2" />
-              Minha Localização
-            </Button>
+            <div className="flex flex-col gap-2 w-full md:w-auto">
+              <Button
+                onClick={getUserLocation}
+                disabled={loadingLocation}
+                className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-lg disabled:opacity-50 w-full md:w-auto"
+              >
+                {loadingLocation ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37] mr-2" />
+                    Obtendo localização...
+                  </>
+                ) : (
+                  <>
+                    <Locate className="w-4 h-4 mr-2" />
+                    Usar Minha Localização
+                  </>
+                )}
+              </Button>
+              
+              {locationError && (
+                <div className="flex items-start gap-2 text-xs bg-red-100 text-red-800 p-2 rounded">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{locationError}</span>
+                </div>
+              )}
+              
+              {userLocation && !locationError && (
+                <div className="flex items-center gap-2 text-xs bg-white/20 text-white p-2 rounded">
+                  <MapPin className="w-4 h-4" />
+                  <span>Localização ativada</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -186,6 +261,7 @@ export default function MapaInterativo() {
                 <Card className="border-[#E8DCC4] p-8 text-center">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-600">Nenhum estabelecimento encontrado</p>
+                  <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros</p>
                 </Card>
               ) : (
                 estabelecimentosFiltrados.map((est) => (
