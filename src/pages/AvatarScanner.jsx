@@ -23,6 +23,7 @@ import {
   CheckCircle, AlertCircle, User, Sparkles,
   Edit3, MapPin, DollarSign, Locate, Search
 } from "lucide-react";
+import AvatarPreview3D from "../components/avatar/AvatarPreview3D";
 
 export default function AvatarScanner() {
   const videoRef = useRef(null);
@@ -574,7 +575,7 @@ export default function AvatarScanner() {
 
     Promise.all([
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js'),
-      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.1/holistic.js')
+      loadScript('https://cdn.jsdelivr.jsdelivr.net/npm/@mediapipe/holistic@0.1/holistic.js')
     ]).catch(err => {
       console.error('Erro ao carregar MediaPipe:', err);
       setStatus('Erro ao carregar bibliotecas');
@@ -779,12 +780,9 @@ export default function AvatarScanner() {
                     </>
                   ) : (
                     <>
-                      {/* Avatar Preview */}
-                      <div className="relative w-full aspect-square bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-xl overflow-hidden flex items-center justify-center">
-                        <User className="w-32 h-32 text-[#D4AF37]/30" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <p className="text-gray-600">Preview do Avatar</p>
-                        </div>
+                      {/* Avatar Preview 3D */}
+                      <div className="relative w-full aspect-square bg-gradient-to-br from-[#87CEEB] to-[#B0E0E6] rounded-xl overflow-hidden shadow-inner">
+                        <AvatarPreview3D avatarEdits={avatarEdits} />
                       </div>
 
                       {/* Editor Controls */}
@@ -955,8 +953,8 @@ export default function AvatarScanner() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="relative w-full aspect-square bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-xl overflow-hidden flex items-center justify-center">
-                      <User className="w-32 h-32 text-[#D4AF37]/30" />
+                    <div className="relative w-full aspect-square bg-gradient-to-br from-[#87CEEB] to-[#B0E0E6] rounded-xl overflow-hidden shadow-inner">
+                      <AvatarPreview3D avatarEdits={avatarEdits} />
                       <div className="absolute bottom-4 left-4 right-4">
                         <Badge className="bg-white/90 text-gray-800">
                           Capturado em: {new Date(existingAvatar.capture_timestamp).toLocaleString('pt-BR')}
