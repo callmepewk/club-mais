@@ -17,48 +17,52 @@ export default function LiveAvatarMirror({ faceLandmarks, poseLandmarks, avatarC
     }
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
+    scene.background = new THREE.Color(0xb2d8ff);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(
-      45,
+      50,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
       0.1,
       1000
     );
-    camera.position.set(0, 1.6, 3.5);
+    camera.position.set(0, 1.6, 4);
     camera.lookAt(0, 1, 0);
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
+    // Lighting setup - mais suave e realista
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    directionalLight.position.set(5, 10, 5);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 10, 7);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
     fillLight.position.set(-5, 5, -5);
     scene.add(fillLight);
 
-    const groundGeometry = new THREE.CircleGeometry(5, 32);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x90EE90,
-      roughness: 0.8 
-    });
+    // Ground plane
+    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.5;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    const avatar = createAvatar(scene, avatarConfig);
+    const avatar = createSimsStyleAvatar(scene, avatarConfig);
     avatarRef.current = avatar;
 
     const animate = () => {
@@ -85,323 +89,403 @@ export default function LiveAvatarMirror({ faceLandmarks, poseLandmarks, avatarC
       }
       renderer.dispose();
     };
-  }, []);
+  }, [avatarConfig]);
 
   useEffect(() => {
-    if (avatarRef.current && (faceLandmarks || poseLandmarks)) {
-      updateAvatarPose(avatarRef.current, faceLandmarks, poseLandmarks);
+    if (avatarRef.current && poseLandmarks && poseLandmarks.length >= 33) {
+      updateAvatarPoseRealtime(avatarRef.current, faceLandmarks, poseLandmarks);
     }
   }, [faceLandmarks, poseLandmarks]);
 
-  const createAvatar = (scene, config) => {
+  const createSimsStyleAvatar = (scene, config) => {
     const avatar = new THREE.Group();
-    avatar.userData = {};
+    avatar.userData.parts = {};
 
     const isFemale = config.gender === 'female';
-    const skinColor = new THREE.Color(config.skinColor || '#f5d1b3');
-    const hairColor = new THREE.Color(config.hairColor || '#2b1b10');
+    const skinColor = new THREE.Color(config.skinColor || '#ffd4b3');
+    const hairColor = new THREE.Color(config.hairColor || '#4a3728');
 
     let bodyScale = 1;
-    if (config.bodyType === 'magro') bodyScale = 0.85;
-    else if (config.bodyType === 'atletico') bodyScale = 1.1;
-    else if (config.bodyType === 'plus') bodyScale = 1.25;
+    if (config.bodyType === 'magro') bodyScale = 0.88;
+    else if (config.bodyType === 'atletico') bodyScale = 1.12;
+    else if (config.bodyType === 'plus') bodyScale = 1.28;
 
-    // HEAD
-    const headGeometry = new THREE.SphereGeometry(0.28, 32, 32);
-    const headMaterial = new THREE.MeshStandardMaterial({ 
+    // ===== HEAD =====
+    const headGeo = new THREE.SphereGeometry(0.32, 32, 32);
+    const headMat = new THREE.MeshStandardMaterial({ 
       color: skinColor,
-      roughness: 0.5,
-      metalness: 0.1
+      roughness: 0.6,
+      metalness: 0.05
     });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
+    const head = new THREE.Mesh(headGeo, headMat);
     head.position.y = 1.7;
     head.castShadow = true;
+    head.receiveShadow = true;
     avatar.add(head);
-    avatar.userData.head = head;
+    avatar.userData.parts.head = head;
 
-    // HAIR - Estilo The Sims
+    // ===== HAIR =====
     if (config.hairStyle !== 'none') {
-      let hairGeometry;
+      let hairGeo;
+      const hairMat = new THREE.MeshStandardMaterial({ 
+        color: hairColor,
+        roughness: 0.7
+      });
       
       if (isFemale) {
         if (config.hairStyle === 'long') {
-          hairGeometry = new THREE.SphereGeometry(0.3, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.85);
-          const hairBack = new THREE.BoxGeometry(0.5, 0.8, 0.2);
-          const hairBackMesh = new THREE.Mesh(hairBack, new THREE.MeshStandardMaterial({ color: hairColor }));
-          hairBackMesh.position.set(0, 1.4, -0.15);
-          hairBackMesh.castShadow = true;
-          avatar.add(hairBackMesh);
+          hairGeo = new THREE.SphereGeometry(0.34, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.9);
+          const hair = new THREE.Mesh(hairGeo, hairMat);
+          hair.position.y = 1.75;
+          hair.castShadow = true;
+          avatar.add(hair);
+          
+          // Long hair back
+          const backHairGeo = new THREE.CylinderGeometry(0.28, 0.22, 0.9, 16);
+          const backHair = new THREE.Mesh(backHairGeo, hairMat);
+          backHair.position.set(0, 1.2, -0.15);
+          backHair.castShadow = true;
+          avatar.add(backHair);
         } else if (config.hairStyle === 'bun') {
-          hairGeometry = new THREE.SphereGeometry(0.3, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.65);
-          const bun = new THREE.SphereGeometry(0.12, 16, 16);
-          const bunMesh = new THREE.Mesh(bun, new THREE.MeshStandardMaterial({ color: hairColor }));
-          bunMesh.position.set(0, 1.85, -0.2);
-          bunMesh.castShadow = true;
-          avatar.add(bunMesh);
+          hairGeo = new THREE.SphereGeometry(0.34, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.7);
+          const hair = new THREE.Mesh(hairGeo, hairMat);
+          hair.position.y = 1.75;
+          hair.castShadow = true;
+          avatar.add(hair);
+          
+          const bunGeo = new THREE.SphereGeometry(0.14, 16, 16);
+          const bun = new THREE.Mesh(bunGeo, hairMat);
+          bun.position.set(0, 1.95, -0.25);
+          bun.castShadow = true;
+          avatar.add(bun);
         } else {
-          hairGeometry = new THREE.SphereGeometry(0.3, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.65);
+          hairGeo = new THREE.SphereGeometry(0.34, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.7);
+          const hair = new THREE.Mesh(hairGeo, hairMat);
+          hair.position.y = 1.75;
+          hair.castShadow = true;
+          avatar.add(hair);
         }
       } else {
-        hairGeometry = new THREE.SphereGeometry(0.29, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.55);
+        hairGeo = new THREE.SphereGeometry(0.33, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6);
+        const hair = new THREE.Mesh(hairGeo, hairMat);
+        hair.position.y = 1.75;
+        hair.castShadow = true;
+        avatar.add(hair);
       }
-      
-      const hairMaterial = new THREE.MeshStandardMaterial({ 
-        color: hairColor,
-        roughness: 0.6
-      });
-      const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-      hair.position.y = 1.75;
-      hair.castShadow = true;
-      avatar.add(hair);
     }
 
-    // FACIAL FEATURES
-    // Eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.045, 16, 16);
-    const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const eyeIris = new THREE.MeshStandardMaterial({ color: isFemale ? 0x4A90E2 : 0x2E5C3A });
+    // ===== FACIAL FEATURES =====
+    const eyeGeo = new THREE.SphereGeometry(0.05, 16, 16);
+    const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+    const eyeIrisMat = new THREE.MeshStandardMaterial({ 
+      color: isFemale ? 0x4a90e2 : 0x2e5c3a,
+      roughness: 0.2,
+      metalness: 0.1
+    });
     
-    const leftEyeWhite = new THREE.Mesh(eyeGeometry, eyeWhite);
-    leftEyeWhite.position.set(-0.12, 1.75, 0.23);
-    avatar.add(leftEyeWhite);
+    const createEye = (x) => {
+      const eyeWhite = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+      eyeWhite.position.set(x, 1.76, 0.28);
+      eyeWhite.scale.set(1.1, 0.9, 1);
+      avatar.add(eyeWhite);
+      
+      const iris = new THREE.Mesh(new THREE.SphereGeometry(0.028, 16, 16), eyeIrisMat);
+      iris.position.set(x, 1.76, 0.31);
+      avatar.add(iris);
+      
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.015, 12, 12), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+      pupil.position.set(x, 1.76, 0.32);
+      avatar.add(pupil);
+      
+      if (isFemale) {
+        const lashGeo = new THREE.BoxGeometry(0.08, 0.018, 0.01);
+        const lashMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const lash = new THREE.Mesh(lashGeo, lashMat);
+        lash.position.set(x, 1.745, 0.31);
+        avatar.add(lash);
+      }
+    };
     
-    const leftIris = new THREE.Mesh(new THREE.SphereGeometry(0.025, 16, 16), eyeIris);
-    leftIris.position.set(-0.12, 1.75, 0.26);
-    avatar.add(leftIris);
-    
-    const rightEyeWhite = new THREE.Mesh(eyeGeometry, eyeWhite);
-    rightEyeWhite.position.set(0.12, 1.75, 0.23);
-    avatar.add(rightEyeWhite);
-    
-    const rightIris = new THREE.Mesh(new THREE.SphereGeometry(0.025, 16, 16), eyeIris);
-    rightIris.position.set(0.12, 1.75, 0.26);
-    avatar.add(rightIris);
+    createEye(-0.14);
+    createEye(0.14);
 
     // Eyebrows
-    const browGeometry = new THREE.BoxGeometry(0.14, 0.02, 0.02);
-    const browMaterial = new THREE.MeshStandardMaterial({ color: hairColor });
-    
-    const leftBrow = new THREE.Mesh(browGeometry, browMaterial);
-    leftBrow.position.set(-0.12, 1.82, 0.24);
-    avatar.add(leftBrow);
-    
-    const rightBrow = new THREE.Mesh(browGeometry, browMaterial);
-    rightBrow.position.set(0.12, 1.82, 0.24);
-    avatar.add(rightBrow);
+    const browGeo = new THREE.BoxGeometry(0.15, 0.025, 0.02);
+    const browMat = new THREE.MeshStandardMaterial({ color: hairColor });
+    [-0.14, 0.14].forEach(x => {
+      const brow = new THREE.Mesh(browGeo, browMat);
+      brow.position.set(x, 1.84, 0.29);
+      if (x < 0) brow.rotation.z = 0.05;
+      else brow.rotation.z = -0.05;
+      avatar.add(brow);
+    });
 
     // Nose
-    const noseGeometry = new THREE.ConeGeometry(0.04, 0.12, 8);
-    const noseMaterial = new THREE.MeshStandardMaterial({ color: skinColor });
-    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+    const noseGeo = new THREE.ConeGeometry(0.048, 0.14, 8);
+    const noseMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.65 });
+    const nose = new THREE.Mesh(noseGeo, noseMat);
     nose.rotation.x = Math.PI;
-    nose.position.set(0, 1.68, 0.27);
+    nose.position.set(0, 1.68, 0.31);
     nose.castShadow = true;
     avatar.add(nose);
 
     // Mouth
-    const mouthGeometry = new THREE.BoxGeometry(0.16, 0.04, 0.03);
-    const mouthMaterial = new THREE.MeshStandardMaterial({ 
-      color: isFemale ? 0xFF6B9D : 0xCC5577 
+    const mouthGeo = new THREE.BoxGeometry(0.18, 0.045, 0.035);
+    const mouthMat = new THREE.MeshStandardMaterial({ 
+      color: isFemale ? 0xff6b9d : 0xcc5577,
+      roughness: 0.4
     });
-    const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
-    mouth.position.set(0, 1.58, 0.26);
+    const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+    mouth.position.set(0, 1.58, 0.3);
     avatar.add(mouth);
 
-    // Eyelashes for female
-    if (isFemale) {
-      const lashGeometry = new THREE.BoxGeometry(0.08, 0.015, 0.01);
-      const lashMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-      
-      const leftLash = new THREE.Mesh(lashGeometry, lashMaterial);
-      leftLash.position.set(-0.12, 1.73, 0.27);
-      avatar.add(leftLash);
-      
-      const rightLash = new THREE.Mesh(lashGeometry, lashMaterial);
-      rightLash.position.set(0.12, 1.73, 0.27);
-      avatar.add(rightLash);
-    }
-
-    // NECK
-    const neckGeometry = new THREE.CylinderGeometry(0.11, 0.13, 0.25, 16);
-    const neckMaterial = new THREE.MeshStandardMaterial({ color: skinColor });
-    const neck = new THREE.Mesh(neckGeometry, neckMaterial);
-    neck.position.y = 1.4;
+    // ===== NECK =====
+    const neckGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.28, 16);
+    const neckMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.6 });
+    const neck = new THREE.Mesh(neckGeo, neckMat);
+    neck.position.y = 1.38;
     neck.castShadow = true;
     avatar.add(neck);
-    avatar.userData.neck = neck;
+    avatar.userData.parts.neck = neck;
 
-    // TORSO
-    const torsoGeometry = isFemale 
-      ? new THREE.CylinderGeometry(0.25 * bodyScale, 0.32 * bodyScale, 0.7, 16)
-      : new THREE.BoxGeometry(0.55 * bodyScale, 0.7, 0.28);
-    const torsoMaterial = new THREE.MeshStandardMaterial({ 
-      color: isFemale ? 0x000000 : 0x3A5F8F
+    // ===== TORSO =====
+    const torsoGeo = isFemale 
+      ? new THREE.CylinderGeometry(0.28 * bodyScale, 0.35 * bodyScale, 0.75, 24)
+      : new THREE.CylinderGeometry(0.32 * bodyScale, 0.35 * bodyScale, 0.75, 24);
+    const torsoMat = new THREE.MeshStandardMaterial({ 
+      color: isFemale ? 0x1a1a1a : 0x3a5f8f,
+      roughness: 0.7
     });
-    const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+    const torso = new THREE.Mesh(torsoGeo, torsoMat);
     torso.position.y = 0.9;
     torso.castShadow = true;
+    torso.receiveShadow = true;
     avatar.add(torso);
-    avatar.userData.torso = torso;
+    avatar.userData.parts.torso = torso;
 
-    // ARMS
-    const armGeometry = new THREE.CylinderGeometry(0.06, 0.055, 0.65, 16);
-    const armMaterial = new THREE.MeshStandardMaterial({ color: skinColor });
+    // ===== ARMS & FOREARMS =====
+    const createArm = (side) => {
+      const x = side * 0.38 * bodyScale;
+      
+      // Upper arm
+      const upperArmGeo = new THREE.CylinderGeometry(0.065, 0.06, 0.7, 16);
+      const armMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.6 });
+      const upperArm = new THREE.Mesh(upperArmGeo, armMat);
+      upperArm.position.set(x, 0.9, 0);
+      upperArm.castShadow = true;
+      avatar.add(upperArm);
+      avatar.userData.parts[`upperArm_${side > 0 ? 'R' : 'L'}`] = upperArm;
+      
+      // Forearm
+      const forearmGeo = new THREE.CylinderGeometry(0.055, 0.05, 0.65, 16);
+      const forearm = new THREE.Mesh(forearmGeo, armMat);
+      forearm.position.set(x, 0.2, 0);
+      forearm.castShadow = true;
+      avatar.add(forearm);
+      avatar.userData.parts[`forearm_${side > 0 ? 'R' : 'L'}`] = forearm;
+      
+      // Hand
+      const handGeo = new THREE.SphereGeometry(0.07, 16, 16);
+      const hand = new THREE.Mesh(handGeo, armMat);
+      hand.position.set(x, -0.15, 0);
+      hand.castShadow = true;
+      avatar.add(hand);
+      avatar.userData.parts[`hand_${side > 0 ? 'R' : 'L'}`] = hand;
+    };
     
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-0.35 * bodyScale, 1.0, 0);
-    leftArm.castShadow = true;
-    avatar.add(leftArm);
-    avatar.userData.leftArm = leftArm;
-    
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    rightArm.position.set(0.35 * bodyScale, 1.0, 0);
-    rightArm.castShadow = true;
-    avatar.add(rightArm);
-    avatar.userData.rightArm = rightArm;
+    createArm(-1);
+    createArm(1);
 
-    // FOREARMS
-    const forearmGeometry = new THREE.CylinderGeometry(0.055, 0.05, 0.6, 16);
+    // ===== LEGS & FEET =====
+    const createLeg = (side) => {
+      const x = side * 0.16 * bodyScale;
+      
+      const legGeo = isFemale
+        ? new THREE.CylinderGeometry(0.095, 0.088, 1.0, 16)
+        : new THREE.CylinderGeometry(0.105, 0.1, 1.0, 16);
+      const legMat = new THREE.MeshStandardMaterial({ 
+        color: isFemale ? skinColor : 0x2c3e50,
+        roughness: isFemale ? 0.6 : 0.8
+      });
+      const leg = new THREE.Mesh(legGeo, legMat);
+      leg.position.set(x, -0.05, 0);
+      leg.castShadow = true;
+      avatar.add(leg);
+      avatar.userData.parts[`leg_${side > 0 ? 'R' : 'L'}`] = leg;
+      
+      // Foot
+      const footGeo = new THREE.BoxGeometry(0.13, 0.09, 0.24);
+      const footMat = new THREE.MeshStandardMaterial({ 
+        color: isFemale ? 0x1a1a1a : 0x1a1a1a,
+        roughness: 0.9
+      });
+      const foot = new THREE.Mesh(footGeo, footMat);
+      foot.position.set(x, -0.52, 0.07);
+      foot.castShadow = true;
+      avatar.add(foot);
+      avatar.userData.parts[`foot_${side > 0 ? 'R' : 'L'}`] = foot;
+    };
     
-    const leftForearm = new THREE.Mesh(forearmGeometry, armMaterial);
-    leftForearm.position.set(-0.35 * bodyScale, 0.4, 0);
-    leftForearm.castShadow = true;
-    avatar.add(leftForearm);
-    avatar.userData.leftForearm = leftForearm;
-    
-    const rightForearm = new THREE.Mesh(forearmGeometry, armMaterial);
-    rightForearm.position.set(0.35 * bodyScale, 0.4, 0);
-    rightForearm.castShadow = true;
-    avatar.add(rightForearm);
-    avatar.userData.rightForearm = rightForearm;
-
-    // HANDS
-    const handGeometry = new THREE.SphereGeometry(0.06, 16, 16);
-    
-    const leftHand = new THREE.Mesh(handGeometry, armMaterial);
-    leftHand.position.set(-0.35 * bodyScale, 0.05, 0);
-    leftHand.castShadow = true;
-    avatar.add(leftHand);
-    avatar.userData.leftHand = leftHand;
-    
-    const rightHand = new THREE.Mesh(handGeometry, armMaterial);
-    rightHand.position.set(0.35 * bodyScale, 0.05, 0);
-    rightHand.castShadow = true;
-    avatar.add(rightHand);
-    avatar.userData.rightHand = rightHand;
-
-    // LEGS
-    const legGeometry = isFemale
-      ? new THREE.CylinderGeometry(0.09, 0.085, 0.95, 16)
-      : new THREE.CylinderGeometry(0.1, 0.095, 0.95, 16);
-    const legMaterial = new THREE.MeshStandardMaterial({ 
-      color: isFemale ? skinColor : 0x2C3E50
-    });
-    
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.14 * bodyScale, 0.05, 0);
-    leftLeg.castShadow = true;
-    avatar.add(leftLeg);
-    avatar.userData.leftLeg = leftLeg;
-    
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    rightLeg.position.set(0.14 * bodyScale, 0.05, 0);
-    rightLeg.castShadow = true;
-    avatar.add(rightLeg);
-    avatar.userData.rightLeg = rightLeg;
-
-    // FEET
-    const footGeometry = new THREE.BoxGeometry(0.12, 0.08, 0.22);
-    const footMaterial = new THREE.MeshStandardMaterial({ 
-      color: isFemale ? 0x000000 : 0x1A1A1A
-    });
-    
-    const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
-    leftFoot.position.set(-0.14 * bodyScale, -0.4, 0.06);
-    leftFoot.castShadow = true;
-    avatar.add(leftFoot);
-    avatar.userData.leftFoot = leftFoot;
-    
-    const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
-    rightFoot.position.set(0.14 * bodyScale, -0.4, 0.06);
-    rightFoot.castShadow = true;
-    avatar.add(rightFoot);
-    avatar.userData.rightFoot = rightFoot;
+    createLeg(-1);
+    createLeg(1);
 
     scene.add(avatar);
     return avatar;
   };
 
-  const updateAvatarPose = (avatar, faceLandmarks, poseLandmarks) => {
+  const updateAvatarPoseRealtime = (avatar, faceLandmarks, poseLandmarks) => {
     if (!avatar || !poseLandmarks || poseLandmarks.length < 33) return;
 
-    const getLandmark = (idx) => poseLandmarks[idx];
+    const parts = avatar.userData.parts;
+    const getLM = (idx) => poseLandmarks[idx];
 
-    // HEAD - acompanha movimento da cabeça
-    if (avatar.userData.head && faceLandmarks && faceLandmarks.length > 0) {
-      const nose = getLandmark(0);
-      const leftEar = getLandmark(7);
-      const rightEar = getLandmark(8);
+    // CABEÇA - Movimento completo em 3 eixos
+    if (parts.head && poseLandmarks[0]) {
+      const nose = getLM(0);
+      const leftEar = getLM(7);
+      const rightEar = getLM(8);
       
       if (nose && leftEar && rightEar) {
-        const headTilt = (rightEar.y - leftEar.y) * 2;
-        const headRotY = (nose.x - 0.5) * 0.8;
-        const headRotX = (nose.y - 0.5) * 0.5;
+        // Yaw (rotação Y) - virar cabeça esquerda/direita
+        const headYaw = (nose.x - 0.5) * -1.2;
         
-        avatar.userData.head.rotation.set(headRotX, -headRotY, headTilt);
+        // Pitch (rotação X) - inclinar cabeça cima/baixo  
+        const headPitch = (nose.y - 0.5) * 0.8;
+        
+        // Roll (rotação Z) - inclinar cabeça lateralmente
+        const headRoll = (rightEar.y - leftEar.y) * 2.5;
+        
+        parts.head.rotation.set(headPitch, headYaw, headRoll);
       }
     }
 
-    // SHOULDERS - posição base do torso
-    const leftShoulder = getLandmark(11);
-    const rightShoulder = getLandmark(12);
+    // PESCOÇO - Acompanha sutilmente a cabeça
+    if (parts.neck && parts.head) {
+      parts.neck.rotation.x = parts.head.rotation.x * 0.3;
+      parts.neck.rotation.y = parts.head.rotation.y * 0.5;
+      parts.neck.rotation.z = parts.head.rotation.z * 0.4;
+    }
+
+    // TORSO - Responde à postura geral
+    const leftShoulder = getLM(11);
+    const rightShoulder = getLM(12);
+    const leftHip = getLM(23);
+    const rightHip = getLM(24);
     
-    if (leftShoulder && rightShoulder && avatar.userData.torso) {
-      const shoulderTilt = (rightShoulder.y - leftShoulder.y) * 1.5;
-      const torsoLean = (leftShoulder.x + rightShoulder.x) / 2 - 0.5;
+    if (parts.torso && leftShoulder && rightShoulder) {
+      // Inclinação lateral
+      const shoulderTilt = (rightShoulder.y - leftShoulder.y) * 2;
       
-      avatar.userData.torso.rotation.set(0, torsoLean * 0.3, shoulderTilt);
+      // Rotação
+      const shoulderCenter = (leftShoulder.x + rightShoulder.x) / 2;
+      const torsoRotation = (shoulderCenter - 0.5) * 0.6;
+      
+      // Inclinação frente/trás
+      const shoulderDepth = (leftShoulder.z + rightShoulder.z) / 2;
+      const torsoPitch = (shoulderDepth + 0.5) * 0.4;
+      
+      parts.torso.rotation.set(torsoPitch, torsoRotation, shoulderTilt);
     }
 
-    // BRAÇOS
-    const leftElbow = getLandmark(13);
-    const leftWrist = getLandmark(15);
-    const rightElbow = getLandmark(14);
-    const rightWrist = getLandmark(16);
+    // BRAÇOS - Movimento completo e natural
+    const leftElbow = getLM(13);
+    const leftWrist = getLM(15);
+    const rightElbow = getLM(14);
+    const rightWrist = getLM(16);
 
-    if (leftShoulder && leftElbow && avatar.userData.leftArm) {
-      const armAngle = Math.atan2(leftElbow.y - leftShoulder.y, leftElbow.x - leftShoulder.x);
-      avatar.userData.leftArm.rotation.z = armAngle + Math.PI / 2;
+    // Braço esquerdo superior
+    if (parts.upperArm_L && leftShoulder && leftElbow) {
+      const dx = leftElbow.x - leftShoulder.x;
+      const dy = leftElbow.y - leftShoulder.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.upperArm_L.rotation.z = angle;
+      
+      // Rotação para frente/trás
+      const dz = leftElbow.z - leftShoulder.z;
+      parts.upperArm_L.rotation.x = dz * 2;
     }
 
-    if (rightShoulder && rightElbow && avatar.userData.rightArm) {
-      const armAngle = Math.atan2(rightElbow.y - rightShoulder.y, rightElbow.x - rightShoulder.x);
-      avatar.userData.rightArm.rotation.z = armAngle + Math.PI / 2;
+    // Antebraço esquerdo
+    if (parts.forearm_L && leftElbow && leftWrist) {
+      const dx = leftWrist.x - leftElbow.x;
+      const dy = leftWrist.y - leftElbow.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.forearm_L.rotation.z = angle;
+      
+      const dz = leftWrist.z - leftElbow.z;
+      parts.forearm_L.rotation.x = dz * 2;
     }
 
-    if (leftElbow && leftWrist && avatar.userData.leftForearm) {
-      const forearmAngle = Math.atan2(leftWrist.y - leftElbow.y, leftWrist.x - leftElbow.x);
-      avatar.userData.leftForearm.rotation.z = forearmAngle + Math.PI / 2;
+    // Mão esquerda - segue o punho
+    if (parts.hand_L && leftWrist) {
+      parts.hand_L.rotation.copy(parts.forearm_L?.rotation || new THREE.Euler());
     }
 
-    if (rightElbow && rightWrist && avatar.userData.rightForearm) {
-      const forearmAngle = Math.atan2(rightWrist.y - rightElbow.y, rightWrist.x - rightElbow.x);
-      avatar.userData.rightForearm.rotation.z = forearmAngle + Math.PI / 2;
+    // Braço direito superior
+    if (parts.upperArm_R && rightShoulder && rightElbow) {
+      const dx = rightElbow.x - rightShoulder.x;
+      const dy = rightElbow.y - rightShoulder.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.upperArm_R.rotation.z = angle;
+      
+      const dz = rightElbow.z - rightShoulder.z;
+      parts.upperArm_R.rotation.x = dz * 2;
     }
 
-    // PERNAS
-    const leftHip = getLandmark(23);
-    const leftKnee = getLandmark(25);
-    const rightHip = getLandmark(24);
-    const rightKnee = getLandmark(26);
-
-    if (leftHip && leftKnee && avatar.userData.leftLeg) {
-      const legAngle = Math.atan2(leftKnee.y - leftHip.y, leftKnee.x - leftHip.x);
-      avatar.userData.leftLeg.rotation.z = legAngle + Math.PI / 2;
+    // Antebraço direito
+    if (parts.forearm_R && rightElbow && rightWrist) {
+      const dx = rightWrist.x - rightElbow.x;
+      const dy = rightWrist.y - rightElbow.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.forearm_R.rotation.z = angle;
+      
+      const dz = rightWrist.z - rightElbow.z;
+      parts.forearm_R.rotation.x = dz * 2;
     }
 
-    if (rightHip && rightKnee && avatar.userData.rightLeg) {
-      const legAngle = Math.atan2(rightKnee.y - rightHip.y, rightKnee.x - rightHip.x);
-      avatar.userData.rightLeg.rotation.z = legAngle + Math.PI / 2;
+    // Mão direita
+    if (parts.hand_R && rightWrist) {
+      parts.hand_R.rotation.copy(parts.forearm_R?.rotation || new THREE.Euler());
+    }
+
+    // PERNAS - Movimento de quadril e joelho
+    const leftKnee = getLM(25);
+    const leftAnkle = getLM(27);
+    const rightKnee = getLM(26);
+    const rightAnkle = getLM(28);
+
+    // Perna esquerda
+    if (parts.leg_L && leftHip && leftKnee) {
+      const dx = leftKnee.x - leftHip.x;
+      const dy = leftKnee.y - leftHip.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.leg_L.rotation.z = angle * 0.5; // Movimento mais sutil
+      
+      const dz = leftKnee.z - leftHip.z;
+      parts.leg_L.rotation.x = dz * 1.5;
+    }
+
+    // Pé esquerdo
+    if (parts.foot_L && leftKnee && leftAnkle) {
+      const dy = leftAnkle.y - leftKnee.y;
+      parts.foot_L.rotation.x = dy * 0.8;
+    }
+
+    // Perna direita
+    if (parts.leg_R && rightHip && rightKnee) {
+      const dx = rightKnee.x - rightHip.x;
+      const dy = rightKnee.y - rightHip.y;
+      const angle = Math.atan2(dy, dx) + Math.PI / 2;
+      parts.leg_R.rotation.z = angle * 0.5;
+      
+      const dz = rightKnee.z - rightHip.z;
+      parts.leg_R.rotation.x = dz * 1.5;
+    }
+
+    // Pé direito
+    if (parts.foot_R && rightKnee && rightAnkle) {
+      const dy = rightAnkle.y - rightKnee.y;
+      parts.foot_R.rotation.x = dy * 0.8;
     }
   };
 
@@ -409,7 +493,7 @@ export default function LiveAvatarMirror({ faceLandmarks, poseLandmarks, avatarC
     <div 
       ref={mountRef} 
       className={`w-full h-full ${className}`}
-      style={{ minHeight: '400px' }}
+      style={{ minHeight: '400px', background: 'linear-gradient(180deg, #b2d8ff 0%, #e8f4ff 100%)' }}
     />
   );
 }
