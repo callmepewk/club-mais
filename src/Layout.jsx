@@ -16,6 +16,7 @@ import {
   SidebarTrigger,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import Footer from "./components/Footer";
 
 const navigationItems = [
   {
@@ -117,7 +118,7 @@ export default function Layout({ children, currentPageName }) {
           </SidebarContent>
 
           <SidebarFooter className="border-t border-[#E8DCC4] p-4">
-            <Link to={createPageUrl("Contact")} className="flex items-center gap-3 p-3 hover:bg-[#F5EFE6] rounded-xl transition-all duration-300 group">
+            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-[#F5EFE6] rounded-xl transition-all duration-300 group">
               <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center">
                 <Phone className="w-5 h-5 text-white" />
               </div>
@@ -125,7 +126,7 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs text-[#C8A882] font-medium">Contato</p>
                 <p className="text-sm font-semibold text-gray-800">(31) 97259-5643</p>
               </div>
-            </Link>
+            </a>
           </SidebarFooter>
         </Sidebar>
 
@@ -144,6 +145,7 @@ export default function Layout({ children, currentPageName }) {
 
           <div className="flex-1 overflow-auto">
             {children}
+            <Footer />
           </div>
         </main>
       </div>

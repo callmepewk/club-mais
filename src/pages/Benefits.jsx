@@ -17,9 +17,9 @@ const benefitCategories = [
     icon: Percent,
     color: "from-[#D4AF37] to-[#C8A882]",
     items: [
-      "Até 50% de desconto em tratamentos estéticos",
-      "30% off em produtos de beleza premium",
-      "20% de desconto em serviços de salão",
+      "Até 25% de desconto em tratamentos estéticos",
+      "Descontos em produtos de beleza premium",
+      "Cashback de até 10% em compras",
       "Descontos especiais em spas parceiros"
     ]
   },
@@ -39,10 +39,10 @@ const benefitCategories = [
     icon: Gift,
     color: "from-[#D4AF37] to-[#C8A882]",
     items: [
-      "Ganhe pontos a cada compra",
+      "Ganhe até 300 pontos mensais",
       "Troque pontos por serviços gratuitos",
       "Bônus de aniversário",
-      "Recompensas por indicação de amigos"
+      "Programa de indicação com pontos extras"
     ]
   },
   {
@@ -50,10 +50,10 @@ const benefitCategories = [
     icon: Zap,
     color: "from-[#C8A882] to-[#E8DCC4]",
     items: [
-      "Agendamento prioritário",
-      "Atendimento VIP nos parceiros",
-      "Acesso antecipado a promoções",
-      "Suporte dedicado 24/7"
+      "Agendamento prioritário e VIP",
+      "Atendimento dedicado nos parceiros",
+      "Suporte 24/7 para planos VIP",
+      "Acesso antecipado a promoções"
     ]
   }
 ];
@@ -77,38 +77,61 @@ const features = [
   {
     icon: TrendingUp,
     title: "Economia Real",
-    description: "Economize em média 30% em serviços de beleza"
+    description: "Economize em média com nossos descontos exclusivos"
   }
 ];
 
 const plans = [
   {
-    name: "Mensal",
-    price: "R$ 29,90",
-    period: "/mês",
-    description: "Ideal para quem quer testar",
+    name: "Light",
+    price: "Grátis",
+    period: "",
+    description: "Perfeito para começar sua jornada",
     features: [
-      "Acesso a todos os benefícios",
-      "Descontos em parceiros",
-      "Programa de pontos",
-      "Suporte por e-mail"
+      "Acesso ao aplicativo localizador",
+      "Busca de profissionais por categoria",
+      "Visualização de avaliações",
+      "Suporte por email",
+      "Notificações de novidades"
     ],
     highlighted: false
   },
   {
-    name: "Anual",
-    price: "R$ 299,90",
-    period: "/ano",
-    description: "Melhor custo-benefício",
+    name: "Gold",
+    price: "R$ 49,90",
+    period: "/mês",
+    description: "O plano mais popular",
     features: [
-      "Todos os benefícios do plano mensal",
-      "2 meses grátis",
-      "Eventos exclusivos",
-      "Suporte prioritário",
-      "Brindes especiais"
+      "Todos os benefícios do LIGHT",
+      "15% de desconto na rede parceira",
+      "100 pontos mensais",
+      "Agendamento prioritário",
+      "Suporte por WhatsApp",
+      "Acesso a promoções exclusivas",
+      "Programa de indicação (ganhe pontos)",
+      "Cashback de 5% em compras"
     ],
     highlighted: true,
     badge: "Mais Popular"
+  },
+  {
+    name: "VIP",
+    price: "R$ 99,90",
+    period: "/mês",
+    description: "Experiência premium completa",
+    features: [
+      "Todos os benefícios do GOLD",
+      "25% de desconto na rede parceira",
+      "300 pontos mensais",
+      "Agendamento VIP (prioridade máxima)",
+      "Suporte 24/7 dedicado",
+      "Teleconsulta gratuita com especialistas",
+      "Acesso a eventos exclusivos",
+      "Tratamentos personalizados mensais",
+      "Cashback de 10% em compras",
+      "Cartão físico premium personalizado"
+    ],
+    highlighted: false
   }
 ];
 
@@ -222,7 +245,7 @@ export default function Benefits() {
 
       {/* Pricing */}
       <div className="py-20 px-6 bg-gradient-to-br from-[#F5EFE6] to-white">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -239,7 +262,7 @@ export default function Benefits() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.name}
@@ -250,7 +273,7 @@ export default function Benefits() {
               >
                 <Card className={`h-full relative overflow-hidden ${
                   plan.highlighted 
-                    ? 'border-[#D4AF37] border-2 shadow-2xl' 
+                    ? 'border-[#D4AF37] border-2 shadow-2xl scale-105' 
                     : 'border-[#E8DCC4]'
                 }`}>
                   {plan.badge && (
@@ -271,7 +294,7 @@ export default function Benefits() {
                       <span className="font-serif text-5xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                         {plan.price}
                       </span>
-                      <span className="text-gray-600">{plan.period}</span>
+                      {plan.period && <span className="text-gray-600">{plan.period}</span>}
                     </div>
 
                     <ul className="space-y-3">
@@ -291,7 +314,7 @@ export default function Benefits() {
                             : 'bg-white border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]'
                         }`}
                       >
-                        Começar Agora
+                        Selecionar Plano
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                     </Link>

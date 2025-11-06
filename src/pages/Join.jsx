@@ -5,38 +5,72 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Sparkles, Check, Crown, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 
 const plans = [
   {
-    id: "monthly",
-    name: "Plano Mensal",
-    price: "R$ 29,90",
-    period: "/mês",
-    description: "Sem compromisso, cancele quando quiser"
+    id: "light",
+    name: "Plano Light",
+    price: "Grátis",
+    period: "",
+    description: "Comece sua jornada sem custos",
+    features: [
+      "Acesso ao aplicativo localizador",
+      "Busca de profissionais por categoria",
+      "Visualização de avaliações",
+      "Suporte por email",
+      "Notificações de novidades"
+    ]
   },
   {
-    id: "annual",
-    name: "Plano Anual",
-    price: "R$ 299,90",
-    period: "/ano",
-    description: "Economize 2 meses com o plano anual",
-    badge: "Recomendado",
-    highlighted: true
+    id: "gold",
+    name: "Plano Gold",
+    price: "R$ 49,90",
+    period: "/mês",
+    description: "O plano mais escolhido pelos membros",
+    badge: "Mais Popular",
+    highlighted: true,
+    features: [
+      "Todos os benefícios do LIGHT",
+      "15% de desconto na rede parceira",
+      "100 pontos mensais",
+      "Agendamento prioritário",
+      "Suporte por WhatsApp",
+      "Acesso a promoções exclusivas",
+      "Programa de indicação",
+      "Cashback de 5% em compras"
+    ]
+  },
+  {
+    id: "vip",
+    name: "Plano VIP",
+    price: "R$ 99,90",
+    period: "/mês",
+    description: "Experiência premium completa",
+    features: [
+      "Todos os benefícios do GOLD",
+      "25% de desconto na rede parceira",
+      "300 pontos mensais",
+      "Agendamento VIP (prioridade máxima)",
+      "Suporte 24/7 dedicado",
+      "Teleconsulta gratuita com especialistas",
+      "Acesso a eventos exclusivos",
+      "Tratamentos personalizados mensais",
+      "Cashback de 10% em compras",
+      "Cartão físico premium personalizado"
+    ]
   }
 ];
 
 const benefits = [
-  "Descontos de até 50% em parceiros",
-  "Acesso a eventos exclusivos",
-  "Programa de recompensas",
-  "Suporte prioritário",
-  "Cancelamento gratuito"
+  "Descontos exclusivos em parceiros",
+  "Acesso a eventos e workshops",
+  "Programa de recompensas com pontos",
+  "Suporte dedicado",
+  "Cancelamento gratuito a qualquer momento"
 ];
 
 export default function Join() {
-  const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [selectedPlan, setSelectedPlan] = useState("gold");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -51,12 +85,11 @@ export default function Join() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted:", { ...formData, plan: selectedPlan });
-    // Here you would handle the actual submission
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5EFE6] via-white to-[#E8DCC4] py-12 px-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -117,7 +150,7 @@ export default function Join() {
                       )}
 
                       <div className="flex items-start justify-between">
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex-1">
                           <h3 className="font-serif text-xl font-bold text-gray-800">
                             {plan.name}
                           </h3>
@@ -126,11 +159,11 @@ export default function Join() {
                             <span className="font-serif text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                               {plan.price}
                             </span>
-                            <span className="text-gray-600">{plan.period}</span>
+                            {plan.period && <span className="text-gray-600">{plan.period}</span>}
                           </div>
                         </div>
 
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                           selectedPlan === plan.id
                             ? 'border-[#D4AF37] bg-[#D4AF37]'
                             : 'border-gray-300'
