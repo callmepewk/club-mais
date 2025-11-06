@@ -1,18 +1,20 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Sparkles, Home, Users, Award } from "lucide-react";
+import { Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, Package } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
   SidebarProvider,
   SidebarTrigger,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
@@ -25,6 +27,26 @@ const navigationItems = [
     title: "Benefícios",
     url: createPageUrl("Benefits"),
     icon: Award,
+  },
+  {
+    title: "Sobre Nós",
+    url: createPageUrl("About"),
+    icon: Info,
+  },
+  {
+    title: "Nossos Produtos",
+    url: createPageUrl("Products"),
+    icon: Package,
+  },
+  {
+    title: "Golden Doctors",
+    url: createPageUrl("GoldenDoctors"),
+    icon: Briefcase,
+  },
+  {
+    title: "Notícias",
+    url: createPageUrl("News"),
+    icon: Newspaper,
   },
   {
     title: "Associe-se",
@@ -69,6 +91,9 @@ export default function Layout({ children, currentPageName }) {
           
           <SidebarContent className="p-3">
             <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-medium text-[#C8A882] uppercase tracking-wider px-2 py-2">
+                Navegação
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.map((item) => (
@@ -90,6 +115,18 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+
+          <SidebarFooter className="border-t border-[#E8DCC4] p-4">
+            <Link to={createPageUrl("Contact")} className="flex items-center gap-3 p-3 hover:bg-[#F5EFE6] rounded-xl transition-all duration-300 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center">
+                <Phone className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-[#C8A882] font-medium">Contato</p>
+                <p className="text-sm font-semibold text-gray-800">(31) 97259-5643</p>
+              </div>
+            </Link>
+          </SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
