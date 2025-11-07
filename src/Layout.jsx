@@ -33,54 +33,9 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "Benefícios",
-    url: createPageUrl("Benefits"),
-    icon: Award,
-  },
-  {
-    title: "Clube+",
-    url: createPageUrl("ClubePlus"),
-    icon: Heart,
-  },
-  {
-    title: "EdBeauty",
-    url: createPageUrl("EdBeauty"),
-    icon: GraduationCap,
-  },
-  {
-    title: "Dr. Beleza",
-    url: createPageUrl("DrBeleza"),
-    icon: Bot,
-  },
-  {
-    title: "Crie seu Avatar",
-    url: createPageUrl("AvatarScanner"),
-    icon: Scan,
-  },
-  {
-    title: "Mapa da Estética",
-    url: createPageUrl("MapaDaEstetica"),
-    icon: MapPin,
-  },
-  {
-    title: "Mapa Interativo",
-    url: createPageUrl("MapaInterativo"),
-    icon: MapIcon,
-  },
-  {
-    title: "Beauty Coin",
-    url: createPageUrl("BeautyCoin"),
-    icon: Coins,
-  },
-  {
-    title: "Meu Perfil",
-    url: createPageUrl("MyProfile"),
-    icon: UserIcon,
-  },
-  {
-    title: "Sobre Nós",
-    url: createPageUrl("About"),
-    icon: Info,
+    title: "Notícias",
+    url: createPageUrl("News"),
+    icon: Newspaper,
   },
   {
     title: "Nossos Produtos",
@@ -88,19 +43,44 @@ const navigationItems = [
     icon: Package,
   },
   {
+    title: "Beauty Coin",
+    url: createPageUrl("BeautyCoin"),
+    icon: Coins,
+  },
+  {
+    title: "Dr. Beleza",
+    url: createPageUrl("DrBeleza"),
+    icon: Bot,
+  },
+  {
+    title: "Mapa da Estética",
+    url: createPageUrl("MapaDaEstetica"),
+    icon: MapPin,
+  },
+  {
+    title: "EdBeauty",
+    url: createPageUrl("EdBeauty"),
+    icon: GraduationCap,
+  },
+  {
     title: "Golden Doctors",
     url: createPageUrl("GoldenDoctors"),
     icon: Briefcase,
   },
   {
-    title: "Notícias",
-    url: createPageUrl("News"),
-    icon: Newspaper,
+    title: "Clube+",
+    url: createPageUrl("ClubePlus"),
+    icon: Heart,
   },
   {
     title: "Associe-se",
     url: createPageUrl("Join"),
     icon: Users,
+  },
+  {
+    title: "Meu Perfil",
+    url: createPageUrl("MyProfile"),
+    icon: UserIcon,
   },
 ];
 
