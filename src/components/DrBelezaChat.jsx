@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send, Sparkles, HelpCircle, Play, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -34,6 +35,58 @@ const quickQuestions = [
   }
 ];
 
+const tutorialSteps = [
+  {
+    id: 1,
+    title: "Bem-vindo ao Club da Beleza!",
+    description: "Vou te mostrar como usar nossa plataforma. Clique em 'Próximo' para continuar.",
+    target: null,
+    position: "center"
+  },
+  {
+    id: 2,
+    title: "Menu de Navegação",
+    description: "Aqui você encontra todas as seções do Club da Beleza. Use o menu para navegar entre as páginas.",
+    target: "sidebar", // Assuming a sidebar with data-tutorial="sidebar"
+    position: "right"
+  },
+  {
+    id: 3,
+    title: "Meu Perfil",
+    description: "Acesse seu perfil para ver suas informações, plano atual e benefícios disponíveis.",
+    target: "MeuPerfil", // Assuming a link with href containing "MeuPerfil" or data-tutorial="nav-MeuPerfil"
+    position: "right"
+  },
+  {
+    id: 4,
+    title: "Mapa da Estética",
+    description: "Encontre profissionais certificados perto de você. Busque por especialidade e localização.",
+    target: "MapaDaEstetica", // Assuming a link with href containing "MapaDaEstetica" or data-tutorial="nav-MapaDaEstetica"
+    position: "right"
+  },
+  {
+    id: 5,
+    title: "Dr. Beleza",
+    description: "Use minha página para buscar tratamentos, fazer perguntas e obter recomendações personalizadas.",
+    target: "DrBeleza", // Assuming a link with href containing "DrBeleza" or data-tutorial="nav-DrBeleza"
+    position: "right"
+  },
+  {
+    id: 6,
+    title: "Beauty Coin",
+    description: "Conheça nossa criptomoeda exclusiva e descubra como usá-la para adquirir produtos e serviços.",
+    target: "BeautyCoin", // Assuming a link with href containing "BeautyCoin" or data-tutorial="nav-BeautyCoin"
+    position: "right"
+  },
+  {
+    id: 7,
+    title: "Pronto!",
+    description: "Agora você já conhece o básico! Explore a plataforma e aproveite todos os benefícios. Estou sempre aqui para ajudar!",
+    target: null,
+    position: "center"
+  }
+];
+
 export default function DrBelezaChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -45,6 +98,10 @@ export default function DrBelezaChat() {
   const [inputMessage, setInputMessage] = useState("");
   const chatRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [highlightedElement, setHighlightedElement] = useState(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -64,6 +121,67 @@ export default function DrBelezaChat() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  const startTutorial = () => {
+    setShowTutorial(true);
+    setTutorialStep(0);
+    setIsOpen(false);
+  };
+
+  const nextTutorialStep = () => {
+    if (tutorialStep < tutorialSteps.length - 1) {
+      const nextStep = tutorialStep + 1;
+      setTutorialStep(nextStep);
+      
+      const step = tutorialSteps[nextStep];
+      if (step.target) {
+        scrollToElement(step.target);
+      } else {
+        // If no specific target, just ensure general scroll
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      endTutorial();
+    }
+  };
+
+  const endTutorial = () => {
+    setShowTutorial(false);
+    setTutorialStep(0);
+    setHighlightedElement(null);
+    setIsOpen(true);
+  };
+
+  const scrollToElement = (targetId) => {
+    setTimeout(() => {
+      // Prioritize data-tutorial attribute, then href containing the targetId
+      let element = document.querySelector(`[data-tutorial="${targetId}"]`);
+      if (!element) {
+        // Fallback for links if data-tutorial is not present
+        const links = document.querySelectorAll('a');
+        for (const link of links) {
+          if (link.href && link.href.includes(targetId)) {
+            element = link;
+            break;
+          }
+        }
+      }
+
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedElement(targetId);
+        
+        // Add highlight animation
+        element.classList.add('tutorial-highlight');
+        setTimeout(() => {
+          element.classList.remove('tutorial-highlight');
+        }, 2000); // Highlight for 2 seconds
+      } else {
+        // If element not found, just scroll to top for context
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100); // Small delay to allow potential DOM updates or page transitions
+  };
 
   const handleQuickQuestion = (question, answer) => {
     setMessages(prev => [
@@ -94,6 +212,30 @@ export default function DrBelezaChat() {
 
   return (
     <>
+      <style>{`
+        .tutorial-highlight {
+          animation: pulse-highlight 2s ease-in-out;
+          position: relative;
+          z-index: 9999; /* Ensure highlighted element is on top */
+        }
+        
+        @keyframes pulse-highlight {
+          0% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+            outline: 2px solid rgba(212, 175, 55, 0.7);
+            border-radius: 0.5rem; /* Adjust based on element's border-radius */
+          }
+          50% {
+            box-shadow: 0 0 0 20px rgba(212, 175, 55, 0);
+            outline: 2px solid rgba(212, 175, 55, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+            outline: 2px solid rgba(212, 175, 55, 0.7);
+          }
+        }
+      `}</style>
+
       {/* Chat Button */}
       <AnimatePresence>
         {!isOpen && (
@@ -190,7 +332,7 @@ export default function DrBelezaChat() {
                 {/* Quick Questions */}
                 <div className="p-4 border-t border-[#E8DCC4] bg-white">
                   <p className="text-xs text-gray-500 mb-2 font-medium">Perguntas Rápidas:</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {quickQuestions.slice(0, 3).map((item, index) => (
                       <Button
                         key={index}
@@ -203,10 +345,21 @@ export default function DrBelezaChat() {
                       </Button>
                     ))}
                   </div>
-                  <Link to={createPageUrl("DrBeleza")} onClick={() => setIsOpen(false)}>
+
+                  <Button
+                    onClick={startTutorial}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+                  >
+                    <Play className="w-3 h-3 mr-2" />
+                    Iniciar Tutorial
+                  </Button>
+
+                  <Link to={createPageUrl("DrBeleza")} onClick={() => setIsOpen(false)} className="block w-full">
                     <Button
                       variant="link"
-                      className="text-xs text-[#D4AF37] hover:text-[#C8A882] mt-2 p-0"
+                      className="text-xs text-[#D4AF37] hover:text-[#C8A882] mt-2 p-0 w-full"
                     >
                       Ver todas as perguntas →
                     </Button>
@@ -239,6 +392,84 @@ export default function DrBelezaChat() {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tutorial Overlay */}
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] p-6 relative">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full overflow-hidden flex-shrink-0">
+                    <img 
+                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                      alt="Dr. Beleza"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-white flex-1">
+                    <p className="text-sm opacity-90">Tutorial - Passo {tutorialStep + 1} de {tutorialSteps.length}</p>
+                    <h3 className="font-serif text-2xl font-bold">
+                      {tutorialSteps[tutorialStep].title}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-6">
+                <p className="text-gray-700 text-lg leading-relaxed">
+                  {tutorialSteps[tutorialStep].description}
+                </p>
+
+                <div className="flex gap-3">
+                  {tutorialStep > 0 && (
+                    <Button
+                      onClick={() => setTutorialStep(tutorialStep - 1)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Voltar
+                    </Button>
+                  )}
+                  
+                  <Button
+                    onClick={nextTutorialStep}
+                    className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white group"
+                  >
+                    {tutorialStep === tutorialSteps.length - 1 ? (
+                      <>Pronto!</>
+                    ) : (
+                      <>
+                        Próximo
+                        <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <Button
+                  onClick={endTutorial}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-gray-500"
+                >
+                  Pular Tutorial
+                </Button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

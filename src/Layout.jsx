@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import Footer from "./components/Footer";
 import DrBelezaChat from "./components/DrBelezaChat";
+import SignUpPopup from "./components/SignUpPopup";
 
 const navigationItems = [
   {
@@ -196,6 +198,9 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Dr Beleza Chatbot */}
         <DrBelezaChat />
+
+        {/* Sign Up Popup */}
+        <SignUpPopup />
       </div>
     </SidebarProvider>
   );

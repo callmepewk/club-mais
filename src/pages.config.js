@@ -16,6 +16,7 @@ import EdBeautyUpload from './pages/EdBeautyUpload';
 import EdBeautyPlans from './pages/EdBeautyPlans';
 import MyPlan from './pages/MyPlan';
 import AvatarScanner from './pages/AvatarScanner';
+import MyProfile from './pages/MyProfile';
 import Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "EdBeautyPlans": EdBeautyPlans,
     "MyPlan": MyPlan,
     "AvatarScanner": AvatarScanner,
+    "MyProfile": MyProfile,
 }
 
 export const pagesConfig = {

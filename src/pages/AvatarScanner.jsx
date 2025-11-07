@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Sparkles, User, AlertCircle, CheckCircle, Save, Wand2, Download
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AvatarScanner() {
   const [avatarConfig, setAvatarConfig] = useState({
@@ -35,6 +37,11 @@ export default function AvatarScanner() {
   const [showDrBelezaDialog, setShowDrBelezaDialog] = useState(false);
   const [recommendedTreatments, setRecommendedTreatments] = useState([]);
   
+  const [showAvatarChat, setShowAvatarChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -126,6 +133,8 @@ export default function AvatarScanner() {
       const prompt = generatePrompt();
       const result = await base44.integrations.Core.GenerateImage({ prompt });
       setGeneratedAvatarUrl(result.url);
+      setChatMessages([]); // Clear chat messages when a new avatar is generated
+      setShowAvatarChat(false); // Close chat when a new avatar is generated
     } catch (error) {
       console.error('Erro ao gerar avatar:', error);
       alert('Erro ao gerar avatar. Tente novamente.');
@@ -203,6 +212,37 @@ export default function AvatarScanner() {
       }
     });
     setShowDrBelezaDialog(false);
+  };
+
+  const handleAvatarChatMessage = async () => {
+    if (!chatInput.trim() || !generatedAvatarUrl) return;
+
+    const userMessage = chatInput;
+    setChatMessages(prev => [...prev, { type: "user", text: userMessage }]);
+    setChatInput("");
+    setIsGeneratingVariation(true);
+
+    try {
+      // Generate prompt for variation
+      const variationPrompt = `${generatePrompt()}, com as seguintes modificações: ${userMessage}. Mantenha o mesmo estilo, pose e iluminação do original, apenas aplicando as mudanças solicitadas`;
+      
+      const result = await base44.integrations.Core.GenerateImage({ prompt: variationPrompt });
+      
+      setGeneratedAvatarUrl(result.url);
+      setChatMessages(prev => [...prev, { 
+        type: "bot", 
+        text: `Pronto! Apliquei as alterações que você pediu. O que acha do resultado?`,
+        imageUrl: result.url
+      }]);
+    } catch (error) {
+      console.error('Erro ao gerar variação:', error);
+      setChatMessages(prev => [...prev, { 
+        type: "bot", 
+        text: "Desculpe, ocorreu um erro ao aplicar as alterações. Tente novamente."
+      }]);
+    } finally {
+      setIsGeneratingVariation(false);
+    }
   };
 
   if (loadingUser) {
@@ -474,6 +514,91 @@ export default function AvatarScanner() {
                       </div>
                     )}
                   </div>
+
+                  {generatedAvatarUrl && !showAvatarChat && (
+                    <Button
+                      onClick={() => setShowAvatarChat(true)}
+                      variant="outline"
+                      className="w-full border-[#D4AF37] text-[#D4AF37]"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Conversar com Dr. Beleza sobre alterações
+                    </Button>
+                  )}
+
+                  {showAvatarChat && generatedAvatarUrl && (
+                    <Card className="border-[#E8DCC4] bg-[#F5EFE6]">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <img 
+                              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
+                              alt="Dr. Beleza"
+                              className="w-8 h-8 rounded-full"
+                            />
+                            Dr. Beleza
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAvatarChat(false)}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="h-48 overflow-y-auto space-y-3 bg-white rounded-lg p-3">
+                          {chatMessages.length === 0 && (
+                            <div className="text-sm text-gray-600">
+                              <p>Olá! Que alterações você gostaria de fazer no seu avatar?</p>
+                              <p className="mt-2 text-xs">Exemplos: "deixe o cabelo mais loiro", "aumente o sorriso", "mude a cor dos olhos para azul"</p>
+                            </div>
+                          )}
+                          {chatMessages.map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[80%] p-2 rounded-lg ${
+                                msg.type === "user" 
+                                  ? "bg-[#D4AF37] text-white" 
+                                  : "bg-gray-100 text-gray-800"
+                              }`}>
+                                <p className="text-sm">{msg.text}</p>
+                              </div>
+                            </div>
+                          ))}
+                          {isGeneratingVariation && (
+                            <div className="flex justify-start">
+                              <div className="max-w-[80%] p-2 rounded-lg bg-gray-100 text-gray-800 flex items-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
+                                <span>Gerando...</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Textarea
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder="Descreva as alterações..."
+                            className="min-h-[60px] border-[#E8DCC4]"
+                            disabled={isGeneratingVariation}
+                          />
+                          <Button
+                            onClick={handleAvatarChatMessage}
+                            disabled={!chatInput.trim() || isGeneratingVariation}
+                            className="bg-[#D4AF37] text-white"
+                          >
+                            {isGeneratingVariation ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                            ) : (
+                              <Wand2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {generatedAvatarUrl && (
                     <a 
