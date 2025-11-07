@@ -287,6 +287,13 @@ export default function DrBelezaChat() {
     }, 1000);
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -449,12 +456,7 @@ export default function DrBelezaChat() {
                     <Input
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
+                      onKeyDown={handleKeyPress}
                       placeholder="Digite sua mensagem..."
                       className="border-[#E8DCC4] focus:border-[#D4AF37]"
                     />

@@ -58,6 +58,7 @@ export default function EdBeauty() {
   const [categoryFilter, setCategoryFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [tipoAcessoFilter, setTipoAcessoFilter] = useState("Todos");
+  const [publicoAlvoFilter, setPublicoAlvoFilter] = useState("Todos");
   const [user, setUser] = useState(null);
 
   const { data: contents = [], isLoading: loadingContents } = useQuery({
@@ -90,22 +91,24 @@ export default function EdBeauty() {
     // Admin pode tudo
     if (user.role === 'admin') return true;
 
-    // Profissional pode ver todos os conteúdos (pode ter pago)
-    if (user.tipo_usuario === 'profissional') return true;
-
-    // Paciente pode ver conteúdos gratuitos e para pacientes, dependendo do plano
-    if (user.tipo_usuario === 'paciente') {
-      if (content.publico_alvo === 'profissional') return false; // Pacientes não acessam conteúdo de profissional
-
+    // Verificar público-alvo com hierarquia
+    if (content.publico_alvo !== 'todos') {
+      const [targetTipo, targetPlano] = content.publico_alvo.split('-');
+      
+      // Se o conteúdo não é para o tipo de usuário, não pode acessar
+      if (user.tipo_usuario !== targetTipo) return false;
+      
+      // Hierarquia de planos
       const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
       const userPlan = user.clube_plano || 'none';
-      const contentPlanMin = content.plano_minimo || 'none';
-
-      return planHierarchy[userPlan] >= planHierarchy[contentPlanMin];
+      const userLevel = planHierarchy[userPlan];
+      const targetLevel = planHierarchy[targetPlano];
+      
+      // Usuário pode ver conteúdos do seu nível ou abaixo
+      if (userLevel < targetLevel) return false;
     }
 
-    // Por padrão, não pode acessar
-    return false;
+    return true;
   };
 
   const canUploadContent = () => {
@@ -124,10 +127,11 @@ export default function EdBeauty() {
       const matchCategory = categoryFilter === "Todas" || content.categoria === categoryFilter;
       const matchType = typeFilter === "Todos" || content.tipo === typeFilter;
       const matchTipoAcesso = tipoAcessoFilter === "Todos" || content.tipo_acesso === tipoAcessoFilter;
+      const matchPublicoAlvo = publicoAlvoFilter === "Todos" || content.publico_alvo === publicoAlvoFilter;
 
-      return matchSearch && matchCategory && matchType && matchTipoAcesso;
+      return matchSearch && matchCategory && matchType && matchTipoAcesso && matchPublicoAlvo;
     });
-  }, [contents, searchQuery, categoryFilter, typeFilter, tipoAcessoFilter]);
+  }, [contents, searchQuery, categoryFilter, typeFilter, tipoAcessoFilter, publicoAlvoFilter]);
 
   const userPlan = user?.clube_plano || 'none';
 
@@ -211,7 +215,7 @@ export default function EdBeauty() {
       {/* Filters */}
       <div className="py-12 px-6 bg-white border-b border-[#E8DCC4]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -263,6 +267,22 @@ export default function EdBeauty() {
                 <SelectItem value="exclusivo">Exclusivo</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={publicoAlvoFilter} onValueChange={setPublicoAlvoFilter}>
+              <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todos os Públicos</SelectItem>
+                <SelectItem value="todos">Para Todos</SelectItem>
+                <SelectItem value="paciente-light">Pacientes - Light</SelectItem>
+                <SelectItem value="paciente-gold">Pacientes - Gold</SelectItem>
+                <SelectItem value="paciente-vip">Pacientes - VIP</SelectItem>
+                <SelectItem value="profissional-light">Profissionais - Light</SelectItem>
+                <SelectItem value="profissional-gold">Profissionais - Gold</SelectItem>
+                <SelectItem value="profissional-vip">Profissionais - VIP</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -286,7 +306,6 @@ export default function EdBeauty() {
                 const TypeIcon = typeIcons[content.tipo];
                 const userCanAccess = canAccessContent(content);
                 const isPago = content.tipo_acesso === 'pago';
-                // const isGratuito = content.tipo_acesso === 'gratuito'; // Not explicitly needed due to canAccessContent
 
                 return (
                   <motion.div
@@ -304,10 +323,8 @@ export default function EdBeauty() {
                             <Lock className="w-12 h-12 mx-auto mb-3" />
                             {!user ? (
                               <p className="font-semibold">Faça login para acessar</p>
-                            ) : content.publico_alvo === 'profissional' && user.tipo_usuario === 'paciente' ? (
-                              <p className="font-semibold">Conteúdo exclusivo para profissionais</p>
                             ) : (
-                              <p className="font-semibold">Plano {planoLabels[content.plano_minimo]} necessário</p>
+                              <p className="font-semibold">Conteúdo não disponível para seu plano</p>
                             )}
                           </div>
                         </div>
@@ -322,8 +339,9 @@ export default function EdBeauty() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
                         <div className="absolute top-4 left-4 right-4 flex justify-between items-start flex-wrap gap-2">
-                          <Badge className={`${planoColors[content.plano_minimo]} border-0`}>
-                            {planoLabels[content.plano_minimo]}
+                          <Badge className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white border-0">
+                            {content.publico_alvo === 'todos' ? 'Para Todos' : 
+                             content.publico_alvo.replace('-', ' - ').replace('paciente', 'Pac').replace('profissional', 'Prof')}
                           </Badge>
                           <div className="flex gap-2">
                             <Badge className={`${tipoAcessoColors[content.tipo_acesso]} border-0`}>

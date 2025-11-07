@@ -34,7 +34,6 @@ export default function EdBeautyUpload() {
     categoria: "Estética Facial",
     duracao: "",
     nivel: "Intermediário",
-    plano_minimo: "light"
   });
   const [uploadStatus, setUploadStatus] = useState(null);
 
@@ -221,8 +220,12 @@ export default function EdBeautyUpload() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="paciente">Pacientes</SelectItem>
-                      <SelectItem value="profissional">Profissionais</SelectItem>
+                      <SelectItem value="paciente-light">Pacientes - Light</SelectItem>
+                      <SelectItem value="paciente-gold">Pacientes - Gold</SelectItem>
+                      <SelectItem value="paciente-vip">Pacientes - VIP</SelectItem>
+                      <SelectItem value="profissional-light">Profissionais - Light</SelectItem>
+                      <SelectItem value="profissional-gold">Profissionais - Gold</SelectItem>
+                      <SelectItem value="profissional-vip">Profissionais - VIP</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -316,20 +319,6 @@ export default function EdBeautyUpload() {
                       <SelectItem value="Iniciante">Iniciante</SelectItem>
                       <SelectItem value="Intermediário">Intermediário</SelectItem>
                       <SelectItem value="Avançado">Avançado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="plano_minimo">Plano Mínimo</Label>
-                  <Select value={formData.plano_minimo} onValueChange={(value) => handleInputChange("plano_minimo", value)}>
-                    <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light (Todos)</SelectItem>
-                      <SelectItem value="gold">Gold</SelectItem>
-                      <SelectItem value="vip">VIP</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

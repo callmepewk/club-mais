@@ -30,6 +30,7 @@ export default function Eventos() {
     imagem: "",
     data_evento: "",
     local: "",
+    categoria: "Outros", // New field
     publico_alvo: "todos",
     link_inscricao: "",
     vagas: 0,
@@ -57,11 +58,36 @@ export default function Eventos() {
     mutationFn: async (data) => {
       const evento = await base44.entities.Evento.create(data);
       
-      // Enviar notificações por email
+      // Enviar notificações por email baseado no público-alvo
       const { data: usuarios } = await base44.entities.User.list();
-      const usuariosAlvo = usuarios.filter(u => 
-        data.publico_alvo === 'todos' || u.tipo_usuario === data.publico_alvo
-      );
+      
+      // Filtrar usuários baseado no público-alvo com hierarquia
+      let usuariosAlvo = [];
+      
+      if (data.publico_alvo === 'todos') {
+        usuariosAlvo = usuarios;
+      } else {
+        const [targetTipo, targetPlano] = data.publico_alvo.split('-');
+        
+        // Hierarquia de planos: 'none' (0) < 'light' (1) < 'gold' (2) < 'vip' (3)
+        const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
+        const targetLevel = planHierarchy[targetPlano] || 0; // Default to 0 if plan not found
+
+        usuariosAlvo = usuarios.filter(u => {
+          // Must match the user type (paciente or profissional)
+          if (u.tipo_usuario !== targetTipo) return false;
+          
+          // Check user's plan level against event's target plan level
+          const userPlan = u.clube_plano || 'none';
+          const userLevel = planHierarchy[userPlan] || 0; // Default to 0 for 'none' or unknown plans
+          
+          // Usuário pode ver eventos do seu nível ou abaixo (mais exclusivo)
+          // e.g., VIP (3) can see events for VIP (3), Gold (2), Light (1). Gold (2) can see Gold (2), Light (1).
+          // If event is for 'light', user must be 'light' or higher (gold, vip).
+          // If event is for 'gold', user must be 'gold' or higher (vip).
+          return userLevel >= targetLevel;
+        });
+      }
 
       // Enviar email para cada usuário
       for (const usuario of usuariosAlvo) {
@@ -73,6 +99,7 @@ export default function Eventos() {
             <p>Temos um novo evento exclusivo para você no Club da Beleza!</p>
             <hr/>
             <h3>${data.titulo}</h3>
+            <p><strong>📂 Categoria:</strong> ${data.categoria}</p>
             <p>${data.descricao}</p>
             <p><strong>📅 Data:</strong> ${new Date(data.data_evento).toLocaleString('pt-BR')}</p>
             <p><strong>📍 Local:</strong> ${data.local}</p>
@@ -95,6 +122,7 @@ export default function Eventos() {
         imagem: "",
         data_evento: "",
         local: "",
+        categoria: "Outros", // Reset with new field
         publico_alvo: "todos",
         link_inscricao: "",
         vagas: 0,
@@ -111,14 +139,39 @@ export default function Eventos() {
 
   const isAdmin = user?.role === 'admin';
 
-  // Todos podem ver eventos - sem restrição por tipo de usuário
-  const eventosVisiveis = eventos;
+  // Filtrar eventos que o usuário pode ver baseado na hierarquia
+  const canViewEvent = (evento) => {
+    // If no user is logged in, only show 'todos' events
+    if (!user) return evento.publico_alvo === 'todos';
+    // Admin can see all events
+    if (user.role === 'admin') return true;
+    // Everyone can see 'todos' events
+    if (evento.publico_alvo === 'todos') return true;
+    
+    const [targetTipo, targetPlano] = evento.publico_alvo.split('-');
+    const userTipo = user.tipo_usuario;
+    const userPlan = user.clube_plano || 'none';
+
+    // Must match the user type (paciente or profissional)
+    if (userTipo !== targetTipo) return false;
+    
+    // Hierarquia de planos
+    const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
+    const userLevel = planHierarchy[userPlan] || 0;
+    const targetLevel = planHierarchy[targetPlano] || 0;
+    
+    // User can see events targeted at their plan level or any level below (less exclusive)
+    // e.g., VIP (3) can see VIP (3), Gold (2), Light (1) events. Gold (2) can see Gold (2), Light (1) events.
+    return userLevel >= targetLevel;
+  };
+
+  const eventosVisiveis = eventos.filter(canViewEvent);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
       <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4xIi8+PC9nGjwvc3ZnPg==')] opacity-10"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <motion.div
@@ -224,7 +277,29 @@ export default function Eventos() {
                         />
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid md:grid-cols-3 gap-4"> {/* Changed to grid-cols-3 */}
+                        <div className="space-y-2">
+                          <Label>Categoria *</Label>
+                          <Select 
+                            value={formData.categoria} 
+                            onValueChange={(value) => setFormData({...formData, categoria: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Workshop">Workshop</SelectItem>
+                              <SelectItem value="Palestra">Palestra</SelectItem>
+                              <SelectItem value="Curso">Curso</SelectItem>
+                              <SelectItem value="Networking">Networking</SelectItem>
+                              <SelectItem value="Feira">Feira</SelectItem>
+                              <SelectItem value="Congresso">Congresso</SelectItem>
+                              <SelectItem value="Lançamento">Lançamento</SelectItem>
+                              <SelectItem value="Outros">Outros</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         <div className="space-y-2">
                           <Label>Local</Label>
                           <Input
@@ -257,8 +332,12 @@ export default function Eventos() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="todos">Todos</SelectItem>
-                              <SelectItem value="paciente">Pacientes</SelectItem>
-                              <SelectItem value="profissional">Profissionais</SelectItem>
+                              <SelectItem value="paciente-light">Pacientes - Light</SelectItem>
+                              <SelectItem value="paciente-gold">Pacientes - Gold</SelectItem>
+                              <SelectItem value="paciente-vip">Pacientes - VIP</SelectItem>
+                              <SelectItem value="profissional-light">Profissionais - Light</SelectItem>
+                              <SelectItem value="profissional-gold">Profissionais - Gold</SelectItem>
+                              <SelectItem value="profissional-vip">Profissionais - VIP</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -338,10 +417,13 @@ export default function Eventos() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         
-                        <div className="absolute top-4 left-4">
+                        <div className="absolute top-4 left-4 flex flex-wrap gap-2"> {/* Added flex and gap for multiple badges */}
                           <Badge className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white border-0">
+                            {evento.categoria} {/* New category badge */}
+                          </Badge>
+                          <Badge className="bg-white/90 text-gray-800">
                             {evento.publico_alvo === 'todos' ? 'Para Todos' : 
-                             evento.publico_alvo === 'paciente' ? 'Pacientes' : 'Profissionais'}
+                             evento.publico_alvo.replace('paciente', 'Paciente').replace('profissional', 'Profissional').replace('-', ' - ')} {/* Updated publico_alvo display */}
                           </Badge>
                         </div>
                       </div>
