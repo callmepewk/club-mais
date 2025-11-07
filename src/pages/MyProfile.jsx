@@ -12,7 +12,77 @@ import {
   CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield
 } from "lucide-react";
 
-// ... keep existing code (planDetails and edbeautyPlanDetails) ...
+const planDetails = {
+  none: {
+    name: "Sem Plano",
+    color: "gray",
+    benefits: ["Acesso básico à plataforma"]
+  },
+  light: {
+    name: "Light",
+    color: "blue",
+    benefits: [
+      "Acesso ao aplicativo localizador",
+      "Busca de profissionais",
+      "Visualização de avaliações"
+    ]
+  },
+  gold: {
+    name: "Gold",
+    color: "yellow",
+    benefits: [
+      "15% de desconto na rede",
+      "100 pontos mensais",
+      "Agendamento prioritário",
+      "Suporte por WhatsApp"
+    ]
+  },
+  vip: {
+    name: "VIP",
+    color: "purple",
+    benefits: [
+      "25% de desconto na rede",
+      "300 pontos mensais",
+      "Agendamento VIP",
+      "Suporte 24/7",
+      "Eventos exclusivos"
+    ]
+  }
+};
+
+const edbeautyPlanDetails = {
+  none: {
+    name: "Sem Plano EdBeauty",
+    color: "gray",
+    benefits: []
+  },
+  basic: {
+    name: "EdBeauty Basic",
+    color: "blue",
+    benefits: [
+      "10 uploads por mês",
+      "Acesso a cursos básicos"
+    ]
+  },
+  pro: {
+    name: "EdBeauty Pro",
+    color: "indigo",
+    benefits: [
+      "50 uploads por mês",
+      "Todos os cursos",
+      "Certificados"
+    ]
+  },
+  premium: {
+    name: "EdBeauty Premium",
+    color: "purple",
+    benefits: [
+      "Uploads ilimitados",
+      "Mentoria exclusiva",
+      "Ferramentas avançadas"
+    ]
+  }
+};
 
 export default function MyProfile() {
   const { data: user, isLoading } = useQuery({
@@ -20,13 +90,24 @@ export default function MyProfile() {
     queryFn: () => base44.auth.me(),
   });
 
-  // ... keep existing code (variable declarations) ...
+  const userType = user?.tipo_usuario || 'paciente';
+  const clubePlano = user?.clube_plano || 'none';
+  const edbeautyPlano = user?.edbeauty_plano || 'none';
+  
+  const clubePlanInfo = planDetails[clubePlano];
+  const edbeautyPlanInfo = edbeautyPlanDetails[edbeautyPlano];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
       <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
-        {/* ... keep existing code (background animation) ... */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-[#D4AF37]/10 to-transparent rounded-full blur-3xl"
+          />
+        </div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <motion.div
@@ -120,9 +201,138 @@ export default function MyProfile() {
               </Card>
             </motion.div>
 
-            {/* ... keep existing code (Club da Beleza Plan and EdBeauty Plan cards) ... */}
+            {/* Club da Beleza Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <Crown className="w-6 h-6 text-[#D4AF37]" />
+                    Plano Club da Beleza
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-800">{clubePlanInfo.name}</h3>
+                      <p className="text-gray-600">Plano atual</p>
+                    </div>
+                    {clubePlano !== 'vip' && (
+                      <Link to={createPageUrl("Join")}>
+                        <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                          <TrendingUp className="w-4 h-4 mr-2" />
+                          Fazer Upgrade
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
 
-            {/* ... keep existing code (Summary Stats) ... */}
+                  <div className="space-y-3">
+                    <p className="font-semibold text-gray-700">Benefícios inclusos:</p>
+                    {clubePlanInfo.benefits.map((benefit, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
+                        <span className="text-gray-600">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* EdBeauty Plan (for professionals) */}
+            {userType === 'profissional' && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <Card className="border-[#E8DCC4] shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                    <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                      <GraduationCap className="w-6 h-6 text-[#D4AF37]" />
+                      Plano EdBeauty
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800">{edbeautyPlanInfo.name}</h3>
+                        <p className="text-gray-600">Plano atual</p>
+                      </div>
+                      {edbeautyPlano !== 'premium' && (
+                        <Link to={createPageUrl("EdBeautyPlans")}>
+                          <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                            <TrendingUp className="w-4 h-4 mr-2" />
+                            Fazer Upgrade
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+
+                    {edbeautyPlanInfo.benefits.length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="font-semibold text-gray-700">Benefícios inclusos:</p>
+                        {edbeautyPlanInfo.benefits.map((benefit, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
+                            <span className="text-gray-600">{benefit}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-600 mb-4">Você ainda não tem um plano EdBeauty</p>
+                        <Link to={createPageUrl("EdBeautyPlans")}>
+                          <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                            Ver Planos EdBeauty
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Summary Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl bg-gradient-to-br from-white to-[#F5EFE6]">
+                <CardContent className="p-8">
+                  <h3 className="font-serif text-xl font-bold text-gray-800 mb-6">
+                    Resumo da Conta
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {clubePlano === 'none' ? '0%' : clubePlano === 'light' ? '5%' : clubePlano === 'gold' ? '15%' : '25%'}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Desconto Disponível</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {clubePlano === 'gold' ? '100' : clubePlano === 'vip' ? '300' : '0'}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Pontos Mensais</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {userType === 'profissional' ? 'Pro' : 'Cliente'}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Tipo de Conta</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       )}
