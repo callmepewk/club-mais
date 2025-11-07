@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
-  CreditCard, Sparkles, Gift, Percent, Star, 
+import {
+  CreditCard, Sparkles, Gift, Percent, Star,
   Coins, TrendingUp, Award, CheckCircle, Crown,
   ArrowRight, Zap, Shield
 } from "lucide-react";
@@ -110,6 +111,46 @@ const beautyCoinFeatures = [
   }
 ];
 
+const beautyClubCards = [
+  {
+    name: "Beauty Club Black",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/73fc11f09_cartoclube3.jpeg",
+    tier: "VIP",
+    price: "A definir",
+    benefits: [
+      "Acesso VIP a todos os estabelecimentos",
+      "Cashback premium",
+      "Eventos exclusivos",
+      "Prioridade máxima",
+      "Concierge personalizado"
+    ]
+  },
+  {
+    name: "Beauty Club Gold",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/74527711e_cartoclube2.jpeg",
+    tier: "Premium",
+    price: "A definir",
+    benefits: [
+      "Descontos especiais",
+      "Cashback gold",
+      "Acesso a eventos",
+      "Suporte dedicado"
+    ]
+  },
+  {
+    name: "Beauty Club Light",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/4052aa61b_cartoclube1.jpeg",
+    tier: "Standard",
+    price: "A definir",
+    benefits: [
+      "Descontos básicos",
+      "Cashback padrão",
+      "Programa de pontos",
+      "Suporte via email"
+    ]
+  }
+];
+
 export default function ClubePlus() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -136,7 +177,7 @@ export default function ClubePlus() {
               <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base backdrop-blur-sm">
                 Exclusivo para Membros
               </Badge>
-              
+
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
                 Clube+
               </h1>
@@ -146,7 +187,7 @@ export default function ClubePlus() {
               </p>
 
               <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-                Tenha acesso a benefícios exclusivos, descontos especiais e Beauty Coins 
+                Tenha acesso a benefícios exclusivos, descontos especiais e Beauty Coins
                 com o cartão Club da Beleza
               </p>
             </div>
@@ -187,11 +228,11 @@ export default function ClubePlus() {
                     <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#C8A882] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <benefit.icon className="w-8 h-8 text-white" />
                     </div>
-                    
+
                     <h3 className="font-serif text-xl font-bold text-gray-800">
                       {benefit.title}
                     </h3>
-                    
+
                     <p className="text-gray-600 leading-relaxed">
                       {benefit.description}
                     </p>
@@ -200,6 +241,118 @@ export default function ClubePlus() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Beauty Club Cards Section */}
+      <div className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16 space-y-4"
+          >
+            <Badge className="bg-[#F5EFE6] text-[#D4AF37] px-4 py-2 text-base">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Beauty Club Cards
+            </Badge>
+
+            <h2 className="font-serif text-4xl md:text-5xl font-bold">
+              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                Cartões Beauty Club
+              </span>
+              <br />
+              <span className="text-gray-800">Exclusivos e Elegantes</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Receba seu cartão Beauty Club personalizado com design premium
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {beautyClubCards.map((card, index) => (
+              <motion.div
+                key={card.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <Card className="h-full overflow-hidden border-[#E8DCC4] hover:border-[#D4AF37] transition-all duration-300 hover:shadow-2xl group">
+                  {/* Card Image */}
+                  <div className="relative h-64 overflow-hidden bg-gray-900">
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10"></div>
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 right-4 z-20">
+                      <Badge className="bg-white/90 text-[#D4AF37] border-[#D4AF37]/20 font-bold">
+                        {card.tier}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="font-serif text-2xl font-bold text-gray-800 mb-2">
+                        {card.name}
+                      </h3>
+                      <div className="flex items-baseline gap-2 mb-4">
+                        <span className="text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                          {card.price}
+                        </span>
+                      </div>
+                    </div>
+
+                    <ul className="space-y-2">
+                      {card.benefits.map((benefit, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-gray-600">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link to={createPageUrl("Join")} className="block">
+                      <Button
+                        className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg font-semibold group-hover:shadow-xl transition-all"
+                      >
+                        Solicitar Cartão
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] rounded-2xl p-8"
+          >
+            <div className="flex items-start gap-4">
+              <Sparkles className="w-8 h-8 text-[#D4AF37] flex-shrink-0" />
+              <div>
+                <h4 className="font-serif text-xl font-bold text-gray-800 mb-2">
+                  Cartões Premium com Design Exclusivo
+                </h4>
+                <p className="text-gray-700 leading-relaxed">
+                  Os cartões Beauty Club são produzidos com materiais premium e design elegante.
+                  Cada cartão é personalizado com seu nome e oferece acesso a benefícios exclusivos
+                  em toda nossa rede parceira. Os valores e planos estão sendo definidos para oferecer
+                  a melhor experiência aos nossos membros.
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
@@ -271,7 +424,7 @@ export default function ClubePlus() {
                     </ul>
 
                     <Link to={createPageUrl("Join")} className="block">
-                      <Button 
+                      <Button
                         className={`w-full py-6 text-lg font-semibold ${
                           card.popular
                             ? 'bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white'
@@ -317,19 +470,19 @@ export default function ClubePlus() {
 
               <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
                 <p>
-                  A <strong className="text-[#C8A882]">Beauty Coin</strong> é nossa criptomoeda exclusiva, 
-                  criada especialmente para revolucionar a forma como você paga por serviços e produtos 
+                  A <strong className="text-[#C8A882]">Beauty Coin</strong> é nossa criptomoeda exclusiva,
+                  criada especialmente para revolucionar a forma como você paga por serviços e produtos
                   de beleza e estética.
                 </p>
 
                 <p>
-                  Com tecnologia blockchain, garantimos segurança, transparência e a possibilidade de 
-                  valorização da sua moeda. Quanto mais a nossa rede cresce, mais valor suas Beauty Coins 
+                  Com tecnologia blockchain, garantimos segurança, transparência e a possibilidade de
+                  valorização da sua moeda. Quanto mais a nossa rede cresce, mais valor suas Beauty Coins
                   podem ter!
                 </p>
 
                 <p>
-                  Use suas Beauty Coins para pagar tratamentos, comprar produtos, participar de eventos 
+                  Use suas Beauty Coins para pagar tratamentos, comprar produtos, participar de eventos
                   exclusivos ou até mesmo trocar com outros membros da comunidade.
                 </p>
               </div>
@@ -357,11 +510,11 @@ export default function ClubePlus() {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <div className="bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37] p-12 min-h-[500px] flex items-center justify-center">
                   <motion.div
-                    animate={{ 
+                    animate={{
                       rotate: 360,
                       scale: [1, 1.1, 1]
                     }}
-                    transition={{ 
+                    transition={{
                       rotate: { duration: 20, repeat: Infinity, ease: "linear" },
                       scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                     }}
@@ -419,7 +572,7 @@ export default function ClubePlus() {
             </p>
 
             <Link to={createPageUrl("Join")}>
-              <Button 
+              <Button
                 size="lg"
                 className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
               >

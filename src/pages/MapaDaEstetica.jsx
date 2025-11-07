@@ -1,12 +1,14 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { 
-  MapPin, Shield, Heart, CheckCircle, Star, Users,
-  Sparkles, Award, TrendingUp, ExternalLink, ArrowRight,
-  Search, Phone, Clock, Target
+  Sparkles, Crown, Heart, Gift, Star, Zap, 
+  Percent, Calendar, MapPin, Award, Users, TrendingUp,
+  ArrowRight, Check, Search, Phone, Clock, Target,
+  Shield, CheckCircle, ExternalLink, Map as MapIconLucide
 } from "lucide-react";
 
 const features = [
@@ -317,6 +319,155 @@ export default function MapaDaEstetica() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Map Section */}
+      <div className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16 space-y-4"
+          >
+            <Badge className="bg-[#F5EFE6] text-[#D4AF37] px-4 py-2 text-base">
+              <MapIconLucide className="w-4 h-4 mr-2" />
+              Explore Visualmente
+            </Badge>
+
+            <h2 className="font-serif text-4xl md:text-5xl font-bold">
+              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                Mapa Interativo
+              </span>
+              <br />
+              <span className="text-gray-800">Visualize Profissionais Próximos</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Explore nossa rede de profissionais certificados de forma visual e intuitiva
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <div className="space-y-4">
+                <h3 className="font-serif text-3xl font-bold text-gray-800">
+                  Encontre Profissionais na Sua Região
+                </h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Com nosso mapa interativo, você pode visualizar todos os profissionais certificados 
+                  próximos a você, filtrar por especialidade, ver avaliações e entrar em contato 
+                  diretamente.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Geolocalização Precisa</h4>
+                    <p className="text-sm text-gray-600">
+                      Veja profissionais ordenados por distância da sua localização atual
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Search className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Filtros Avançados</h4>
+                    <p className="text-sm text-gray-600">
+                      Filtre por especialidade, avaliação, plano de desconto e muito mais
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Contato Direto</h4>
+                    <p className="text-sm text-gray-600">
+                      Telefone, WhatsApp e informações de contato sempre à mão
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <a href="https://mapa-da-estetica.base44.app" target="_blank" rel="noopener noreferrer">
+                <Button 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
+                >
+                  <MapIconLucide className="w-5 h-5 mr-2" />
+                  Abrir Mapa Interativo
+                  <ExternalLink className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </a>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#E8DCC4]">
+                <img
+                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80"
+                  alt="Mapa Interativo"
+                  className="w-full h-[600px] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-32 h-32 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl"
+                  >
+                    <MapIconLucide className="w-16 h-16 text-[#D4AF37]" />
+                  </motion.div>
+                </div>
+
+                <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        500+
+                      </div>
+                      <div className="text-xs text-gray-600">Profissionais</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        50+
+                      </div>
+                      <div className="text-xs text-gray-600">Cidades</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        12+
+                      </div>
+                      <div className="text-xs text-gray-600">Especialidades</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>

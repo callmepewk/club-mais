@@ -21,9 +21,10 @@ import L from "leaflet";
 import {
   Sparkles, Search, Calendar, DollarSign,
   MapPin, Phone, ArrowRight, Award,
-  CheckCircle, Heart, Locate, Map as MapIcon
+  CheckCircle, Heart, Locate, Map as MapIcon, User, Scan
 } from "lucide-react";
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
+import { Link } from "react-router-dom"; // Added Link import
 
 // Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -276,6 +277,18 @@ async function getCityFromCoordinates(lat, lng) {
   }
 }
 
+// Minimal createPageUrl for demonstration purposes. In a real Base44 app, this would be an actual utility.
+const createPageUrl = (pageName) => {
+  switch (pageName) {
+    case "AvatarScanner":
+      return "/avatar-scanner";
+    // Add other cases as needed
+    default:
+      return `/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
+  }
+};
+
+
 export default function DrBeleza() {
   const [formData, setFormData] = useState({
     treatment: "",
@@ -475,6 +488,136 @@ export default function DrBeleza() {
               </p>
             </div>
           </motion.div>
+        </div>
+      </div>
+
+      {/* Avatar Scanner Section */}
+      <div className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16 space-y-4"
+          >
+            <Badge className="bg-[#F5EFE6] text-[#D4AF37] px-4 py-2 text-base">
+              <Scan className="w-4 h-4 mr-2" />
+              Tecnologia Avançada
+            </Badge>
+
+            <h2 className="font-serif text-4xl md:text-5xl font-bold">
+              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                Crie Seu Avatar
+              </span>
+              <br />
+              <span className="text-gray-800">Personalize Sua Experiência</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Crie um avatar personalizado e visualize como diferentes tratamentos podem transformar sua aparência
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <div className="space-y-4">
+                <h3 className="font-serif text-3xl font-bold text-gray-800">
+                  Visualize Seu Futuro
+                </h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Com nossa tecnologia de IA, você pode criar um avatar personalizado e visualizar
+                  como diferentes procedimentos estéticos podem transformar sua aparência antes
+                  mesmo de realizar o tratamento.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Scan className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Upload de Foto</h4>
+                    <p className="text-sm text-gray-600">
+                      Envie sua foto e nossa IA analisa automaticamente suas características
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Personalização</h4>
+                    <p className="text-sm text-gray-600">
+                      Configure características e veja o resultado em tempo real
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 bg-[#F5EFE6] rounded-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Recomendações</h4>
+                    <p className="text-sm text-gray-600">
+                      Receba sugestões de tratamentos baseados no seu perfil
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Link to={createPageUrl("AvatarScanner")}>
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
+                >
+                  <Scan className="w-5 h-5 mr-2" />
+                  Criar Meu Avatar Agora
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#E8DCC4]">
+                <img
+                  src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=800&q=80"
+                  alt="Avatar Preview"
+                  className="w-full h-[600px] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+
+                <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center">
+                      <User className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-serif text-xl font-bold text-gray-800">
+                        Seu Avatar Personalizado
+                      </h4>
+                      <p className="text-sm text-gray-600">Criado com tecnologia de IA</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
