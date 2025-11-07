@@ -26,6 +26,8 @@ export default function EdBeautyUpload() {
     titulo: "",
     descricao: "",
     tipo: "video",
+    tipo_acesso: "gratuito", // Added new field
+    preco: 0, // Added new field
     url: "",
     thumbnail: "",
     categoria: "Estética Facial",
@@ -181,7 +183,7 @@ export default function EdBeautyUpload() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4"> {/* Changed to md:grid-cols-3 */}
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo de Conteúdo *</Label>
                   <Select value={formData.tipo} onValueChange={(value) => handleInputChange("tipo", value)}>
@@ -192,6 +194,21 @@ export default function EdBeautyUpload() {
                       <SelectItem value="video">Vídeo Aula</SelectItem>
                       <SelectItem value="curso">Curso Completo</SelectItem>
                       <SelectItem value="ebook">E-book</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Added new Select for tipo_acesso */}
+                <div className="space-y-2">
+                  <Label htmlFor="tipo_acesso">Tipo de Acesso *</Label>
+                  <Select value={formData.tipo_acesso} onValueChange={(value) => handleInputChange("tipo_acesso", value)}>
+                    <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gratuito">Gratuito</SelectItem>
+                      <SelectItem value="pago">Pago</SelectItem>
+                      <SelectItem value="exclusivo">Exclusivo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -216,6 +233,24 @@ export default function EdBeautyUpload() {
                   </Select>
                 </div>
               </div>
+
+              {/* Conditionally rendered Preço input */}
+              {formData.tipo_acesso === 'pago' && (
+                <div className="space-y-2">
+                  <Label htmlFor="preco">Preço (R$) *</Label>
+                  <Input
+                    id="preco"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.preco}
+                    onChange={(e) => handleInputChange("preco", parseFloat(e.target.value))}
+                    placeholder="0.00"
+                    className="border-[#E8DCC4] focus:border-[#D4AF37]"
+                    required
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="url">Link do Conteúdo (URL Externa) *</Label>

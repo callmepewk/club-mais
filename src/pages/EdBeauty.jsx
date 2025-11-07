@@ -16,7 +16,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
+import {
   GraduationCap, Search, BookOpen, Video, FileText,
   Clock, Award, ExternalLink, Sparkles, Lock, ArrowRight
 } from "lucide-react";
@@ -39,10 +39,23 @@ const planoColors = {
   vip: "bg-gradient-to-r from-purple-600 to-purple-800 text-white"
 };
 
+const tipoAcessoLabels = {
+  gratuito: "Gratuito",
+  pago: "Pago",
+  exclusivo: "Exclusivo"
+};
+
+const tipoAcessoColors = {
+  gratuito: "bg-green-100 text-green-800",
+  pago: "bg-blue-100 text-blue-800",
+  exclusivo: "bg-purple-100 text-purple-800"
+};
+
 export default function EdBeauty() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
+  const [tipoAcessoFilter, setTipoAcessoFilter] = useState("Todos");
   const [user, setUser] = useState(null);
 
   const { data: contents = [], isLoading: loadingContents } = useQuery({
@@ -63,10 +76,10 @@ export default function EdBeauty() {
   const hasAccess = (contentPlanMin) => {
     if (!user) return false;
     if (user.role === 'admin') return true;
-    
+
     const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
     const userPlan = user.clube_plano || 'none';
-    
+
     return planHierarchy[userPlan] >= planHierarchy[contentPlanMin];
   };
 
@@ -79,16 +92,17 @@ export default function EdBeauty() {
 
   const filteredContents = useMemo(() => {
     return contents.filter(content => {
-      const matchSearch = !searchQuery || 
+      const matchSearch = !searchQuery ||
         content.titulo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         content.descricao?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchCategory = categoryFilter === "Todas" || content.categoria === categoryFilter;
       const matchType = typeFilter === "Todos" || content.tipo === typeFilter;
-      
-      return matchSearch && matchCategory && matchType;
+      const matchTipoAcesso = tipoAcessoFilter === "Todos" || content.tipo_acesso === tipoAcessoFilter;
+
+      return matchSearch && matchCategory && matchType && matchTipoAcesso;
     });
-  }, [contents, searchQuery, categoryFilter, typeFilter]);
+  }, [contents, searchQuery, categoryFilter, typeFilter, tipoAcessoFilter]);
 
   const userPlan = user?.clube_plano || 'none';
 
@@ -119,7 +133,7 @@ export default function EdBeauty() {
               <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base backdrop-blur-sm">
                 Plataforma Educacional
               </Badge>
-              
+
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
                 EdBeauty
               </h1>
@@ -135,7 +149,7 @@ export default function EdBeauty() {
 
             {canUploadContent() && (
               <Link to={createPageUrl("EdBeautyUpload")}>
-                <Button 
+                <Button
                   size="lg"
                   className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
                 >
@@ -172,7 +186,7 @@ export default function EdBeauty() {
       {/* Filters */}
       <div className="py-12 px-6 bg-white border-b border-[#E8DCC4]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -212,6 +226,18 @@ export default function EdBeauty() {
                 <SelectItem value="ebook">E-books</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={tipoAcessoFilter} onValueChange={setTipoAcessoFilter}>
+              <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todos">Todos os Acessos</SelectItem>
+                <SelectItem value="gratuito">Gratuito</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="exclusivo">Exclusivo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -234,6 +260,8 @@ export default function EdBeauty() {
               {filteredContents.map((content, index) => {
                 const TypeIcon = typeIcons[content.tipo];
                 const hasUserAccess = hasAccess(content.plano_minimo);
+                const isPago = content.tipo_acesso === 'pago';
+                const isGratuito = content.tipo_acesso === 'gratuito';
 
                 return (
                   <motion.div
@@ -243,9 +271,9 @@ export default function EdBeauty() {
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
                     <Card className={`h-full border-[#E8DCC4] transition-all duration-300 hover:shadow-xl group relative ${
-                      !hasUserAccess ? 'opacity-75' : ''
+                      !hasUserAccess && !isGratuito ? 'opacity-75' : ''
                     }`}>
-                      {!hasUserAccess && (
+                      {!hasUserAccess && !isGratuito && (
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
                           <div className="text-center text-white p-6">
                             <Lock className="w-12 h-12 mx-auto mb-3" />
@@ -261,15 +289,21 @@ export default function EdBeauty() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                        
-                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+
+                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start flex-wrap gap-2">
                           <Badge className={`${planoColors[content.plano_minimo]} border-0`}>
                             {planoLabels[content.plano_minimo]}
                           </Badge>
-                          <Badge className="bg-white/90 text-gray-800">
-                            <TypeIcon className="w-3 h-3 mr-1" />
-                            {content.tipo}
-                          </Badge>
+                          <div className="flex gap-2">
+                            <Badge className={`${tipoAcessoColors[content.tipo_acesso]} border-0`}>
+                              {tipoAcessoLabels[content.tipo_acesso]}
+                              {isPago && content.preco && ` - R$ ${content.preco.toFixed(2)}`}
+                            </Badge>
+                            <Badge className="bg-white/90 text-gray-800">
+                              <TypeIcon className="w-3 h-3 mr-1" />
+                              {content.tipo}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
 
@@ -302,7 +336,7 @@ export default function EdBeauty() {
                           </div>
                         )}
 
-                        {hasUserAccess && (
+                        {(hasUserAccess || isGratuito) && (
                           <a
                             href={content.url}
                             target="_blank"
@@ -310,7 +344,7 @@ export default function EdBeauty() {
                             className="block"
                           >
                             <Button className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white group">
-                              Acessar Conteúdo
+                              {isPago && !hasUserAccess ? `Comprar - R$ ${content.preco?.toFixed(2)}` : 'Acessar Conteúdo'}
                               <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Button>
                           </a>
@@ -337,7 +371,7 @@ export default function EdBeauty() {
               className="space-y-6"
             >
               <GraduationCap className="w-16 h-16 text-[#D4AF37] mx-auto" />
-              
+
               <h2 className="font-serif text-3xl md:text-4xl font-bold">
                 <span className="text-gray-800">Você é um</span>
                 <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Profissional?</span>
@@ -348,7 +382,7 @@ export default function EdBeauty() {
               </p>
 
               <Link to={createPageUrl("EdBeautyPlans")}>
-                <Button 
+                <Button
                   size="lg"
                   className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
                 >

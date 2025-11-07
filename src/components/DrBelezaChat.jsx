@@ -39,49 +39,105 @@ const tutorialSteps = [
   {
     id: 1,
     title: "Bem-vindo ao Club da Beleza!",
-    description: "Vou te mostrar como usar nossa plataforma. Clique em 'Próximo' para continuar.",
+    description: "Vou te mostrar como usar toda a plataforma. Clique em 'Próximo' para começar o tour completo.",
     target: null,
     position: "center"
   },
   {
     id: 2,
     title: "Menu de Navegação",
-    description: "Aqui você encontra todas as seções do Club da Beleza. Use o menu para navegar entre as páginas.",
-    target: "sidebar", // Assuming a sidebar with data-tutorial="sidebar"
+    description: "Use este menu lateral para acessar todas as funcionalidades do clube.",
+    target: "sidebar",
     position: "right"
   },
   {
     id: 3,
-    title: "Meu Perfil",
-    description: "Acesse seu perfil para ver suas informações, planoa ctual e benefícios disponíveis.",
-    target: "MeuPerfil", // Assuming a link with href containing "MeuPerfil" or data-tutorial="nav-MeuPerfil"
+    title: "Início",
+    description: "A página inicial apresenta todos os benefícios e informações sobre o Club da Beleza.",
+    target: "Home",
     position: "right"
   },
   {
     id: 4,
-    title: "Mapa da Estética",
-    description: "Encontre profissionais certificados perto de você. Busque por especialidade e localização.",
-    target: "MapaDaEstetica", // Assuming a link with href containing "MapaDaEstetica" or data-tutorial="nav-MapaDaEstetica"
+    title: "Notícias",
+    description: "Fique por dentro das últimas novidades do mundo da beleza e estética.",
+    target: "News",
     position: "right"
   },
   {
     id: 5,
-    title: "Dr. Beleza",
-    description: "Use minha página para buscar tratamentos, fazer perguntas e obter recomendações personalizadas.",
-    target: "DrBeleza", // Assuming a link with href containing "DrBeleza" or data-tutorial="nav-DrBeleza"
+    title: "Nossos Produtos",
+    description: "Descubra os produtos exclusivos disponíveis para membros do clube.",
+    target: "Products",
     position: "right"
   },
   {
     id: 6,
     title: "Beauty Coin",
-    description: "Conheça nossa criptomoeda exclusiva e descubra como usá-la para adquirir produtos e serviços.",
-    target: "BeautyCoin", // Assuming a link with href containing "BeautyCoin" or data-tutorial="nav-BeautyCoin"
+    description: "Nossa criptomoeda exclusiva! Ganhe, acumule e use em toda rede parceira.",
+    target: "BeautyCoin",
     position: "right"
   },
   {
     id: 7,
+    title: "Dr. Beleza (Eu!)",
+    description: "Sou seu assistente virtual! Busque tratamentos, faça perguntas e receba recomendações personalizadas.",
+    target: "DrBeleza",
+    position: "right"
+  },
+  {
+    id: 8,
+    title: "Mapa da Estética",
+    description: "Encontre profissionais certificados perto de você com filtros avançados e geolocalização.",
+    target: "MapaDaEstetica",
+    position: "right"
+  },
+  {
+    id: 9,
+    title: "EdBeauty",
+    description: "Plataforma educacional com cursos, vídeos e e-books para profissionais e pacientes.",
+    target: "EdBeauty",
+    position: "right"
+  },
+  {
+    id: 10,
+    title: "Golden Doctors",
+    description: "Comunidade exclusiva dos melhores profissionais de estética e beleza do Brasil.",
+    target: "GoldenDoctors",
+    position: "right"
+  },
+  {
+    id: 11,
+    title: "Clube+",
+    description: "Seus cartões premium com benefícios exclusivos, descontos e Beauty Coins.",
+    target: "ClubePlus",
+    position: "right"
+  },
+  {
+    id: 12,
+    title: "Eventos",
+    description: "Fique por dentro dos eventos exclusivos para membros do clube.",
+    target: "Eventos",
+    position: "right"
+  },
+  {
+    id: 13,
+    title: "Associe-se",
+    description: "Escolha seu plano e comece a aproveitar todos os benefícios do clube hoje mesmo.",
+    target: "Join",
+    position: "right"
+  },
+  {
+    id: 14,
+    title: "Meu Perfil",
+    description: "Gerencie suas informações, veja seus pontos, Beauty Coins e compartilhe seu link de convite.",
+    target: "MyProfile",
+    position: "right"
+  },
+  {
+    id: 15,
     title: "Pronto!",
-    description: "Agora você já conhece o básico! Explore a plataforma e aproveite todos os benefícios. Estou sempre aqui para ajudar!",
+    description: "Agora você conhece toda a plataforma! Explore, aproveite os benefícios e conte comigo para qualquer dúvida. Estou sempre aqui! 💫",
     target: null,
     position: "center"
   }
@@ -350,10 +406,20 @@ export default function DrBelezaChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Quick Questions */}
+                {/* Quick Questions + Tutorial Button */}
                 <div className="p-4 border-t border-[#E8DCC4] bg-white">
                   <p className="text-xs text-gray-500 mb-2 font-medium">Perguntas Rápidas:</p>
                   <div className="flex flex-wrap gap-2 mb-3 max-h-32 overflow-y-auto">
+                    <Button
+                      onClick={startTutorial}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] font-semibold"
+                    >
+                      <Play className="w-3 h-3 mr-2" />
+                      Tutorial Completo
+                    </Button>
+                    
                     {quickQuestions.map((item, index) => (
                       <Button
                         key={index}
@@ -367,17 +433,7 @@ export default function DrBelezaChat() {
                     ))}
                   </div>
 
-                  <Button
-                    onClick={startTutorial}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] mb-2"
-                  >
-                    <Play className="w-3 h-3 mr-2" />
-                    Iniciar Tutorial
-                  </Button>
-
-                  <Link to={createPageUrl("DrBeleza")} onClick={() => setIsOpen(false)} className="block w-full">
+                  <Link to={createPageUrl("MapaDaEstetica")} onClick={() => setIsOpen(false)} className="block w-full">
                     <Button
                       variant="link"
                       className="text-xs text-[#D4AF37] hover:text-[#C8A882] p-0 w-full"

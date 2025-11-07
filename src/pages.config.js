@@ -17,6 +17,7 @@ import EdBeautyPlans from './pages/EdBeautyPlans';
 import MyPlan from './pages/MyPlan';
 import AvatarScanner from './pages/AvatarScanner';
 import MyProfile from './pages/MyProfile';
+import Eventos from './pages/Eventos';
 import Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "MyPlan": MyPlan,
     "AvatarScanner": AvatarScanner,
     "MyProfile": MyProfile,
+    "Eventos": Eventos,
 }
 
 export const pagesConfig = {

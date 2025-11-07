@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -71,6 +72,11 @@ const navigationItems = [
     title: "Clube+",
     url: createPageUrl("ClubePlus"),
     icon: Heart,
+  },
+  {
+    title: "Eventos",
+    url: createPageUrl("Eventos"),
+    icon: Award,
   },
   {
     title: "Associe-se",

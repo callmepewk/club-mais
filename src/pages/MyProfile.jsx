@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Crown, Award, Sparkles, CheckCircle, ArrowRight,
   CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield,
-  Send, MessageSquare, Scan // Added Scan icon import
+  Send, MessageSquare, Scan, Users, Copy, Star, Coins // Added new icons
 } from "lucide-react";
 
 const planDetails = {
@@ -90,6 +90,9 @@ const edbeautyPlanDetails = {
 };
 
 export default function MyProfile() {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
@@ -104,14 +107,55 @@ export default function MyProfile() {
 
   const userAvatar = avatarData?.[0] || null;
 
+  const queryClient = useQueryClient();
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data) => base44.auth.updateMe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      setIsEditing(false);
+      alert('Perfil atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error("Error updating profile:", error);
+      alert('Erro ao atualizar perfil. Tente novamente.');
+    }
+  });
+
   const userType = user?.tipo_usuario || 'paciente';
   const clubePlano = user?.clube_plano || 'none';
   const edbeautyPlano = user?.edbeauty_plano || 'none';
+  const pontosClube = user?.pontos_clube || 0;
+  const beautyCoins = user?.beauty_coins || 0;
   
   const clubePlanInfo = planDetails[clubePlano];
   const edbeautyPlanInfo = edbeautyPlanDetails[edbeautyPlano];
 
-  const [supportForm, setSupportForm] = React.useState({
+  // Gerar link de convite
+  const inviteLink = `${window.location.origin}${createPageUrl("Home")}?ref=${user?.id || ''}`;
+
+  const handleCopyInviteLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    alert('Link de convite copiado!');
+  };
+
+  const handleEditProfile = () => {
+    setEditFormData({
+      full_name: user?.full_name || '',
+      telefone: user?.telefone || '',
+      endereco: user?.endereco || '',
+      cidade: user?.cidade || '',
+      estado: user?.estado || '',
+      data_nascimento: user?.data_nascimento ? new Date(user.data_nascimento).toISOString().split('T')[0] : '', // Format date for input type="date"
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate(editFormData);
+  };
+
+  const [supportForm, setSupportForm] = useState({
     title: "",
     description: ""
   });
@@ -207,7 +251,7 @@ export default function MyProfile() {
       ) : (
         <div className="py-20 px-6">
           <div className="max-w-5xl mx-auto space-y-8">
-            {/* User Info Card */}
+            {/* User Info Card with Edit */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -215,47 +259,202 @@ export default function MyProfile() {
             >
               <Card className="border-[#E8DCC4] shadow-xl overflow-hidden">
                 <div className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] p-6">
-                  <div className="flex items-center gap-4 text-white">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl font-bold">
-                      {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div>
-                      <h2 className="font-serif text-3xl font-bold">
-                        {user?.full_name || 'Usuário'}
-                      </h2>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Mail className="w-4 h-4" />
-                        <span className="text-white/90">{user?.email}</span>
+                  <div className="flex items-center justify-between text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl font-bold">
+                        {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <h2 className="font-serif text-3xl font-bold">
+                          {user?.full_name || 'Usuário'}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Mail className="w-4 h-4" />
+                          <span className="text-white/90">{user?.email}</span>
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      onClick={handleEditProfile}
+                      variant="ghost"
+                      className="text-white hover:bg-white/20"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Editar Perfil
+                    </Button>
                   </div>
                 </div>
 
                 <CardContent className="p-8">
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                      <Shield className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Tipo de Conta</p>
-                      <p className="text-lg font-bold text-gray-800">
-                        {userType === 'profissional' ? 'Profissional' : 'Paciente'}
-                      </p>
-                    </div>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nome Completo</Label>
+                          <Input
+                            value={editFormData.full_name}
+                            onChange={(e) => setEditFormData({...editFormData, full_name: e.target.value})}
+                            className="border-[#E8DCC4]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Telefone</Label>
+                          <Input
+                            value={editFormData.telefone}
+                            onChange={(e) => setEditFormData({...editFormData, telefone: e.target.value})}
+                            className="border-[#E8DCC4]"
+                          />
+                        </div>
+                      </div>
 
-                    <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                      <Award className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Plano Club</p>
-                      <p className="text-lg font-bold text-gray-800">
-                        {clubePlanInfo.name}
-                      </p>
-                    </div>
+                      <div className="space-y-2">
+                        <Label>Endereço</Label>
+                        <Input
+                          value={editFormData.endereco}
+                          onChange={(e) => setEditFormData({...editFormData, endereco: e.target.value})}
+                          className="border-[#E8DCC4]"
+                        />
+                      </div>
 
-                    <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                      <Calendar className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Membro desde</p>
-                      <p className="text-lg font-bold text-gray-800">
-                        {user?.created_date ? new Date(user.created_date).toLocaleDateString('pt-BR') : '-'}
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Cidade</Label>
+                          <Input
+                            value={editFormData.cidade}
+                            onChange={(e) => setEditFormData({...editFormData, cidade: e.target.value})}
+                            className="border-[#E8DCC4]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Estado</Label>
+                          <Input
+                            value={editFormData.estado}
+                            onChange={(e) => setEditFormData({...editFormData, estado: e.target.value})}
+                            maxLength={2}
+                            className="border-[#E8DCC4]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Data de Nascimento</Label>
+                          <Input
+                            type="date"
+                            value={editFormData.data_nascimento}
+                            onChange={(e) => setEditFormData({...editFormData, data_nascimento: e.target.value})}
+                            className="border-[#E8DCC4]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 justify-end pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                          className="border-[#E8DCC4]"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={handleSaveProfile}
+                          disabled={updateProfileMutation.isPending}
+                          className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+                        >
+                          {updateProfileMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                        <Shield className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Tipo de Conta</p>
+                        <p className="text-lg font-bold text-gray-800">
+                          {userType === 'profissional' ? 'Profissional' : 'Paciente'}
+                        </p>
+                      </div>
+
+                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                        <Award className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Plano Club</p>
+                        <p className="text-lg font-bold text-gray-800">
+                          {clubePlanInfo.name}
+                        </p>
+                      </div>
+
+                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                        <Calendar className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Membro desde</p>
+                        <p className="text-lg font-bold text-gray-800">
+                          {user?.created_date ? new Date(user.created_date).toLocaleDateString('pt-BR') : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Pontos e Beauty Coins */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.05 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl bg-gradient-to-br from-white to-[#F5EFE6]">
+                <CardContent className="p-8">
+                  <h3 className="font-serif text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-[#D4AF37]" />
+                    Meus Pontos e Coins
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="text-center p-6 bg-white rounded-xl border-2 border-[#D4AF37]/20">
+                      <Star className="w-12 h-12 text-[#D4AF37] mx-auto mb-3" />
+                      <p className="text-sm text-gray-600 mb-1">Pontos do Clube</p>
+                      <p className="text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {pontosClube.toLocaleString('pt-BR')}
                       </p>
                     </div>
+                    <div className="text-center p-6 bg-white rounded-xl border-2 border-[#D4AF37]/20">
+                      <Coins className="w-12 h-12 text-[#D4AF37] mx-auto mb-3" />
+                      <p className="text-sm text-gray-600 mb-1">Beauty Coins</p>
+                      <p className="text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {beautyCoins.toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Link de Convite */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <Users className="w-6 h-6 text-[#D4AF37]" />
+                    Convide Amigos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 space-y-4">
+                  <p className="text-gray-600">
+                    Compartilhe seu link de convite e ganhe pontos e Beauty Coins quando seus amigos se cadastrarem!
+                  </p>
+                  <div className="flex gap-3">
+                    <Input
+                      value={inviteLink}
+                      readOnly
+                      className="border-[#E8DCC4] bg-[#F5EFE6]"
+                    />
+                    <Button
+                      onClick={handleCopyInviteLink}
+                      className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white flex-shrink-0"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -460,7 +659,7 @@ export default function MyProfile() {
                   <h3 className="font-serif text-xl font-bold text-gray-800 mb-6">
                     Resumo da Conta
                   </h3>
-                  <div className="grid md:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-4 gap-6">
                     <div className="text-center">
                       <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                         {clubePlano === 'none' ? '0%' : clubePlano === 'light' ? '5%' : clubePlano === 'gold' ? '15%' : '25%'}
@@ -469,13 +668,19 @@ export default function MyProfile() {
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                        {clubePlano === 'gold' ? '100' : clubePlano === 'vip' ? '300' : '0'}
+                        {pontosClube.toLocaleString('pt-BR')}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">Pontos Mensais</p>
+                      <p className="text-sm text-gray-600 mt-1">Pontos Acumulados</p>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                        {userType === 'profissional' ? 'Pro' : 'Cliente'}
+                        {beautyCoins.toLocaleString('pt-BR')}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Beauty Coins</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {userType === 'profissional' ? 'Profissional' : 'Paciente'}
                       </div>
                       <p className="text-sm text-gray-600 mt-1">Tipo de Conta</p>
                     </div>
