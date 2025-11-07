@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { 
   Crown, Award, Users, Sparkles, Star, 
   TrendingUp, CheckCircle, Gift, Target, Briefcase,
@@ -61,6 +59,12 @@ const stats = [
 ];
 
 export default function GoldenDoctors() {
+  const handleCandidateseAgora = () => {
+    const whatsappNumber = "5531972595643"; // Replace with the actual WhatsApp number
+    const message = encodeURIComponent("Olá! Gostaria de fazer parte da comunidade exclusiva Golden Doctors. Tenho interesse em me candidatar!");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
@@ -104,15 +108,14 @@ export default function GoldenDoctors() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
-              <Link to={createPageUrl("Join")}>
-                <Button 
-                  size="lg"
-                  className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
-                >
-                  Candidate-se Agora
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleCandidateseAgora}
+                size="lg"
+                className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
+              >
+                Candidate-se Agora
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -323,16 +326,15 @@ export default function GoldenDoctors() {
                   <p className="text-gray-600 mb-6">
                     Atende aos requisitos? Candidate-se agora e faça parte da elite!
                   </p>
-                  <Link to={createPageUrl("Join")}>
-                    <Button 
-                      size="lg"
-                      className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
-                    >
-                      <Crown className="w-5 h-5 mr-2" />
-                      Candidatar-se aos Golden Doctors
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={handleCandidateseAgora}
+                    size="lg"
+                    className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Candidatar-se aos Golden Doctors
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

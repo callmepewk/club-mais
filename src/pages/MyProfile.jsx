@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Crown, Award, Sparkles, CheckCircle, ArrowRight,
   CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield,
-  Send, MessageSquare
+  Send, MessageSquare, Scan // Added Scan icon import
 } from "lucide-react";
 
 const planDetails = {
@@ -94,6 +94,15 @@ export default function MyProfile() {
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
+
+  const { data: avatarData } = useQuery({
+    queryKey: ['user-avatar', user?.email],
+    queryFn: () => base44.entities.AvatarData.filter({ user_email: user?.email }, '-created_date', 1),
+    enabled: !!user?.email,
+    initialData: [],
+  });
+
+  const userAvatar = avatarData?.[0] || null;
 
   const userType = user?.tipo_usuario || 'paciente';
   const clubePlano = user?.clube_plano || 'none';
@@ -248,6 +257,96 @@ export default function MyProfile() {
                       </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* My Avatar Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.15 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <User className="w-6 h-6 text-[#D4AF37]" />
+                    Meu Avatar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  {userAvatar ? (
+                    <div className="space-y-6">
+                      <div className="flex flex-col md:flex-row gap-6 items-center">
+                        {userAvatar.avatar_thumbnail ? (
+                          <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8DCC4]">
+                            <img
+                              src={userAvatar.avatar_thumbnail}
+                              alt="Meu Avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-64 h-64 bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-2xl flex items-center justify-center border-4 border-[#E8DCC4]">
+                            <User className="w-32 h-32 text-[#D4AF37] opacity-50" />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 space-y-4">
+                          <h3 className="font-serif text-2xl font-bold text-gray-800">
+                            Avatar Criado com Sucesso!
+                          </h3>
+                          <p className="text-gray-600">
+                            Seu avatar foi criado usando tecnologia de IA avançada. Você pode visualizá-lo e atualizá-lo a qualquer momento.
+                          </p>
+                          
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="p-3 bg-[#F5EFE6] rounded-lg">
+                              <p className="text-gray-600 text-xs mb-1">Largura</p>
+                              <p className="font-bold text-gray-800">{userAvatar.meta_width || 'N/A'}px</p>
+                            </div>
+                            <div className="p-3 bg-[#F5EFE6] rounded-lg">
+                              <p className="text-gray-600 text-xs mb-1">Altura</p>
+                              <p className="font-bold text-gray-800">{userAvatar.meta_height || 'N/A'}px</p>
+                            </div>
+                          </div>
+
+                          {userAvatar.capture_timestamp && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Calendar className="w-4 h-4 text-[#D4AF37]" />
+                              <span>Criado em: {new Date(userAvatar.capture_timestamp).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                          )}
+
+                          <Link to={createPageUrl("DrBeleza")} className="block">
+                            <Button className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Atualizar Avatar
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-full flex items-center justify-center mb-6">
+                        <User className="w-16 h-16 text-[#D4AF37] opacity-50" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-gray-800 mb-2">
+                        Você ainda não criou seu avatar
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Crie seu avatar personalizado usando nossa tecnologia de IA
+                      </p>
+                      <Link to={createPageUrl("DrBeleza")}>
+                        <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                          <Scan className="w-4 h-4 mr-2" />
+                          Criar Meu Avatar
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
