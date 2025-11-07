@@ -11,11 +11,13 @@ const plans = [
   {
     id: "light",
     name: "Plano Light",
-    price: "Grátis",
-    period: "",
-    description: "Comece sua jornada sem custos",
+    price: "R$ 1,00",
+    period: "/dia",
+    description: "Comece sua jornada com benefícios diários",
     cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/4052aa61b_cartoclube1.jpeg",
     features: [
+      "Acesso a descontos exclusivos",
+      "Benefícios em estabelecimentos parceiros",
       "Acesso ao aplicativo localizador",
       "Busca de profissionais por categoria",
       "Visualização de avaliações",
@@ -26,19 +28,27 @@ const plans = [
   {
     id: "gold",
     name: "Plano Gold",
-    price: "R$ 49,90",
-    period: "/mês",
-    description: "O plano mais escolhido pelos membros",
-    badge: "Mais Popular",
+    price: "12x de R$ 397",
+    originalPrice: "R$ 997",
+    period: "",
+    description: "Oferta Black November - O plano mais completo",
+    badge: "Oferta Black November",
     highlighted: true,
     cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/74527711e_cartoclube2.jpeg",
     features: [
       "Todos os benefícios do LIGHT",
-      "15% de desconto na rede parceira",
-      "100 pontos mensais",
-      "Agendamento prioritário",
-      "Suporte por WhatsApp",
-      "Acesso a promoções exclusivas",
+      "Tratamentos Incluídos:",
+      "• Cabelo",
+      "• Face, colo, mãos e pés",
+      "• Body",
+      "• Regenerativa / EBDS (6x)",
+      "• Toxinas (3x)",
+      "• Lasers (3x)",
+      "• DNA de salmão exossomas (4x)",
+      "• Fototerapia (6x)",
+      "• Chá da beleza (1x)",
+      "• Beauty Box",
+      "Suporte prioritário por WhatsApp",
       "Programa de indicação",
       "Cashback de 5% em compras"
     ]
@@ -46,21 +56,22 @@ const plans = [
   {
     id: "vip",
     name: "Plano VIP",
-    price: "R$ 99,90",
-    period: "/mês",
-    description: "Experiência premium completa",
+    price: "Sob Consulta",
+    period: "",
+    description: "Experiência premium completa e personalizada",
     cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/73fc11f09_cartoclube3.jpeg",
     features: [
       "Todos os benefícios do GOLD",
-      "25% de desconto na rede parceira",
-      "300 pontos mensais",
-      "Agendamento VIP (prioridade máxima)",
-      "Suporte 24/7 dedicado",
-      "Teleconsulta gratuita com especialistas",
-      "Acesso a eventos exclusivos",
+      "Chauffeur (leva e trás)",
+      "Checkup completo da pele",
+      "Chá da beleza infinite",
       "Tratamentos personalizados mensais",
+      "Suporte VIP 24/7",
+      "Teleconsulta gratuita com especialistas",
+      "Acesso a eventos exclusivos VIP",
       "Cashback de 10% em compras",
-      "Cartão físico premium personalizado"
+      "Cartão físico premium personalizado",
+      "E muito mais..."
     ]
   }
 ];
@@ -157,18 +168,23 @@ export default function Join() {
                       <h3 className="font-serif text-xl font-bold text-gray-800 mb-1">
                         {plan.name}
                       </h3>
-                      <div className="flex items-baseline justify-center gap-1">
+                      <div className="flex flex-col items-center justify-center gap-1">
+                        {plan.originalPrice && (
+                          <span className="text-lg text-gray-500 line-through">
+                            {plan.originalPrice}
+                          </span>
+                        )}
                         <span className="font-serif text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
                           {plan.price}
                         </span>
-                        {plan.period && <span className="text-gray-600">{plan.period}</span>}
+                        {plan.period && <span className="text-gray-600 text-sm">{plan.period}</span>}
                       </div>
                       <p className="text-sm text-gray-600 mt-1">{plan.description}</p>
                       
                       {plan.badge && (
                         <div className="mt-2">
-                          <span className="inline-block bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white px-3 py-1 text-xs font-semibold rounded-full">
-                            {plan.badge}
+                          <span className="inline-block bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-1 text-xs font-semibold rounded-full animate-pulse">
+                            🔥 {plan.badge}
                           </span>
                         </div>
                       )}
@@ -436,13 +452,22 @@ export default function Join() {
                       {plans.find(p => p.id === selectedPlan)?.name}
                     </span>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-serif text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                      {plans.find(p => p.id === selectedPlan)?.price}
-                    </span>
-                    <span className="text-gray-600">
-                      {plans.find(p => p.id === selectedPlan)?.period}
-                    </span>
+                  <div className="flex flex-col items-start gap-1">
+                    {plans.find(p => p.id === selectedPlan)?.originalPrice && (
+                      <span className="text-base text-gray-500 line-through">
+                        {plans.find(p => p.id === selectedPlan)?.originalPrice}
+                      </span>
+                    )}
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-serif text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                        {plans.find(p => p.id === selectedPlan)?.price}
+                      </span>
+                      {plans.find(p => p.id === selectedPlan)?.period && (
+                        <span className="text-gray-600">
+                          {plans.find(p => p.id === selectedPlan)?.period}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
