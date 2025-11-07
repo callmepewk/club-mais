@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // Added AnimatePresence
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -307,6 +307,7 @@ export default function DrBeleza() {
   const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
   const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]);
   const [showResults, setShowResults] = useState(false);
+  const [showAvatarForm, setShowAvatarForm] = useState(false);
 
   const { data: estabelecimentos = [] } = useQuery({
     queryKey: ['estabelecimentos'],
@@ -575,16 +576,15 @@ export default function DrBeleza() {
                 </div>
               </div>
 
-              <Link to={createPageUrl("AvatarScanner")}>
-                <Button
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
-                >
-                  <Scan className="w-5 h-5 mr-2" />
-                  Criar Meu Avatar Agora
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              <Button
+                onClick={() => setShowAvatarForm(!showAvatarForm)}
+                size="lg"
+                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
+              >
+                <Scan className="w-5 h-5 mr-2" />
+                {showAvatarForm ? 'Fechar Criador de Avatar' : 'Criar Meu Avatar Agora'}
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </motion.div>
 
             <motion.div
@@ -618,6 +618,25 @@ export default function DrBeleza() {
               </div>
             </motion.div>
           </div>
+
+          {/* Avatar Form - Hidden Section */}
+          <AnimatePresence>
+            {showAvatarForm && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mt-12 overflow-hidden"
+              >
+                <iframe
+                  src={createPageUrl("AvatarScanner")}
+                  className="w-full h-[1200px] border-0 rounded-2xl shadow-2xl"
+                  title="Avatar Scanner"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

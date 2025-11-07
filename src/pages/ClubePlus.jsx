@@ -113,21 +113,20 @@ const beautyCoinFeatures = [
 
 const beautyClubCards = [
   {
-    name: "Beauty Club Black",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/c07a71a64_image.png",
-    tier: "VIP",
+    name: "Beauty Club Basic",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/cecaeee22_cartobeautyclub1.jpeg",
+    tier: "Standard",
     price: "A definir",
     benefits: [
-      "Acesso VIP a todos os estabelecimentos",
-      "Cashback premium",
-      "Eventos exclusivos",
-      "Prioridade máxima",
-      "Concierge personalizado"
+      "Descontos básicos",
+      "Cashback padrão",
+      "Programa de pontos",
+      "Suporte via email"
     ]
   },
   {
-    name: "Beauty Club Gold",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/33a998115_image.png",
+    name: "Beauty Club Pro",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/f1022619b_cartobeautyclub2.jpeg",
     tier: "Premium",
     price: "A definir",
     benefits: [
@@ -138,15 +137,16 @@ const beautyClubCards = [
     ]
   },
   {
-    name: "Beauty Club Light",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/c804f80f9_image.png",
-    tier: "Standard",
+    name: "Beauty Club Exclusive",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/a5baa0dd0_cartobeautyclub3.jpeg",
+    tier: "VIP",
     price: "A definir",
     benefits: [
-      "Descontos básicos",
-      "Cashback padrão",
-      "Programa de pontos",
-      "Suporte via email"
+      "Acesso VIP a todos os estabelecimentos",
+      "Cashback premium",
+      "Eventos exclusivos",
+      "Prioridade máxima",
+      "Concierge personalizado"
     ]
   }
 ];

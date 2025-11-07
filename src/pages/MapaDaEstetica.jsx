@@ -4,8 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { 
-  Sparkles, Crown, Heart, Gift, Star, Zap, 
+import {
+  Sparkles, Crown, Heart, Gift, Star, Zap,
   Percent, Calendar, MapPin, Award, Users, TrendingUp,
   ArrowRight, Check, Search, Phone, Clock, Target,
   Shield, CheckCircle, ExternalLink, Map as MapIconLucide
@@ -111,14 +111,14 @@ export default function MapaDaEstetica() {
                 </p>
 
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  A primeira plataforma do Brasil criada para evitar procedimentos estéticos inseguros 
+                  A primeira plataforma do Brasil criada para evitar procedimentos estéticos inseguros
                   e conectar você aos melhores profissionais certificados.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="https://mapa-da-estetica.base44.app" target="_blank" rel="noopener noreferrer">
-                  <Button 
+                  <Button
                     size="lg"
                     className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
                   >
@@ -153,7 +153,7 @@ export default function MapaDaEstetica() {
                   className="w-full h-[600px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                
+
                 <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-[#E8DCC4]">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center shadow-lg">
@@ -195,21 +195,21 @@ export default function MapaDaEstetica() {
 
             <div className="max-w-4xl mx-auto space-y-6 text-lg text-gray-600 leading-relaxed">
               <p>
-                O <strong className="text-[#C8A882]">Mapa da Estética</strong> nasceu de uma necessidade urgente: 
-                <strong> proteger vidas e evitar tragédias causadas por procedimentos estéticos realizados por 
-                profissionais não qualificados</strong>.
+                O <strong className="text-[#C8A882]">Mapa da Estética</strong> nasceu de uma necessidade urgente:
+                <strong> proteger vidas e evitar tragédias causadas por procedimentos estéticos realizados por
+                  profissionais não qualificados</strong>.
               </p>
 
               <p>
-                Diariamente, pessoas buscam tratamentos de beleza e estética sem saber se estão nas mãos de 
-                profissionais realmente capacitados. Muitas vezes, procedimentos simples se transformam em 
-                complicações graves quando realizados em locais inadequados ou por pessoas sem formação adequada - 
+                Diariamente, pessoas buscam tratamentos de beleza e estética sem saber se estão nas mãos de
+                profissionais realmente capacitados. Muitas vezes, procedimentos simples se transformam em
+                complicações graves quando realizados em locais inadequados ou por pessoas sem formação adequada -
                 as chamadas <strong className="text-red-600">"macas mortais"</strong>.
               </p>
 
               <p>
-                Nossa plataforma foi criada para <strong className="text-[#C8A882]">salvar vidas</strong>, 
-                garantindo que você encontre apenas profissionais verificados, com formação comprovada, 
+                Nossa plataforma foi criada para <strong className="text-[#C8A882]">salvar vidas</strong>,
+                garantindo que você encontre apenas profissionais verificados, com formação comprovada,
                 registro profissional ativo e ambiente adequado para procedimentos estéticos.
               </p>
 
@@ -221,8 +221,8 @@ export default function MapaDaEstetica() {
                       Segurança em Primeiro Lugar
                     </h3>
                     <p className="text-gray-700">
-                      Todos os profissionais cadastrados passam por rigoroso processo de verificação, 
-                      incluindo validação de formação, registro profissional, especialização e histórico. 
+                      Todos os profissionais cadastrados passam por rigoroso processo de verificação,
+                      incluindo validação de formação, registro profissional, especialização e histórico.
                       Seu bem-estar e segurança são nossa prioridade absoluta.
                     </p>
                   </div>
@@ -269,11 +269,11 @@ export default function MapaDaEstetica() {
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#C8A882] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <feature.icon className="w-7 h-7 text-white" />
                     </div>
-                    
+
                     <h3 className="font-serif text-xl font-bold text-gray-800">
                       {feature.title}
                     </h3>
-                    
+
                     <p className="text-gray-600 leading-relaxed">
                       {feature.description}
                     </p>
@@ -350,6 +350,23 @@ export default function MapaDaEstetica() {
             </p>
           </motion.div>
 
+          {/* Embedded Map */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="mb-12"
+          >
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#E8DCC4] bg-white">
+              <iframe
+                src="https://mapa-da-estetica.base44.app"
+                className="w-full h-[700px] border-0"
+                title="Mapa Interativo da Estética"
+              />
+            </div>
+          </motion.div>
+
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -363,8 +380,8 @@ export default function MapaDaEstetica() {
                   Encontre Profissionais na Sua Região
                 </h3>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  Com nosso mapa interativo, você pode visualizar todos os profissionais certificados 
-                  próximos a você, filtrar por especialidade, ver avaliações e entrar em contato 
+                  Com nosso mapa interativo, você pode visualizar todos os profissionais certificados
+                  próximos a você, filtrar por especialidade, ver avaliações e entrar em contato
                   diretamente.
                 </p>
               </div>
@@ -408,12 +425,12 @@ export default function MapaDaEstetica() {
               </div>
 
               <a href="https://mapa-da-estetica.base44.app" target="_blank" rel="noopener noreferrer">
-                <Button 
+                <Button
                   size="lg"
                   className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
                 >
                   <MapIconLucide className="w-5 h-5 mr-2" />
-                  Abrir Mapa Interativo
+                  Abrir em Tela Cheia
                   <ExternalLink className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
@@ -433,7 +450,7 @@ export default function MapaDaEstetica() {
                   className="w-full h-[600px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                
+
                 <div className="absolute inset-0 flex items-center justify-center">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
@@ -494,13 +511,13 @@ export default function MapaDaEstetica() {
             </h2>
 
             <p className="text-xl text-white/90">
-              Acesse o Mapa da Estética e descubra mais de 500 profissionais verificados 
+              Acesse o Mapa da Estética e descubra mais de 500 profissionais verificados
               próximos a você
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
               <a href="https://mapa-da-estetica.base44.app" target="_blank" rel="noopener noreferrer">
-                <Button 
+                <Button
                   size="lg"
                   className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
                 >
