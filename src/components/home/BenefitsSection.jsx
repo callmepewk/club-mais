@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Heart, Leaf, Gift, Users, Crown } from "lucide-react";
@@ -44,7 +45,7 @@ const benefits = [
 
 export default function BenefitsSection() {
   return (
-    <div className="py-24 px-6 bg-white">
+    <div id="benefits" className="py-24 px-6 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

@@ -1,15 +1,20 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Crown, Award, Sparkles, CheckCircle, ArrowRight,
-  CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield
+  CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield,
+  Send, MessageSquare
 } from "lucide-react";
 
 const planDetails = {
@@ -96,6 +101,52 @@ export default function MyProfile() {
   
   const clubePlanInfo = planDetails[clubePlano];
   const edbeautyPlanInfo = edbeautyPlanDetails[edbeautyPlano];
+
+  const [supportForm, setSupportForm] = React.useState({
+    title: "",
+    description: ""
+  });
+
+  const sendSupportEmail = useMutation({
+    mutationFn: async (data) => {
+      const emailBody = `
+        <h2>Nova Solicitação de Suporte</h2>
+        <hr/>
+        <p><strong>De:</strong> ${user?.full_name || 'N/A'} (${user?.email || 'N/A'})</p>
+        <p><strong>Tipo de Usuário:</strong> ${userType === 'profissional' ? 'Profissional' : 'Paciente'}</p>
+        <p><strong>Plano Club:</strong> ${clubePlanInfo.name}</p>
+        ${userType === 'profissional' ? `<p><strong>Plano EdBeauty:</strong> ${edbeautyPlanInfo.name}</p>` : ''}
+        <hr/>
+        <h3>Título: ${data.title}</h3>
+        <p><strong>Descrição:</strong></p>
+        <p>${data.description}</p>
+        <hr/>
+        <p><small>Data: ${new Date().toLocaleString('pt-BR')}</small></p>
+      `;
+      return base44.integrations.Core.SendEmail({
+        to: "pedro_hbfreitas@hotmail.com",
+        subject: `[Suporte] ${data.title} - ${user?.full_name || 'Usuário Desconhecido'}`,
+        body: emailBody
+      });
+    },
+    onSuccess: () => {
+      alert('Mensagem enviada com sucesso! Nossa equipe entrará em contato em breve.');
+      setSupportForm({ title: "", description: "" });
+    },
+    onError: (error) => {
+      console.error("Error sending support email:", error);
+      alert('Erro ao enviar mensagem. Tente novamente.');
+    }
+  });
+
+  const handleSupportSubmit = (e) => {
+    e.preventDefault();
+    if (!supportForm.title || !supportForm.description) {
+      alert('Por favor, preencha o título e a descrição.');
+      return;
+    }
+    sendSupportEmail.mutate(supportForm);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -330,6 +381,83 @@ export default function MyProfile() {
                       <p className="text-sm text-gray-600 mt-1">Tipo de Conta</p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Support Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <Card className="border-[#E8DCC4] shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <MessageSquare className="w-6 h-6 text-[#D4AF37]" />
+                    Suporte
+                  </CardTitle>
+                  <p className="text-gray-600 mt-2">
+                    Precisa de ajuda? Entre em contato conosco
+                  </p>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <form onSubmit={handleSupportSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="support-title" className="text-gray-700">
+                        Título
+                      </Label>
+                      <Input
+                        id="support-title"
+                        value={supportForm.title}
+                        onChange={(e) => setSupportForm(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Resumo do problema ou dúvida"
+                        className="border-[#E8DCC4] focus:border-[#D4AF37]"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="support-description" className="text-gray-700">
+                        Descrição
+                      </Label>
+                      <Textarea
+                        id="support-description"
+                        value={supportForm.description}
+                        onChange={(e) => setSupportForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Descreva detalhadamente seu problema ou dúvida"
+                        className="border-[#E8DCC4] focus:border-[#D4AF37] min-h-[150px]"
+                        required
+                      />
+                    </div>
+
+                    <div className="bg-[#F5EFE6] rounded-lg p-4">
+                      <p className="text-sm text-gray-700">
+                        <strong>Email de suporte:</strong> pedro_hbfreitas@hotmail.com
+                      </p>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Responderemos sua solicitação o mais breve possível
+                      </p>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={sendSupportEmail.isPending}
+                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg font-semibold"
+                    >
+                      {sendSupportEmail.isPending ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5 mr-2" />
+                          Enviar Mensagem
+                        </>
+                      )}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </motion.div>
