@@ -114,7 +114,7 @@ const beautyCoinFeatures = [
 const beautyClubCards = [
   {
     name: "Beauty Club Black",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/73fc11f09_cartoclube3.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/c07a71a64_image.png",
     tier: "VIP",
     price: "A definir",
     benefits: [
@@ -127,7 +127,7 @@ const beautyClubCards = [
   },
   {
     name: "Beauty Club Gold",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/74527711e_cartoclube2.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/33a998115_image.png",
     tier: "Premium",
     price: "A definir",
     benefits: [
@@ -139,7 +139,7 @@ const beautyClubCards = [
   },
   {
     name: "Beauty Club Light",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/4052aa61b_cartoclube1.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/c804f80f9_image.png",
     tier: "Standard",
     price: "A definir",
     benefits: [
@@ -282,12 +282,11 @@ export default function ClubePlus() {
               >
                 <Card className="h-full overflow-hidden border-[#E8DCC4] hover:border-[#D4AF37] transition-all duration-300 hover:shadow-2xl group">
                   {/* Card Image */}
-                  <div className="relative h-64 overflow-hidden bg-gray-900">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10"></div>
+                  <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
                     <img
                       src={card.image}
                       alt={card.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-4 right-4 z-20">
                       <Badge className="bg-white/90 text-[#D4AF37] border-[#D4AF37]/20 font-bold">
