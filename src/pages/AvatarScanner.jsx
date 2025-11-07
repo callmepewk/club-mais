@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
-  Sparkles, User, AlertCircle, CheckCircle, Save, Wand2, Download
+  Sparkles, User, AlertCircle, CheckCircle, Save, Wand2, Download, Upload
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -41,6 +41,9 @@ export default function AvatarScanner() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
+
+  const [uploadedPhoto, setUploadedPhoto] = useState(null);
+  const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -214,6 +217,70 @@ export default function AvatarScanner() {
     setShowDrBelezaDialog(false);
   };
 
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsAnalyzingPhoto(true);
+    setGeneratedAvatarUrl(null); // Clear previous avatar
+    setChatMessages([]); // Clear chat
+    setShowAvatarChat(false); // Close chat
+
+    try {
+      // Upload file first
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      setUploadedPhoto(uploadResult.file_url);
+
+      // Analyze photo with AI to extract characteristics
+      const analysisPrompt = `Analyze this person's photo and describe their characteristics in detail for avatar creation. Include: gender (male/female), skin tone (muito-clara/clara/morena/morena-escura/negra), hair style (curto/medio/longo/coque/careca), hair color (loiro/castanho/preto/ruivo/branco), body type (magro/medio/atletico/plus), face shape (oval/redondo/quadrado/triangular/alongado), eye color (castanho/azul/verde/preto), approximate age range (jovem/adulto/maduro). Return ONLY a JSON object with these exact keys: gender, skinTone, hairStyle, hairColor, bodyType, faceShape, eyeColor, age`;
+
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: analysisPrompt,
+        file_urls: [uploadResult.file_url], // file_urls expects an array
+        response_json_schema: {
+          type: "object",
+          properties: {
+            gender: { type: "string" },
+            skinTone: { type: "string" },
+            hairStyle: { type: "string" },
+            hairColor: { type: "string" },
+            bodyType: { type: "string" },
+            faceShape: { type: "string" },
+            eyeColor: { type: "string" },
+            age: { type: "string" }
+          },
+          required: ["gender", "skinTone", "hairStyle", "hairColor", "bodyType", "faceShape", "eyeColor", "age"]
+        }
+      });
+
+      // Update config with analyzed data, providing fallbacks for robustness
+      setAvatarConfig({
+        gender: analysis.gender || 'female',
+        skinTone: analysis.skinTone || 'clara',
+        hairStyle: analysis.hairStyle || 'longo',
+        hairColor: analysis.hairColor || 'castanho',
+        bodyType: analysis.bodyType || 'medio',
+        faceShape: analysis.faceShape || 'oval',
+        eyeColor: analysis.eyeColor || 'castanho',
+        age: analysis.age || 'adulto'
+      });
+
+      // Generate avatar based on analysis
+      setIsGenerating(true);
+      const prompt = generatePrompt(); // Use the newly updated avatarConfig
+      const result = await base44.integrations.Core.GenerateImage({ prompt });
+      setGeneratedAvatarUrl(result.url);
+      
+      alert('Foto analisada e avatar gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao processar foto:', error);
+      alert('Erro ao processar foto. Tente novamente ou use o formulário manual.');
+    } finally {
+      setIsAnalyzingPhoto(false);
+      setIsGenerating(false);
+    }
+  };
+
   const handleAvatarChatMessage = async () => {
     if (!chatInput.trim() || !generatedAvatarUrl) return;
 
@@ -320,11 +387,69 @@ export default function AvatarScanner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
+              <Card className="border-[#E8DCC4] shadow-2xl bg-white mb-6">
+                <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] border-b border-[#E8DCC4]">
+                  <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                    <Upload className="w-6 h-6 text-[#D4AF37]" />
+                    Upload de Foto (Rápido)
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Envie uma foto sua e nossa IA vai analisar e criar automaticamente seu avatar personalizado!
+                  </p>
+
+                  <div className="border-2 border-dashed border-[#E8DCC4] rounded-xl p-8 text-center hover:border-[#D4AF37] transition-colors">
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      disabled={isAnalyzingPhoto || isGenerating}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="photo-upload"
+                      className="cursor-pointer flex flex-col items-center gap-3"
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center">
+                        <Upload className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {isAnalyzingPhoto || isGenerating ? 'Processando...' : 'Clique para fazer upload'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG até 10MB</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {(isAnalyzingPhoto || isGenerating) && (
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37]" />
+                      <span>
+                        {isAnalyzingPhoto ? 'Analisando foto...' : 'Gerando avatar...'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-[#E8DCC4]"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">Ou preencha manualmente</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="border-[#E8DCC4] shadow-2xl bg-white">
                 <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] border-b border-[#E8DCC4]">
                   <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
                     <Sparkles className="w-6 h-6 text-[#D4AF37]" />
-                    Configure Seu Avatar
+                    Configure Seu Avatar Manualmente
                   </CardTitle>
                 </CardHeader>
 
@@ -332,7 +457,7 @@ export default function AvatarScanner() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Gênero</Label>
-                      <Select value={avatarConfig.gender} onValueChange={(v) => handleConfigChange('gender', v)}>
+                      <Select value={avatarConfig.gender} onValueChange={(v) => handleConfigChange('gender', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -345,7 +470,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Tom de Pele</Label>
-                      <Select value={avatarConfig.skinTone} onValueChange={(v) => handleConfigChange('skinTone', v)}>
+                      <Select value={avatarConfig.skinTone} onValueChange={(v) => handleConfigChange('skinTone', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -361,7 +486,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Estilo de Cabelo</Label>
-                      <Select value={avatarConfig.hairStyle} onValueChange={(v) => handleConfigChange('hairStyle', v)}>
+                      <Select value={avatarConfig.hairStyle} onValueChange={(v) => handleConfigChange('hairStyle', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -377,7 +502,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Cor do Cabelo</Label>
-                      <Select value={avatarConfig.hairColor} onValueChange={(v) => handleConfigChange('hairColor', v)}>
+                      <Select value={avatarConfig.hairColor} onValueChange={(v) => handleConfigChange('hairColor', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -393,7 +518,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Tipo de Corpo</Label>
-                      <Select value={avatarConfig.bodyType} onValueChange={(v) => handleConfigChange('bodyType', v)}>
+                      <Select value={avatarConfig.bodyType} onValueChange={(v) => handleConfigChange('bodyType', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -408,7 +533,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Formato do Rosto</Label>
-                      <Select value={avatarConfig.faceShape} onValueChange={(v) => handleConfigChange('faceShape', v)}>
+                      <Select value={avatarConfig.faceShape} onValueChange={(v) => handleConfigChange('faceShape', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -424,7 +549,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Cor dos Olhos</Label>
-                      <Select value={avatarConfig.eyeColor} onValueChange={(v) => handleConfigChange('eyeColor', v)}>
+                      <Select value={avatarConfig.eyeColor} onValueChange={(v) => handleConfigChange('eyeColor', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -439,7 +564,7 @@ export default function AvatarScanner() {
 
                     <div className="space-y-2">
                       <Label>Faixa Etária</Label>
-                      <Select value={avatarConfig.age} onValueChange={(v) => handleConfigChange('age', v)}>
+                      <Select value={avatarConfig.age} onValueChange={(v) => handleConfigChange('age', v)} disabled={isAnalyzingPhoto}>
                         <SelectTrigger className="border-[#E8DCC4]">
                           <SelectValue />
                         </SelectTrigger>
@@ -454,7 +579,7 @@ export default function AvatarScanner() {
 
                   <Button
                     onClick={handleGenerateAvatar}
-                    disabled={isGenerating}
+                    disabled={isGenerating || isAnalyzingPhoto}
                     className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg"
                   >
                     {isGenerating ? (

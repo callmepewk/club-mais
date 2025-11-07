@@ -14,24 +14,24 @@ const quickQuestions = [
     answer: "O Club da Beleza é uma plataforma que conecta você aos melhores profissionais de estética e beleza, oferecendo descontos exclusivos, programa de pontos e benefícios especiais em nossa rede parceira."
   },
   {
-    question: "Quais são os planos disponíveis?",
-    answer: "Temos 3 planos: Light (Grátis), Gold (R$ 49,90/mês com 15% desconto) e VIP (R$ 99,90/mês com 25% desconto). Cada um oferece benefícios exclusivos!"
+    question: "Quais procedimentos para simetria facial?",
+    answer: "Para aumentar a simetria do rosto, os procedimentos mais indicados são:\n\n• Harmonização Facial (HOF)\n• Preenchimento com Ácido Hialurônico\n• Toxina Botulínica (Botox)\n• Bioestimuladores de Colágeno\n• Fios de Sustentação\n\nCategoria: Harmonização Facial\n\nVocê pode encontrar profissionais especializados no Mapa da Estética!"
   },
   {
-    question: "Como funciona o programa de pontos?",
-    answer: "Você acumula pontos a cada serviço ou produto adquirido. Plano Gold ganha 100 pontos/mês e VIP 300 pontos/mês. Os pontos podem ser trocados por serviços gratuitos!"
+    question: "Como modificar o nariz sem cirurgia?",
+    answer: "Para modificar o nariz (tamanho e estrutura) sem cirurgia, você pode optar por:\n\n• Rinomodelação (preenchimento nasal)\n• Harmonização Nasal\n• Fios de Sustentação\n• Toxina Botulínica para ponta nasal\n\nPara mudanças mais significativas:\n• Rinoplastia (cirurgia plástica)\n\nCategoria: Harmonização Facial e Cirurgia Plástica\n\nPesquise profissionais qualificados no Mapa da Estética!"
   },
   {
-    question: "O que é o Mapa da Estética?",
-    answer: "É nossa plataforma de busca com mais de 500 profissionais verificados em todo Brasil. Você pode buscar por localização, especialidade e ver avaliações reais."
+    question: "Tratamentos para rejuvenescimento facial",
+    answer: "Os melhores tratamentos para rejuvenescimento facial incluem:\n\n• Toxina Botulínica (Botox)\n• Preenchimento Facial\n• Bioestimuladores de Colágeno\n• Skinbooster\n• Peeling Químico\n• Laser CO2 Fracionado\n• Microagulhamento\n• Radiofrequência Facial\n\nCategoria: Estética Facial\n\nEncontre especialistas no Mapa da Estética!"
   },
   {
-    question: "Como funciona a Beauty Coin?",
-    answer: "Beauty Coin é nossa criptomoeda exclusiva que pode ser usada para adquirir produtos e serviços de estética na nossa rede parceira."
+    question: "Procedimentos para papada e contorno",
+    answer: "Para reduzir papada e melhorar o contorno facial:\n\n• Criolipólise de Papada\n• Lipo Enzimática\n• Radiofrequência\n• Ultrassom Microfocado (HIFU)\n• Harmonização de Mandíbula\n• Fios de Sustentação\n• Lipoaspiração de Papada (cirúrgico)\n\nCategoria: Estética Corporal e Harmonização\n\nBusque profissionais no Mapa da Estética!"
   },
   {
-    question: "O que é Golden Doctors?",
-    answer: "É nossa comunidade exclusiva dos melhores profissionais de estética do Brasil, com certificação de excelência e benefícios premium."
+    question: "Tratamentos para manchas e melasma",
+    answer: "Para tratar manchas e melasma:\n\n• Peeling Químico\n• Laser Q-Switched\n• Luz Intensa Pulsada (IPL)\n• Microagulhamento\n• Tratamento com Ácidos\n• Clareadores Tópicos\n• Skinbooster Clareador\n\nCategoria: Dermatologia e Estética Facial\n\nImportante: Sempre use protetor solar!\n\nEncontre dermatologistas no Mapa da Estética!"
   }
 ];
 
@@ -53,7 +53,7 @@ const tutorialSteps = [
   {
     id: 3,
     title: "Meu Perfil",
-    description: "Acesse seu perfil para ver suas informações, plano atual e benefícios disponíveis.",
+    description: "Acesse seu perfil para ver suas informações, planoa ctual e benefícios disponíveis.",
     target: "MeuPerfil", // Assuming a link with href containing "MeuPerfil" or data-tutorial="nav-MeuPerfil"
     position: "right"
   },
@@ -92,7 +92,7 @@ export default function DrBelezaChat() {
   const [messages, setMessages] = useState([
     {
       type: "bot",
-      text: "Olá! Sou o Dr. Beleza 💫 Como posso ajudar você hoje?"
+      text: "Olá! Sou o Dr. Beleza 💫\n\nEstou aqui para te ajudar com dúvidas sobre procedimentos estéticos, tratamentos e muito mais!\n\nO que você gostaria de saber?"
     }
   ]);
   const [inputMessage, setInputMessage] = useState("");
@@ -191,21 +191,42 @@ export default function DrBelezaChat() {
     ]);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const userMessage = inputMessage;
     setMessages(prev => [...prev, { type: "user", text: userMessage }]);
     setInputMessage("");
 
-    // Simulate bot response
+    // Simulate intelligent response
     setTimeout(() => {
+      let response = "";
+      const msgLower = userMessage.toLowerCase();
+
+      // Check for specific keywords and provide intelligent responses
+      if (msgLower.includes("simetria") || msgLower.includes("simetrico") || msgLower.includes("assimetria")) {
+        response = "Para melhorar a simetria facial, recomendo:\n\n• Harmonização Facial (HOF)\n• Preenchimento com Ácido Hialurônico\n• Toxina Botulínica\n• Fios de Sustentação\n\nCategoria: Harmonização Facial\n\nProcure por profissionais especializados no Mapa da Estética! 📍";
+      } else if (msgLower.includes("nariz") || msgLower.includes("rinomodelação") || msgLower.includes("rinoplastia")) {
+        response = "Para modificar o nariz:\n\n**Sem cirurgia:**\n• Rinomodelação\n• Harmonização Nasal\n• Fios de Sustentação\n\n**Com cirurgia:**\n• Rinoplastia\n\nCategoria: Harmonização Facial / Cirurgia Plástica\n\nEncontre especialistas no Mapa da Estética! 📍";
+      } else if (msgLower.includes("rejuvenescimento") || msgLower.includes("rugas") || msgLower.includes("envelhecimento")) {
+        response = "Para rejuvenescimento facial:\n\n• Toxina Botulínica (Botox)\n• Preenchimento Facial\n• Bioestimuladores\n• Skinbooster\n• Peeling Químico\n• Laser\n\nCategoria: Estética Facial\n\nBusque profissionais no Mapa da Estética! 📍";
+      } else if (msgLower.includes("papada") || msgLower.includes("queixo") || msgLower.includes("contorno")) {
+        response = "Para tratar papada e contorno:\n\n• Criolipólise\n• Lipo Enzimática\n• Radiofrequência\n• HIFU\n• Harmonização de Mandíbula\n\nCategoria: Estética Corporal\n\nPesquise no Mapa da Estética! 📍";
+      } else if (msgLower.includes("mancha") || msgLower.includes("melasma") || msgLower.includes("clareamento")) {
+        response = "Para manchas e melasma:\n\n• Peeling Químico\n• Laser Q-Switched\n• IPL\n• Microagulhamento\n• Ácidos Clareadores\n\nCategoria: Dermatologia\n\nEncontre dermatologistas no Mapa da Estética! 📍";
+      } else if (msgLower.includes("acne") || msgLower.includes("espinha") || msgLower.includes("oleosidade")) {
+        response = "Para tratamento de acne:\n\n• Limpeza de Pele Profunda\n• Peeling Químico\n• Laser\n• Microagulhamento\n• Tratamento com Ácidos\n\nCategoria: Dermatologia / Estética Facial\n\nBusque especialistas no Mapa da Estética! 📍";
+      } else if (msgLower.includes("celulite") || msgLower.includes("estria") || msgLower.includes("flacidez")) {
+        response = "Para celulite, estrias e flacidez:\n\n• Radiofrequência\n• Ondas de Choque\n• Subcisão\n• Carboxiterapia\n• Endermologia\n• Massagem Modeladora\n\nCategoria: Estética Corporal\n\nEncontre profissionais no Mapa da Estética! 📍";
+      } else if (msgLower.includes("gordura") || msgLower.includes("emagrecer") || msgLower.includes("gordura localizada")) {
+        response = "Para redução de gordura:\n\n• Criolipólise\n• Lipo Enzimática\n• Ultracavitação\n• Radiofrequência\n• Carboxiterapia\n• Lipoaspiração (cirúrgico)\n\nCategoria: Estética Corporal\n\nPesquise profissionais no Mapa da Estética! 📍";
+      } else {
+        response = "Obrigado pela sua pergunta! 😊\n\nPara respostas mais específicas e personalizadas, recomendo:\n\n1. Usar a busca do Dr. Beleza na página principal\n2. Explorar o Mapa da Estética para encontrar profissionais especializados\n3. Entrar em contato conosco pelo WhatsApp: (31) 97259-5643\n\nEstou sempre aqui para ajudar! 💫";
+      }
+
       setMessages(prev => [
         ...prev,
-        {
-          type: "bot",
-          text: "Obrigado pela sua pergunta! Para respostas mais detalhadas, recomendo visitar nossa página do Dr. Beleza ou falar com nossa equipe através do WhatsApp (31) 97259-5643."
-        }
+        { type: "bot", text: response }
       ]);
     }, 1000);
   };
@@ -322,7 +343,7 @@ export default function DrBelezaChat() {
                             : "bg-white text-gray-800 shadow-sm border border-[#E8DCC4]"
                         }`}
                       >
-                        <p className="text-sm">{message.text}</p>
+                        <p className="text-sm whitespace-pre-line">{message.text}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -332,14 +353,14 @@ export default function DrBelezaChat() {
                 {/* Quick Questions */}
                 <div className="p-4 border-t border-[#E8DCC4] bg-white">
                   <p className="text-xs text-gray-500 mb-2 font-medium">Perguntas Rápidas:</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {quickQuestions.slice(0, 3).map((item, index) => (
+                  <div className="flex flex-wrap gap-2 mb-3 max-h-32 overflow-y-auto">
+                    {quickQuestions.map((item, index) => (
                       <Button
                         key={index}
                         variant="outline"
                         size="sm"
                         onClick={() => handleQuickQuestion(item.question, item.answer)}
-                        className="text-xs border-[#E8DCC4] hover:border-[#D4AF37] hover:bg-[#F5EFE6]"
+                        className="text-xs border-[#E8DCC4] hover:border-[#D4AF37] hover:bg-[#F5EFE6] whitespace-normal h-auto py-2"
                       >
                         {item.question}
                       </Button>
@@ -350,7 +371,7 @@ export default function DrBelezaChat() {
                     onClick={startTutorial}
                     variant="outline"
                     size="sm"
-                    className="w-full text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+                    className="w-full text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] mb-2"
                   >
                     <Play className="w-3 h-3 mr-2" />
                     Iniciar Tutorial
@@ -359,9 +380,9 @@ export default function DrBelezaChat() {
                   <Link to={createPageUrl("DrBeleza")} onClick={() => setIsOpen(false)} className="block w-full">
                     <Button
                       variant="link"
-                      className="text-xs text-[#D4AF37] hover:text-[#C8A882] mt-2 p-0 w-full"
+                      className="text-xs text-[#D4AF37] hover:text-[#C8A882] p-0 w-full"
                     >
-                      Ver todas as perguntas →
+                      Buscar profissionais no Mapa da Estética →
                     </Button>
                   </Link>
                 </div>
