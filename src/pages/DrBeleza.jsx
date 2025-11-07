@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { motion, AnimatePresence } from "framer-motion"; // Added AnimatePresence
+import { motion, AnimatePresence } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -24,7 +24,8 @@ import {
   CheckCircle, Heart, Locate, Map as MapIcon, User, Scan
 } from "lucide-react";
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
-import { Link } from "react-router-dom"; // Added Link import
+import { Link } from "react-router-dom";
+import AvatarScanner from "./AvatarScanner"; // Import AvatarScanner directly
 
 // Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -619,7 +620,7 @@ export default function DrBeleza() {
             </motion.div>
           </div>
 
-          {/* Avatar Form - Hidden Section */}
+          {/* Avatar Form - Expanded Section */}
           <AnimatePresence>
             {showAvatarForm && (
               <motion.div
@@ -627,13 +628,9 @@ export default function DrBeleza() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.5 }}
-                className="mt-12 overflow-hidden"
+                className="mt-12"
               >
-                <iframe
-                  src={createPageUrl("AvatarScanner")}
-                  className="w-full h-[1200px] border-0 rounded-2xl shadow-2xl"
-                  title="Avatar Scanner"
-                />
+                <AvatarScanner />
               </motion.div>
             )}
           </AnimatePresence>
