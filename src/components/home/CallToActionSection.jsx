@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -42,7 +43,7 @@ export default function CallToActionSection() {
               </Button>
             </Link>
 
-            <Link to={createPageUrl("Home") + "#benefits"}>
+            <Link to={createPageUrl("Join")}>
               <Button 
                 size="lg"
                 variant="outline"

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +38,13 @@ export default function Eventos() {
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch (error) {
+        return null;
+      }
+    },
   });
 
   const { data: eventos = [], isLoading } = useQuery({
@@ -104,12 +111,8 @@ export default function Eventos() {
 
   const isAdmin = user?.role === 'admin';
 
-  // Filtrar eventos por tipo de usuário
-  const eventosVisiveis = eventos.filter(evento => 
-    evento.publico_alvo === 'todos' || 
-    evento.publico_alvo === user?.tipo_usuario ||
-    isAdmin
-  );
+  // Todos podem ver eventos - sem restrição por tipo de usuário
+  const eventosVisiveis = eventos;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
