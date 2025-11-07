@@ -26,8 +26,9 @@ export default function EdBeautyUpload() {
     titulo: "",
     descricao: "",
     tipo: "video",
-    tipo_acesso: "gratuito", // Added new field
-    preco: 0, // Added new field
+    tipo_acesso: "gratuito",
+    publico_alvo: "todos", // Added new field
+    preco: 0,
     url: "",
     thumbnail: "",
     categoria: "Estética Facial",
@@ -183,7 +184,7 @@ export default function EdBeautyUpload() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4"> {/* Changed to md:grid-cols-3 */}
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo de Conteúdo *</Label>
                   <Select value={formData.tipo} onValueChange={(value) => handleInputChange("tipo", value)}>
@@ -198,7 +199,6 @@ export default function EdBeautyUpload() {
                   </Select>
                 </div>
 
-                {/* Added new Select for tipo_acesso */}
                 <div className="space-y-2">
                   <Label htmlFor="tipo_acesso">Tipo de Acesso *</Label>
                   <Select value={formData.tipo_acesso} onValueChange={(value) => handleInputChange("tipo_acesso", value)}>
@@ -214,24 +214,38 @@ export default function EdBeautyUpload() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria *</Label>
-                  <Select value={formData.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
+                  <Label htmlFor="publico_alvo">Público Alvo *</Label>
+                  <Select value={formData.publico_alvo} onValueChange={(value) => handleInputChange("publico_alvo", value)}>
                     <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Estética Facial">Estética Facial</SelectItem>
-                      <SelectItem value="Estética Corporal">Estética Corporal</SelectItem>
-                      <SelectItem value="Harmonização">Harmonização</SelectItem>
-                      <SelectItem value="Micropigmentação">Micropigmentação</SelectItem>
-                      <SelectItem value="Depilação a Laser">Depilação a Laser</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Gestão">Gestão</SelectItem>
-                      <SelectItem value="Técnicas Avançadas">Técnicas Avançadas</SelectItem>
-                      <SelectItem value="Outros">Outros</SelectItem>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="paciente">Pacientes</SelectItem>
+                      <SelectItem value="profissional">Profissionais</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="categoria">Categoria *</Label>
+                <Select value={formData.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
+                  <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Estética Facial">Estética Facial</SelectItem>
+                    <SelectItem value="Estética Corporal">Estética Corporal</SelectItem>
+                    <SelectItem value="Harmonização">Harmonização</SelectItem>
+                    <SelectItem value="Micropigmentação">Micropigmentação</SelectItem>
+                    <SelectItem value="Depilação a Laser">Depilação a Laser</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Gestão">Gestão</SelectItem>
+                    <SelectItem value="Técnicas Avançadas">Técnicas Avançadas</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Conditionally rendered Preço input */}

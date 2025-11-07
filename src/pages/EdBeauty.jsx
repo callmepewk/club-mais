@@ -28,12 +28,14 @@ const typeIcons = {
 };
 
 const planoLabels = {
+  none: "Nenhum", // Added 'none' for completeness
   light: "Light",
   gold: "Gold",
   vip: "VIP"
 };
 
 const planoColors = {
+  none: "bg-gray-200 text-gray-700", // Added 'none'
   light: "bg-gray-100 text-gray-800",
   gold: "bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white",
   vip: "bg-gradient-to-r from-purple-600 to-purple-800 text-white"
@@ -67,20 +69,43 @@ export default function EdBeauty() {
   const { data: userData, isLoading: loadingUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      return currentUser;
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        return currentUser;
+      } catch (error) {
+        // User not logged in
+        return null;
+      }
     },
   });
 
-  const hasAccess = (contentPlanMin) => {
+  const canAccessContent = (content) => {
+    // Conteúdo gratuito: todos podem acessar
+    if (content.tipo_acesso === 'gratuito') return true;
+
+    // Se não estiver logado, não pode acessar conteúdo pago/exclusivo
     if (!user) return false;
+
+    // Admin pode tudo
     if (user.role === 'admin') return true;
 
-    const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
-    const userPlan = user.clube_plano || 'none';
+    // Profissional pode ver todos os conteúdos (pode ter pago)
+    if (user.tipo_usuario === 'profissional') return true;
 
-    return planHierarchy[userPlan] >= planHierarchy[contentPlanMin];
+    // Paciente pode ver conteúdos gratuitos e para pacientes, dependendo do plano
+    if (user.tipo_usuario === 'paciente') {
+      if (content.publico_alvo === 'profissional') return false; // Pacientes não acessam conteúdo de profissional
+
+      const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
+      const userPlan = user.clube_plano || 'none';
+      const contentPlanMin = content.plano_minimo || 'none';
+
+      return planHierarchy[userPlan] >= planHierarchy[contentPlanMin];
+    }
+
+    // Por padrão, não pode acessar
+    return false;
   };
 
   const canUploadContent = () => {
@@ -259,9 +284,9 @@ export default function EdBeauty() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredContents.map((content, index) => {
                 const TypeIcon = typeIcons[content.tipo];
-                const hasUserAccess = hasAccess(content.plano_minimo);
+                const userCanAccess = canAccessContent(content);
                 const isPago = content.tipo_acesso === 'pago';
-                const isGratuito = content.tipo_acesso === 'gratuito';
+                // const isGratuito = content.tipo_acesso === 'gratuito'; // Not explicitly needed due to canAccessContent
 
                 return (
                   <motion.div
@@ -271,13 +296,19 @@ export default function EdBeauty() {
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
                     <Card className={`h-full border-[#E8DCC4] transition-all duration-300 hover:shadow-xl group relative ${
-                      !hasUserAccess && !isGratuito ? 'opacity-75' : ''
+                      !userCanAccess ? 'opacity-75' : ''
                     }`}>
-                      {!hasUserAccess && !isGratuito && (
+                      {!userCanAccess && (
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
                           <div className="text-center text-white p-6">
                             <Lock className="w-12 h-12 mx-auto mb-3" />
-                            <p className="font-semibold">Plano {planoLabels[content.plano_minimo]} necessário</p>
+                            {!user ? (
+                              <p className="font-semibold">Faça login para acessar</p>
+                            ) : content.publico_alvo === 'profissional' && user.tipo_usuario === 'paciente' ? (
+                              <p className="font-semibold">Conteúdo exclusivo para profissionais</p>
+                            ) : (
+                              <p className="font-semibold">Plano {planoLabels[content.plano_minimo]} necessário</p>
+                            )}
                           </div>
                         </div>
                       )}
@@ -336,7 +367,7 @@ export default function EdBeauty() {
                           </div>
                         )}
 
-                        {(hasUserAccess || isGratuito) && (
+                        {userCanAccess && (
                           <a
                             href={content.url}
                             target="_blank"
@@ -344,7 +375,7 @@ export default function EdBeauty() {
                             className="block"
                           >
                             <Button className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white group">
-                              {isPago && !hasUserAccess ? `Comprar - R$ ${content.preco?.toFixed(2)}` : 'Acessar Conteúdo'}
+                              Acessar Conteúdo
                               <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Button>
                           </a>

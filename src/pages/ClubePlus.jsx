@@ -71,7 +71,7 @@ const beautyCoinFeatures = [
 const beautyClubCards = [
   {
     name: "Beauty Club Basic",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/b1579907d_cartobeautyclub1.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/dcdc48550_cartobeautyclub2.jpeg",
     tier: "Standard",
     price: "A definir",
     benefits: [
@@ -83,7 +83,7 @@ const beautyClubCards = [
   },
   {
     name: "Beauty Club Pro",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/e99dda025_cartobeautyclub2.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/2d894e8b4_cartobeautyclub3.jpeg",
     tier: "Premium",
     price: "A definir",
     benefits: [
@@ -95,7 +95,7 @@ const beautyClubCards = [
   },
   {
     name: "Beauty Club Exclusive",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/3cb72214b_cartobeautyclub3.jpeg",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/ee0f2b1ec_cartobeautyclub1.jpeg",
     tier: "VIP",
     price: "A definir",
     benefits: [
