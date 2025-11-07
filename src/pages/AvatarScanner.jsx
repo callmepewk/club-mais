@@ -44,6 +44,7 @@ export default function AvatarScanner() {
 
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
+  const [userComments, setUserComments] = useState(""); // New state for user comments
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -133,11 +134,17 @@ export default function AvatarScanner() {
   const handleGenerateAvatar = async () => {
     setIsGenerating(true);
     try {
-      const prompt = generatePrompt();
+      let prompt = generatePrompt();
+      
+      // Add user comments to prompt if available
+      if (userComments.trim()) {
+        prompt += `, ${userComments}`;
+      }
+      
       const result = await base44.integrations.Core.GenerateImage({ prompt });
       setGeneratedAvatarUrl(result.url);
-      setChatMessages([]); // Clear chat messages when a new avatar is generated
-      setShowAvatarChat(false); // Close chat when a new avatar is generated
+      setChatMessages([]);
+      setShowAvatarChat(false);
     } catch (error) {
       console.error('Erro ao gerar avatar:', error);
       alert('Erro ao gerar avatar. Tente novamente.');
@@ -159,13 +166,13 @@ export default function AvatarScanner() {
         avatar_thumbnail: generatedAvatarUrl,
         meta_width: 1024,
         meta_height: 1024,
-        capture_timestamp: new Date().toISOString()
+        capture_timestamp: new Date().toISOString(),
+        user_comments: userComments // Save user comments
       };
 
       await saveAvatarMutation.mutateAsync(avatarData);
       alert('Avatar salvo com sucesso!');
 
-      // Get treatment recommendations
       const treatments = getTreatmentRecommendations();
       if (treatments.length > 0) {
         setRecommendedTreatments(treatments);
@@ -222,21 +229,19 @@ export default function AvatarScanner() {
     if (!file) return;
 
     setIsAnalyzingPhoto(true);
-    setGeneratedAvatarUrl(null); // Clear previous avatar
-    setChatMessages([]); // Clear chat
-    setShowAvatarChat(false); // Close chat
+    setGeneratedAvatarUrl(null);
+    setChatMessages([]);
+    setShowAvatarChat(false);
 
     try {
-      // Upload file first
       const uploadResult = await base44.integrations.Core.UploadFile({ file });
       setUploadedPhoto(uploadResult.file_url);
 
-      // Analyze photo with AI to extract characteristics
       const analysisPrompt = `Analyze this person's photo and describe their characteristics in detail for avatar creation. Include: gender (male/female), skin tone (muito-clara/clara/morena/morena-escura/negra), hair style (curto/medio/longo/coque/careca), hair color (loiro/castanho/preto/ruivo/branco), body type (magro/medio/atletico/plus), face shape (oval/redondo/quadrado/triangular/alongado), eye color (castanho/azul/verde/preto), approximate age range (jovem/adulto/maduro). Return ONLY a JSON object with these exact keys: gender, skinTone, hairStyle, hairColor, bodyType, faceShape, eyeColor, age`;
 
       const analysis = await base44.integrations.Core.InvokeLLM({
         prompt: analysisPrompt,
-        file_urls: [uploadResult.file_url], // file_urls expects an array
+        file_urls: [uploadResult.file_url],
         response_json_schema: {
           type: "object",
           properties: {
@@ -253,7 +258,6 @@ export default function AvatarScanner() {
         }
       });
 
-      // Update config with analyzed data, providing fallbacks for robustness
       setAvatarConfig({
         gender: analysis.gender || 'female',
         skinTone: analysis.skinTone || 'clara',
@@ -265,9 +269,14 @@ export default function AvatarScanner() {
         age: analysis.age || 'adulto'
       });
 
-      // Generate avatar based on analysis
       setIsGenerating(true);
-      const prompt = generatePrompt(); // Use the newly updated avatarConfig
+      let prompt = generatePrompt();
+      
+      // Add user comments to AI analysis
+      if (userComments.trim()) {
+        prompt += `, ${userComments}`;
+      }
+      
       const result = await base44.integrations.Core.GenerateImage({ prompt });
       setGeneratedAvatarUrl(result.url);
 
@@ -471,6 +480,24 @@ export default function AvatarScanner() {
                         <p className="text-xs text-gray-500 mt-1">PNG, JPG até 10MB</p>
                       </div>
                     </label>
+                  </div>
+
+                  {/* User Comments Field */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-semibold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                      Descreva o que você deseja (Opcional)
+                    </Label>
+                    <Textarea
+                      value={userComments}
+                      onChange={(e) => setUserComments(e.target.value)}
+                      placeholder="Ex: quero uma boca maior, sobrancelhas arqueadas, rosto mais fino, coloque botox, deixe mais jovem, etc."
+                      className="border-[#E8DCC4] focus:border-[#D4AF37] min-h-[100px]"
+                      disabled={isAnalyzingPhoto || isGenerating}
+                    />
+                    <p className="text-xs text-gray-500">
+                      💡 Dica: Seja específico! Descreva características faciais, procedimentos estéticos ou mudanças que você gostaria de ver.
+                    </p>
                   </div>
 
                   {(isAnalyzingPhoto || isGenerating) && (
