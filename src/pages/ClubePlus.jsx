@@ -45,49 +45,6 @@ const cardBenefits = [
   }
 ];
 
-const cardTiers = [
-  {
-    name: "Cartão Light",
-    color: "from-gray-400 to-gray-500",
-    image: "https://images.unsplash.com/photo-1614680376739-414d95ff43df?w=800&q=80",
-    benefits: [
-      "Acesso básico à rede",
-      "Programa de pontos padrão",
-      "Cashback de 2%",
-      "Suporte por email"
-    ],
-    price: "Grátis"
-  },
-  {
-    name: "Cartão Gold",
-    color: "from-[#D4AF37] to-[#C8A882]",
-    image: "https://images.unsplash.com/photo-1614680376408-81e91ffe3db7?w=800&q=80",
-    benefits: [
-      "15% desconto na rede",
-      "100 pontos mensais",
-      "Cashback de 5%",
-      "50 Beauty Coins mensais",
-      "Suporte prioritário"
-    ],
-    price: "R$ 49,90/mês",
-    popular: true
-  },
-  {
-    name: "Cartão VIP",
-    color: "from-purple-600 to-purple-800",
-    image: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=800&q=80",
-    benefits: [
-      "25% desconto na rede",
-      "300 pontos mensais",
-      "Cashback de 10%",
-      "150 Beauty Coins mensais",
-      "Suporte 24/7",
-      "Eventos exclusivos"
-    ],
-    price: "R$ 99,90/mês"
-  }
-];
-
 const beautyCoinFeatures = [
   {
     icon: Coins,
