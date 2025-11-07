@@ -1,11 +1,10 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, 
   Package, CreditCard, Bot, MapPin, Map as MapIcon, Coins, 
-  GraduationCap, User as UserIcon, Scan, Heart
+  GraduationCap, User as UserIcon, Scan, Heart, X, MessageCircle, Crown
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,6 +20,8 @@ import {
   SidebarTrigger,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import Footer from "./components/Footer";
 import DrBelezaChat from "./components/DrBelezaChat";
 import SignUpPopup from "./components/SignUpPopup";
@@ -72,9 +73,9 @@ const navigationItems = [
     icon: Coins,
   },
   {
-    title: "Meu Plano",
-    url: createPageUrl("MyPlan"),
-    icon: CreditCard,
+    title: "Meu Perfil",
+    url: createPageUrl("MyProfile"),
+    icon: UserIcon,
   },
   {
     title: "Sobre Nós",
@@ -105,6 +106,13 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const [showTopBanner, setShowTopBanner] = useState(true);
+
+  const handleWhatsAppSignup = () => {
+    const whatsappNumber = "5531972595643";
+    const message = encodeURIComponent("Olá! Gostaria de me cadastrar no Club da Beleza.");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+  };
 
   return (
     <SidebarProvider>
@@ -178,6 +186,60 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
+          {/* Top Signup Banner */}
+          <AnimatePresence>
+            {showTopBanner && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="bg-gradient-to-r from-[#D4AF37] via-[#C8A882] to-[#D4AF37] text-white overflow-hidden"
+              >
+                <div className="relative">
+                  <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1">
+                      <Crown className="w-5 h-5 hidden md:block flex-shrink-0" />
+                      <p className="text-sm font-medium text-center md:text-left flex-1">
+                        <span className="hidden md:inline">🎉 Cadastre-se agora e ganhe benefícios exclusivos! </span>
+                        <span className="md:hidden">🎉 Cadastre-se e ganhe benefícios!</span>
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Link to={createPageUrl("Join")} className="hidden sm:block">
+                        <Button
+                          size="sm"
+                          className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
+                        >
+                          <Users className="w-3 h-3 mr-1" />
+                          Associar
+                        </Button>
+                      </Link>
+                      
+                      <Button
+                        onClick={handleWhatsAppSignup}
+                        size="sm"
+                        className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
+                      >
+                        <MessageCircle className="w-3 h-3 mr-1" />
+                        WhatsApp
+                      </Button>
+
+                      <button
+                        onClick={() => setShowTopBanner(false)}
+                        className="text-white/80 hover:text-white transition-colors p-1"
+                        aria-label="Fechar"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Mobile Header */}
           <header className="bg-white/80 backdrop-blur-md border-b border-[#E8DCC4] px-6 py-4 md:hidden sticky top-0 z-50">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="hover:bg-[#F5EFE6] p-2 rounded-lg transition-colors duration-200" />
@@ -196,10 +258,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </main>
 
-        {/* Dr Beleza Chatbot */}
         <DrBelezaChat />
-
-        {/* Sign Up Popup */}
         <SignUpPopup />
       </div>
     </SidebarProvider>

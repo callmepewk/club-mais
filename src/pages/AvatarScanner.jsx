@@ -16,7 +16,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
+import {
   Sparkles, User, AlertCircle, CheckCircle, Save, Wand2, Download, Upload
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +36,7 @@ export default function AvatarScanner() {
   const [generatedAvatarUrl, setGeneratedAvatarUrl] = useState(null);
   const [showDrBelezaDialog, setShowDrBelezaDialog] = useState(false);
   const [recommendedTreatments, setRecommendedTreatments] = useState([]);
-  
+
   const [showAvatarChat, setShowAvatarChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
@@ -164,7 +164,7 @@ export default function AvatarScanner() {
 
       await saveAvatarMutation.mutateAsync(avatarData);
       alert('Avatar salvo com sucesso!');
-      
+
       // Get treatment recommendations
       const treatments = getTreatmentRecommendations();
       if (treatments.length > 0) {
@@ -179,35 +179,35 @@ export default function AvatarScanner() {
 
   const getTreatmentRecommendations = () => {
     const treatments = new Set();
-    
+
     if (avatarConfig.faceShape !== 'oval') {
       treatments.add('Harmonização Facial (HOF)');
       treatments.add('Bioestimuladores de Colágeno');
     }
-    
+
     if (avatarConfig.skinTone === 'muito-clara' || avatarConfig.skinTone === 'clara') {
       treatments.add('Proteção Solar Profissional');
       treatments.add('Tratamento de Manchas');
     }
-    
+
     if (avatarConfig.bodyType === 'plus' || avatarConfig.bodyType === 'magro') {
       treatments.add('Criolipólise');
       treatments.add('Radiofrequência Corporal');
       treatments.add('Tratamento de Flacidez');
     }
-    
+
     if (avatarConfig.age === 'maduro') {
       treatments.add('Tratamento Anti-idade');
       treatments.add('Preenchimento Facial');
       treatments.add('Toxina Botulínica (Botox)');
     }
-    
+
     return Array.from(treatments);
   };
 
   const handleSearchTreatments = () => {
     if (!recommendedTreatments.length) return;
-    
+
     navigate(createPageUrl("DrBeleza"), {
       state: {
         treatment: recommendedTreatments[0],
@@ -270,7 +270,7 @@ export default function AvatarScanner() {
       const prompt = generatePrompt(); // Use the newly updated avatarConfig
       const result = await base44.integrations.Core.GenerateImage({ prompt });
       setGeneratedAvatarUrl(result.url);
-      
+
       alert('Foto analisada e avatar gerado com sucesso!');
     } catch (error) {
       console.error('Erro ao processar foto:', error);
@@ -287,28 +287,76 @@ export default function AvatarScanner() {
     const userMessage = chatInput;
     setChatMessages(prev => [...prev, { type: "user", text: userMessage }]);
     setChatInput("");
-    setIsGeneratingVariation(true);
 
-    try {
-      // Generate prompt for variation
-      const variationPrompt = `${generatePrompt()}, com as seguintes modificações: ${userMessage}. Mantenha o mesmo estilo, pose e iluminação do original, apenas aplicando as mudanças solicitadas`;
-      
-      const result = await base44.integrations.Core.GenerateImage({ prompt: variationPrompt });
-      
-      setGeneratedAvatarUrl(result.url);
-      setChatMessages(prev => [...prev, { 
-        type: "bot", 
-        text: `Pronto! Apliquei as alterações que você pediu. O que acha do resultado?`,
-        imageUrl: result.url
-      }]);
-    } catch (error) {
-      console.error('Erro ao gerar variação:', error);
-      setChatMessages(prev => [...prev, { 
-        type: "bot", 
-        text: "Desculpe, ocorreu um erro ao aplicar as alterações. Tente novamente."
-      }]);
-    } finally {
-      setIsGeneratingVariation(false);
+    // Check if it's about procedures or avatar changes
+    const msgLower = userMessage.toLowerCase();
+    const isProcedureQuestion =
+      msgLower.includes("procedimento") ||
+      msgLower.includes("tratamento") ||
+      msgLower.includes("cirurgia") ||
+      msgLower.includes("como fazer") ||
+      msgLower.includes("quais são") ||
+      msgLower.includes("simetria") ||
+      msgLower.includes("simetrico") ||
+      msgLower.includes("nariz") ||
+      msgLower.includes("boca") ||
+      msgLower.includes("labio") ||
+      msgLower.includes("olhos") ||
+      msgLower.includes("olheira") ||
+      msgLower.includes("rosto") ||
+      msgLower.includes("pele") ||
+      msgLower.includes("mancha") ||
+      msgLower.includes("acne") ||
+      msgLower.includes("rejuvenescer") ||
+      msgLower.includes("rugas") ||
+      msgLower.includes("idade");
+
+    if (isProcedureQuestion) {
+      // Answer with procedure recommendations
+      setTimeout(() => {
+        let response = "";
+
+        if (msgLower.includes("simetria") || msgLower.includes("simetrico")) {
+          response = "Para melhorar a simetria facial como no seu avatar, os procedimentos mais indicados são:\n\n• **Harmonização Facial (HOF)** - Procedimento mais completo para simetria\n• **Preenchimento com Ácido Hialurônico** - Para corrigir assimetrias específicas\n• **Toxina Botulínica (Botox)** - Para equilibrar músculos faciais\n• **Fios de Sustentação** - Para lifting e simetria\n\n📂 **Categoria:** Harmonização Facial\n📍 **Onde encontrar:** Busque por 'Harmonização Facial' no Mapa da Estética";
+        } else if (msgLower.includes("nariz")) {
+          response = "Para modificar o nariz:\n\n**Sem cirurgia:**\n• **Rinomodelação** - Preenchimento nasal\n• **Harmonização Nasal** - Correção de imperfeições\n• **Fios de Sustentação** - Para levantar ponta\n\n**Com cirurgia:**\n• **Rinoplastia** - Mudança estrutural completa\n\n📂 **Categoria:** Harmonização Facial / Cirurgia Plástica\n📍 **Onde encontrar:** Busque no Mapa da Estética";
+        } else if (msgLower.includes("boca") || msgLower.includes("labio")) {
+          response = "Para modificar a boca/lábios:\n\n• **Preenchimento Labial** - Aumentar volume\n• **Harmonização Labial** - Simetria e contorno\n• **Micropigmentação Labial** - Cor e definição\n• **Toxina Botulínica** - Para sorriso gengival\n\n📂 **Categoria:** Harmonização Facial\n📍 **Onde encontrar:** Busque no Mapa da Estética";
+        } else if (msgLower.includes("olhos") || msgLower.includes("olheira")) {
+          response = "Para região dos olhos:\n\n• **Preenchimento de Olheiras** - Com ácido hialurônico\n• **Toxina Botulínica** - Pés de galinha\n• **Blefaroplastia** - Cirurgia de pálpebras\n• **Peeling** - Rejuvenescimento\n\n📂 **Categoria:** Harmonização Facial / Dermatologia\n📍 **Onde encontrar:** Busque no Mapa da Estética";
+        } else if (msgLower.includes("pele") || msgLower.includes("mancha") || msgLower.includes("acne")) {
+          response = "Para melhorar a pele:\n\n• **Peeling Químico** - Renovação celular\n• **Laser** - Manchas e cicatrizes\n• **Microagulhamento** - Rejuvenescimento\n• **Limpeza de Pele** - Tratamento de acne\n• **Skinbooster** - Hidratação profunda\n\n📂 **Categoria:** Dermatologia / Estética Facial\n📍 **Onde encontrar:** Busque no Mapa da Estética";
+        } else if (msgLower.includes("rejuvenescer") || msgLower.includes("rugas") || msgLower.includes("idade")) {
+          response = "Para rejuvenescimento:\n\n• **Toxina Botulínica (Botox)** - Rugas dinâmicas\n• **Preenchimento Facial** - Volume e contorno\n• **Bioestimuladores de Colágeno** - Firmeza\n• **Skinbooster** - Hidratação\n• **Laser CO2** - Rejuvenescimento profundo\n\n📂 **Categoria:** Estética Facial\n📍 **Onde encontrar:** Busque no Mapa da Estética";
+        } else {
+          response = "Para alcançar resultados semelhantes ao seu avatar, recomendo:\n\n• **Harmonização Facial** - Tratamento completo para simetria e proporções\n• **Preenchimento Facial** - Correções específicas\n• **Toxina Botulínica** - Suavização e equilíbrio\n\n💡 **Dica:** Descreva exatamente o que você gostaria de mudar (nariz, boca, rosto, pele, etc) para recomendações mais específicas!\n\n📍 Busque profissionais especializados no Mapa da Estética";
+        }
+
+        setChatMessages(prev => [...prev, { type: "bot", text: response }]);
+      }, 1000);
+    } else {
+      // Generate avatar variation
+      setIsGeneratingVariation(true);
+      try {
+        const variationPrompt = `${generatePrompt()}, com as seguintes modificações: ${userMessage}. Mantenha o mesmo estilo, pose e iluminação do original, apenas aplicando as mudanças solicitadas`;
+
+        const result = await base44.integrations.Core.GenerateImage({ prompt: variationPrompt });
+
+        setGeneratedAvatarUrl(result.url);
+        setChatMessages(prev => [...prev, {
+          type: "bot",
+          text: `Pronto! Apliquei as alterações que você pediu. O que acha do resultado?`,
+          imageUrl: result.url
+        }]);
+      } catch (error) {
+        console.error('Erro ao gerar variação:', error);
+        setChatMessages(prev => [...prev, {
+          type: "bot",
+          text: "Desculpe, ocorreu um erro ao aplicar as alterações. Tente novamente."
+        }]);
+      } finally {
+        setIsGeneratingVariation(false);
+      }
     }
   };
 
@@ -626,9 +674,9 @@ export default function AvatarScanner() {
                 <CardContent className="p-6 space-y-6">
                   <div className="relative w-full aspect-square bg-gradient-to-br from-[#87CEEB] to-[#B0E0E6] rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
                     {generatedAvatarUrl ? (
-                      <img 
-                        src={generatedAvatarUrl} 
-                        alt="Avatar Gerado" 
+                      <img
+                        src={generatedAvatarUrl}
+                        alt="Avatar Gerado"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -642,12 +690,18 @@ export default function AvatarScanner() {
 
                   {generatedAvatarUrl && !showAvatarChat && (
                     <Button
-                      onClick={() => setShowAvatarChat(true)}
+                      onClick={() => {
+                        setShowAvatarChat(true);
+                        setChatMessages([{
+                          type: "bot",
+                          text: "Olá! 👋\n\nComo posso te ajudar?\n\n🎨 Modificar o avatar\n💉 Perguntas sobre procedimentos estéticos\n\nO que você prefere?"
+                        }]);
+                      }}
                       variant="outline"
                       className="w-full border-[#D4AF37] text-[#D4AF37]"
                     >
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Conversar com Dr. Beleza sobre alterações
+                      Conversar com Dr. Beleza
                     </Button>
                   )}
 
@@ -656,7 +710,7 @@ export default function AvatarScanner() {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
-                            <img 
+                            <img
                               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                               alt="Dr. Beleza"
                               className="w-8 h-8 rounded-full"
@@ -666,28 +720,25 @@ export default function AvatarScanner() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setShowAvatarChat(false)}
+                            onClick={() => {
+                              setShowAvatarChat(false);
+                              setChatMessages([]);
+                            }}
                           >
                             ✕
                           </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="h-48 overflow-y-auto space-y-3 bg-white rounded-lg p-3">
-                          {chatMessages.length === 0 && (
-                            <div className="text-sm text-gray-600">
-                              <p>Olá! Que alterações você gostaria de fazer no seu avatar?</p>
-                              <p className="mt-2 text-xs">Exemplos: "deixe o cabelo mais loiro", "aumente o sorriso", "mude a cor dos olhos para azul"</p>
-                            </div>
-                          )}
+                        <div className="h-64 overflow-y-auto space-y-3 bg-white rounded-lg p-3">
                           {chatMessages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}>
-                              <div className={`max-w-[80%] p-2 rounded-lg ${
-                                msg.type === "user" 
-                                  ? "bg-[#D4AF37] text-white" 
+                              <div className={`max-w-[85%] p-3 rounded-lg ${
+                                msg.type === "user"
+                                  ? "bg-[#D4AF37] text-white"
                                   : "bg-gray-100 text-gray-800"
                               }`}>
-                                <p className="text-sm">{msg.text}</p>
+                                <p className="text-sm whitespace-pre-line">{msg.text}</p>
                               </div>
                             </div>
                           ))}
@@ -695,17 +746,54 @@ export default function AvatarScanner() {
                             <div className="flex justify-start">
                               <div className="max-w-[80%] p-2 rounded-lg bg-gray-100 text-gray-800 flex items-center">
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
-                                <span>Gerando...</span>
+                                <span className="text-sm">Gerando...</span>
                               </div>
                             </div>
                           )}
                         </div>
-                        
+
+                        {chatMessages.length === 1 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              onClick={() => {
+                                setChatMessages(prev => [...prev,
+                                  { type: "user", text: "Quero modificar meu avatar" },
+                                  { type: "bot", text: "Perfeito! Descreva as alterações que você gostaria de fazer no seu avatar. Por exemplo:\n\n• 'Deixe o cabelo mais loiro'\n• 'Mude a cor dos olhos para azul'\n• 'Aumente o sorriso'\n\nQual mudança você quer fazer?" }
+                                ]);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs border-[#E8DCC4] hover:bg-[#F5EFE6]"
+                            >
+                              🎨 Modificar Avatar
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setChatMessages(prev => [...prev,
+                                  { type: "user", text: "Tenho dúvidas sobre procedimentos" },
+                                  { type: "bot", text: "Ótimo! Estou aqui para te ajudar! 💫\n\nPode me perguntar sobre qualquer procedimento estético:\n\n• Harmonização facial\n• Preenchimentos\n• Tratamentos de pele\n• Cirurgias\n• E muito mais!\n\nO que você gostaria de saber?" }
+                                ]);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs border-[#E8DCC4] hover:bg-[#F5EFE6]"
+                            >
+                              💉 Sobre Procedimentos
+                            </Button>
+                          </div>
+                        )}
+
                         <div className="flex gap-2">
                           <Textarea
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
-                            placeholder="Descreva as alterações..."
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleAvatarChatMessage();
+                              }
+                            }}
+                            placeholder="Digite sua mensagem..."
                             className="min-h-[60px] border-[#E8DCC4]"
                             disabled={isGeneratingVariation}
                           />
@@ -726,8 +814,8 @@ export default function AvatarScanner() {
                   )}
 
                   {generatedAvatarUrl && (
-                    <a 
-                      href={generatedAvatarUrl} 
+                    <a
+                      href={generatedAvatarUrl}
                       download="meu-avatar.png"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -752,9 +840,9 @@ export default function AvatarScanner() {
                   <CardContent className="space-y-4">
                     {existingAvatar.avatar_thumbnail && (
                       <div className="relative w-full aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                        <img 
-                          src={existingAvatar.avatar_thumbnail} 
-                          alt="Avatar Salvo" 
+                        <img
+                          src={existingAvatar.avatar_thumbnail}
+                          alt="Avatar Salvo"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -791,7 +879,7 @@ export default function AvatarScanner() {
                 <CardHeader className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex-shrink-0">
-                      <img 
+                      <img
                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                         alt="Dr. Beleza"
                         className="w-full h-full object-cover"
