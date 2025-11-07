@@ -4,15 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { Sparkles, Check, Crown, ArrowRight, User, Briefcase } from "lucide-react";
+import { Sparkles, Check, Crown, ArrowRight, User, Briefcase, CreditCard } from "lucide-react";
 
 const plans = [
   {
@@ -21,6 +14,7 @@ const plans = [
     price: "Grátis",
     period: "",
     description: "Comece sua jornada sem custos",
+    cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/4052aa61b_cartoclube1.jpeg",
     features: [
       "Acesso ao aplicativo localizador",
       "Busca de profissionais por categoria",
@@ -37,6 +31,7 @@ const plans = [
     description: "O plano mais escolhido pelos membros",
     badge: "Mais Popular",
     highlighted: true,
+    cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/74527711e_cartoclube2.jpeg",
     features: [
       "Todos os benefícios do LIGHT",
       "15% de desconto na rede parceira",
@@ -54,6 +49,7 @@ const plans = [
     price: "R$ 99,90",
     period: "/mês",
     description: "Experiência premium completa",
+    cardImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/73fc11f09_cartoclube3.jpeg",
     features: [
       "Todos os benefícios do GOLD",
       "25% de desconto na rede parceira",
@@ -67,14 +63,6 @@ const plans = [
       "Cartão físico premium personalizado"
     ]
   }
-];
-
-const benefits = [
-  "Descontos exclusivos em parceiros",
-  "Acesso a eventos e workshops",
-  "Programa de recompensas com pontos",
-  "Suporte dedicado",
-  "Cancelamento gratuito a qualquer momento"
 ];
 
 export default function Join() {
@@ -126,14 +114,95 @@ export default function Join() {
           </p>
         </motion.div>
 
+        {/* Cards Display Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-16"
+        >
+          <Card className="border-[#E8DCC4] shadow-2xl bg-white overflow-hidden">
+            <div className="bg-gradient-to-r from-[#D4AF37] via-[#C8A882] to-[#D4AF37] p-6 text-center">
+              <CreditCard className="w-12 h-12 text-white mx-auto mb-3" />
+              <h2 className="font-serif text-3xl font-bold text-white mb-2">
+                Seus Cartões de Membro
+              </h2>
+              <p className="text-white/90">
+                Receba seu cartão personalizado com o logotipo do Club da Beleza
+              </p>
+            </div>
+
+            <CardContent className="p-8">
+              <div className="grid md:grid-cols-3 gap-8">
+                {plans.map((plan, index) => (
+                  <motion.div
+                    key={plan.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
+                    className="space-y-4"
+                  >
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                      <div className="relative rounded-2xl overflow-hidden shadow-2xl transform group-hover:scale-105 transition-all duration-300">
+                        <img 
+                          src={plan.cardImage} 
+                          alt={`Cartão ${plan.name}`}
+                          className="w-full h-auto"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <h3 className="font-serif text-xl font-bold text-gray-800 mb-1">
+                        {plan.name}
+                      </h3>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="font-serif text-2xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                          {plan.price}
+                        </span>
+                        {plan.period && <span className="text-gray-600">{plan.period}</span>}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{plan.description}</p>
+                      
+                      {plan.badge && (
+                        <div className="mt-2">
+                          <span className="inline-block bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white px-3 py-1 text-xs font-semibold rounded-full">
+                            {plan.badge}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-10 p-6 bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <Sparkles className="w-8 h-8 text-[#D4AF37] flex-shrink-0" />
+                  <div>
+                    <h4 className="font-serif text-xl font-bold text-gray-800 mb-2">
+                      Cartão Personalizado Incluído
+                    </h4>
+                    <p className="text-gray-700 leading-relaxed">
+                      Todos os planos incluem um cartão físico personalizado com seu nome e o logotipo oficial do Club da Beleza. 
+                      Use em qualquer estabelecimento parceiro e aproveite todos os benefícios exclusivos!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left - Plans and Form */}
+          {/* Left - User Type and Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* User Type Selection */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
             >
               <Card className="border-[#E8DCC4] shadow-xl bg-white">
                 <CardHeader>
@@ -213,7 +282,7 @@ export default function Join() {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
             >
               <Card className="border-[#E8DCC4] shadow-xl bg-white">
                 <CardHeader>
@@ -272,7 +341,7 @@ export default function Join() {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
             >
               <Card className="border-[#E8DCC4] shadow-xl bg-white">
                 <CardHeader>
@@ -350,7 +419,7 @@ export default function Join() {
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             className="space-y-6"
           >
             {/* Summary Card */}
@@ -383,12 +452,26 @@ export default function Join() {
                     Incluído no plano:
                   </h4>
                   <ul className="space-y-2">
-                    {benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                        <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                        {benefit}
-                      </li>
-                    ))}
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                      Cartão físico personalizado
+                    </li>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                      Descontos em estabelecimentos parceiros
+                    </li>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                      Programa de recompensas
+                    </li>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                      Acesso à comunidade exclusiva
+                    </li>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                      Cancelamento quando quiser
+                    </li>
                   </ul>
                 </div>
 
