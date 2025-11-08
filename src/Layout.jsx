@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -126,6 +127,144 @@ export default function Layout({ children, currentPageName }) {
     const message = encodeURIComponent("Olá! Gostaria de me cadastrar no Club da Beleza.");
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
+
+  // ULTRA-AGGRESSIVE: Remove "Edit with Base44" button
+  useEffect(() => {
+    const removeBase44Button = () => {
+      // Method 1: Remove by class
+      const buttons = document.querySelectorAll('[class*="base44" i], [class*="edit" i]');
+      buttons.forEach(btn => {
+        const text = btn.textContent?.toLowerCase() || '';
+        if (text.includes('edit') && text.includes('base44')) {
+          btn.remove();
+        }
+      });
+
+      // Method 2: Remove by text content
+      const allButtons = document.querySelectorAll('button, a, div[role="button"]');
+      allButtons.forEach(btn => {
+        const text = btn.textContent?.toLowerCase() || '';
+        if (text.includes('edit') && text.includes('base44')) {
+          btn.remove();
+        }
+      });
+
+      // Method 3: Remove by aria-label
+      const ariaButtons = document.querySelectorAll('[aria-label*="edit" i], [aria-label*="base44" i]');
+      ariaButtons.forEach(btn => {
+        const ariaLabel = btn.getAttribute('aria-label')?.toLowerCase() || '';
+        if (ariaLabel.includes('edit') && ariaLabel.includes('base44')) {
+          btn.remove();
+        }
+      });
+
+      // Method 4: Remove by title
+      const titleButtons = document.querySelectorAll('[title*="edit" i], [title*="base44" i]');
+      titleButtons.forEach(btn => {
+        const titleText = btn.getAttribute('title')?.toLowerCase() || '';
+        if (titleText.includes('edit') && titleText.includes('base44')) {
+          btn.remove();
+        }
+      });
+
+      // Method 5: Check shadow DOM
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(el => {
+        if (el.shadowRoot) {
+          const shadowButtons = el.shadowRoot.querySelectorAll('button, a, div[role="button"]');
+          shadowButtons.forEach(btn => {
+            const text = btn.textContent?.toLowerCase() || '';
+            if (text.includes('edit') && text.includes('base44')) {
+              btn.remove();
+            }
+          });
+        }
+      });
+
+      // Method 6: Remove Radix Portal content
+      const portals = document.querySelectorAll('[data-radix-portal], [data-radix-popper-content-wrapper]');
+      portals.forEach(portal => {
+        const buttonsInPortal = portal.querySelectorAll('button, a');
+        buttonsInPortal.forEach(btn => {
+          const text = btn.textContent?.toLowerCase() || '';
+          if (text.includes('edit') && text.includes('base44')) {
+            btn.remove();
+          }
+        });
+      });
+    };
+
+    // Execute immediately
+    removeBase44Button();
+
+    // Execute on DOM changes (MutationObserver)
+    const observer = new MutationObserver(() => {
+      removeBase44Button();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'id', 'style', 'aria-label', 'title'] // Watch for relevant attribute changes
+    });
+
+    // Execute repeatedly with setInterval (backup)
+    const interval = setInterval(removeBase44Button, 100);
+
+    // Execute on common events
+    const events = ['DOMContentLoaded', 'load', 'mousemove', 'scroll', 'click', 'animationend', 'transitionend']; // Added more events
+    events.forEach(event => {
+      window.addEventListener(event, removeBase44Button);
+    });
+
+    // Cleanup
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+      events.forEach(event => {
+        window.removeEventListener(event, removeBase44Button);
+      });
+    };
+  }, []);
+
+  // CSS to hide any potential button
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      /* Hide Base44 Edit Button - Multiple Strategies (Valid CSS only) */
+      [class*="base44" i],
+      [aria-label*="edit" i][aria-label*="base44" i],
+      [title*="edit" i][title*="base44" i],
+      /* Specific selector if a known pattern exists */
+      /* For example, if there's a specific data attribute like data-base44-editor-button */
+      /* [data-base44-editor-button] { display: none !important; } */
+
+      /* Hide in Radix portals */
+      [data-radix-portal] button[class*="edit" i],
+      [data-radix-portal] a[class*="edit" i],
+      [data-radix-popper-content-wrapper] button[class*="edit" i],
+      [data-radix-popper-content-wrapper] a[class*="edit" i] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      // Only remove if it's still attached to the head
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
 
   return (
     <SidebarProvider>

@@ -4,10 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion } from "framer-motion";
 import {
   Search, BookOpen, FileText, ExternalLink, 
-  Star, Calendar, Globe, Database, CheckCircle
+  Star, Calendar, Globe, Database, CheckCircle, Filter
 } from "lucide-react";
 
 const dataSources = {
@@ -35,11 +43,197 @@ const dataSources = {
   ]
 };
 
+const categories = [
+  "Todas as Categorias",
+  "Harmonização Facial",
+  "Dermatologia Estética",
+  "Cirurgia Plástica",
+  "Medicina Estética",
+  "Estética Facial",
+  "Estética Corporal",
+  "Tricologia",
+  "Laserterapia",
+  "Fototerapia",
+  "Crioterapia",
+  "Terapia Injetável",
+  "Procedimentos Minimamente Invasivos",
+  "Rejuvenescimento",
+  "Anti-aging",
+  "Cosmiatria",
+  "Nutrição Estética",
+  "Fisioterapia Dermato-Funcional"
+];
+
+const procedures = [
+  "Todos os Procedimentos",
+  "Toxina Botulínica (Botox)",
+  "Preenchimento com Ácido Hialurônico",
+  "Bioestimuladores de Colágeno",
+  "Fios de Sustentação",
+  "Skinbooster",
+  "Peeling Químico",
+  "Peeling de Fenol",
+  "Peeling de TCA",
+  "Microagulhamento",
+  "Microagulhamento com Drug Delivery",
+  "Laser CO2 Fracionado",
+  "Laser Erbium",
+  "Laser Nd:YAG",
+  "Laser Alexandrite",
+  "Laser Diodo",
+  "IPL (Luz Intensa Pulsada)",
+  "LED Terapia",
+  "Radiofrequência",
+  "Ultrassom Microfocado (HIFU)",
+  "Criolipólise",
+  "Lipocavitação",
+  "Carboxiterapia",
+  "Ozonioterapia",
+  "Mesoterapia",
+  "Intradermoterapia",
+  "Enzimas Lipolíticas",
+  "Lipoaspiração",
+  "Lipoescultura",
+  "Abdominoplastia",
+  "Mamoplastia",
+  "Rinoplastia",
+  "Blefaroplastia",
+  "Ritidoplastia (Lifting Facial)",
+  "Otoplastia",
+  "Genioplastia",
+  "Prótese de Silicone",
+  "Transplante Capilar",
+  "Microblading",
+  "Micropigmentação",
+  "Dermopigmentação",
+  "Depilação a Laser",
+  "Eletrocoagulação",
+  "Criocirurgia",
+  "Subcisão",
+  "Punch Elevation",
+  "Needling",
+  "Dermaroller",
+  "Hydrafacial",
+  "Limpeza de Pele",
+  "Drenagem Linfática",
+  "Massagem Modeladora",
+  "Endermologia",
+  "Eletroterapia",
+  "Corrente Russa",
+  "Corrente Aussie",
+  "Estimulação Elétrica",
+  "Plasma Rico em Plaquetas (PRP)",
+  "Fatores de Crescimento",
+  "Terapia com Células-Tronco",
+  "Exossomos",
+  "DNA de Salmão",
+  "PDRN (Polinucleotídeos)",
+  "Ácido Polilático",
+  "Hidroxiapatita de Cálcio",
+  "Sculptra",
+  "Radiesse"
+];
+
+const conditions = [
+  "Todas as Condições",
+  "Envelhecimento Cutâneo",
+  "Rugas e Linhas de Expressão",
+  "Flacidez Facial",
+  "Flacidez Corporal",
+  "Ptose Palpebral",
+  "Olheiras",
+  "Bolsas Palpebrais",
+  "Acne",
+  "Acne Ativa",
+  "Cicatrizes de Acne",
+  "Rosácea",
+  "Melasma",
+  "Hiperpigmentação",
+  "Hipopigmentação",
+  "Manchas Solares",
+  "Lentigo Solar",
+  "Queratose Actínica",
+  "Fotoenvelhecimento",
+  "Poros Dilatados",
+  "Textura Irregular",
+  "Telangiectasias",
+  "Vasinhos",
+  "Varizes",
+  "Celulite",
+  "Gordura Localizada",
+  "Lipodistrofia",
+  "Estrias",
+  "Cicatrizes",
+  "Cicatrizes Hipertróficas",
+  "Queloides",
+  "Alopecia",
+  "Alopecia Androgenética",
+  "Alopecia Areata",
+  "Calvície",
+  "Queda de Cabelo",
+  "Dermatite Seborreica",
+  "Psoríase",
+  "Vitiligo",
+  "Xerose",
+  "Pele Desidratada",
+  "Pele Sensível",
+  "Dermatite Atópica",
+  "Hipertricose",
+  "Hirsutismo",
+  "Pelos Encravados",
+  "Foliculite",
+  "Verrugas",
+  "Molusco Contagioso",
+  "Lipoma",
+  "Xantelasma",
+  "Milia",
+  "Comedões",
+  "Pele Oleosa",
+  "Desidratação Cutânea",
+  "Perda de Volume Facial",
+  "Assimetria Facial",
+  "Papada",
+  "Bigode Chinês",
+  "Código de Barras",
+  "Pés de Galinha",
+  "Testa Enrugada",
+  "Glabela Marcada"
+];
+
+const researchTypes = [
+  "Todos os Tipos",
+  "PDFs",
+  "Artigos Científicos",
+  "Revisões Sistemáticas",
+  "Meta-análises",
+  "Estudos Clínicos",
+  "Estudos Randomizados",
+  "Estudos de Caso",
+  "Livros",
+  "Capítulos de Livros",
+  "Guidelines",
+  "Consensos",
+  "Teses",
+  "Dissertações",
+  "Monografias",
+  "Sites Educacionais",
+  "Vídeos Educacionais",
+  "Webinars",
+  "Apresentações",
+  "Pôsteres Científicos"
+];
+
 export default function BeautySearcher() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [filters, setFilters] = useState({
+    category: "Todas as Categorias",
+    procedure: "Todos os Procedimentos",
+    condition: "Todas as Condições",
+    researchType: "Todos os Tipos"
+  });
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -51,9 +245,31 @@ export default function BeautySearcher() {
     setHasSearched(true);
 
     try {
+      let enhancedQuery = searchQuery;
+      
+      // Add filters to search query
+      if (filters.category !== "Todas as Categorias") {
+        enhancedQuery += ` categoria:${filters.category}`;
+      }
+      if (filters.procedure !== "Todos os Procedimentos") {
+        enhancedQuery += ` procedimento:${filters.procedure}`;
+      }
+      if (filters.condition !== "Todas as Condições") {
+        enhancedQuery += ` condição:${filters.condition}`;
+      }
+      if (filters.researchType !== "Todos os Tipos") {
+        enhancedQuery += ` tipo:${filters.researchType}`;
+      }
+
       const prompt = `Você é um assistente especializado em pesquisa acadêmica na área de estética, medicina estética e dermatologia.
 
-Busque e retorne informações sobre: "${searchQuery}"
+Busque e retorne informações sobre: "${enhancedQuery}"
+
+FILTROS APLICADOS:
+${filters.category !== "Todas as Categorias" ? `- Categoria: ${filters.category}` : ''}
+${filters.procedure !== "Todos os Procedimentos" ? `- Procedimento: ${filters.procedure}` : ''}
+${filters.condition !== "Todas as Condições" ? `- Condição/Doença: ${filters.condition}` : ''}
+${filters.researchType !== "Todos os Tipos" ? `- Tipo de Pesquisa: ${filters.researchType}` : ''}
 
 IMPORTANTE: Priorize fontes GRATUITAS e de ACESSO ABERTO dos seguintes repositórios:
 
@@ -96,6 +312,7 @@ CRITÉRIOS DE SELEÇÃO:
 - Inclua pelo menos 2-3 fontes brasileiras se disponíveis
 - TODOS os links devem ser de acesso aberto e gratuito
 - Diversifique as fontes (não retorne todos de um único repositório)
+- Respeite os filtros de categoria, procedimento, condição e tipo de pesquisa aplicados
 
 Retorne entre 8-12 resultados altamente relevantes e verificados.`;
 
@@ -202,7 +419,7 @@ Retorne entre 8-12 resultados altamente relevantes e verificados.`;
         transition={{ duration: 0.8, delay: 0.1 }}
       >
         <Card className="border-[#E8DCC4] shadow-2xl">
-          <CardContent className="p-8">
+          <CardContent className="p-8 space-y-6">
             <div className="flex gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
@@ -231,6 +448,84 @@ Retorne entre 8-12 resultados altamente relevantes e verificados.`;
                   </>
                 )}
               </Button>
+            </div>
+
+            {/* Advanced Filters */}
+            <div className="border-t border-[#E8DCC4] pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-5 h-5 text-[#D4AF37]" />
+                <Label className="text-lg font-semibold text-gray-800">Filtros Avançados</Label>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">Categoria</Label>
+                  <Select
+                    value={filters.category}
+                    onValueChange={(v) => setFilters({...filters, category: v})}
+                  >
+                    <SelectTrigger className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">Procedimento</Label>
+                  <Select
+                    value={filters.procedure}
+                    onValueChange={(v) => setFilters({...filters, procedure: v})}
+                  >
+                    <SelectTrigger className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {procedures.map((proc) => (
+                        <SelectItem key={proc} value={proc}>{proc}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">Condição/Doença</Label>
+                  <Select
+                    value={filters.condition}
+                    onValueChange={(v) => setFilters({...filters, condition: v})}
+                  >
+                    <SelectTrigger className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {conditions.map((cond) => (
+                        <SelectItem key={cond} value={cond}>{cond}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">Tipo de Pesquisa</Label>
+                  <Select
+                    value={filters.researchType}
+                    onValueChange={(v) => setFilters({...filters, researchType: v})}
+                  >
+                    <SelectTrigger className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {researchTypes.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 space-y-3">
