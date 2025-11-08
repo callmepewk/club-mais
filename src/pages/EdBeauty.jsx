@@ -20,6 +20,7 @@ import {
   GraduationCap, Search, BookOpen, Video, FileText,
   Clock, Award, ExternalLink, Sparkles, Lock, ArrowRight
 } from "lucide-react";
+import BeautySearcher from "../components/BeautySearcher"; // New import
 
 const typeIcons = {
   video: Video,
@@ -212,9 +213,25 @@ export default function EdBeauty() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="py-12 px-6 bg-white border-b border-[#E8DCC4]">
+      {/* Beauty Searcher Section */}
+      <div className="py-24 px-6 bg-white border-y border-[#E8DCC4]">
         <div className="max-w-7xl mx-auto">
+          <BeautySearcher />
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="py-12 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h2 className="font-serif text-3xl font-bold text-gray-800 mb-2">
+              Cursos e Conteúdos Educacionais
+            </h2>
+            <p className="text-gray-600">
+              Explore nossa biblioteca de cursos, vídeo aulas e e-books
+            </p>
+          </div>
+
           <div className="grid md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

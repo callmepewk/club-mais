@@ -24,7 +24,8 @@ import {
 import { motion } from "framer-motion";
 import {
   Search, Shield, Users, Crown, Coins, Star,
-  Eye, Edit, Mail, MessageCircle, Calendar, CheckCircle, XCircle
+  Eye, Edit, Mail, MessageCircle, Calendar, CheckCircle, XCircle,
+  Trash2, Ban, UserCheck, FileDown
 } from "lucide-react";
 import UserDetailsModal from "../components/UserDetailsModal";
 
@@ -79,6 +80,17 @@ export default function Control() {
     },
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: (id) => base44.entities.User.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+      alert('Usuário excluído com sucesso!');
+    },
+    onError: (error) => {
+      alert('Erro ao excluir usuário. Verifique se não há dependências.');
+    }
+  });
+
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const matchSearch = !searchQuery ||
@@ -100,6 +112,7 @@ export default function Control() {
       goldenDoctors: users.filter(u => u.is_golden_doctor).length,
       totalPontos: users.reduce((sum, u) => sum + (u.pontos_clube || 0), 0),
       totalCoins: users.reduce((sum, u) => sum + (u.beauty_coins || 0), 0),
+      suspended: users.filter(u => u.account_suspended).length,
     };
   }, [users]);
 
@@ -119,14 +132,120 @@ export default function Control() {
           is_golden_doctor: editingUser.is_golden_doctor,
           pontos_clube: editingUser.pontos_clube,
           beauty_coins: editingUser.beauty_coins,
+          account_suspended: editingUser.account_suspended,
         }
       });
+    }
+  };
+
+  const handleSuspendToggle = (user) => {
+    if (confirm(`Deseja ${user.account_suspended ? 'reativar' : 'suspender'} o acesso de ${user.full_name}?`)) {
+      updateUserMutation.mutate({
+        id: user.id,
+        data: { account_suspended: !user.account_suspended }
+      });
+    }
+  };
+
+  const handleDeleteUser = (user) => {
+    if (confirm(`ATENÇÃO: Deseja realmente EXCLUIR permanentemente o usuário ${user.full_name}? Esta ação não pode ser desfeita!`)) {
+      if (confirm('Tem certeza? Digite "CONFIRMAR" para continuar.')) {
+        deleteUserMutation.mutate(user.id);
+      }
     }
   };
 
   const handleViewDetails = (user) => {
     setSelectedUser(user);
     setShowDetailsModal(true);
+  };
+
+  const generatePDFReport = () => {
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Relatório de Usuários - Club da Beleza</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h1 { color: #D4AF37; text-align: center; }
+          .stats { display: flex; justify-content: space-around; margin: 20px 0; }
+          .stat-box { text-align: center; padding: 10px; background: #F5EFE6; border-radius: 8px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #E8DCC4; padding: 8px; text-align: left; font-size: 12px; }
+          th { background-color: #D4AF37; color: white; }
+          tr:nth-child(even) { background-color: #F5EFE6; }
+          .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <h1>🏆 Club da Beleza - Relatório de Usuários</h1>
+        <p style="text-align: center; color: #666;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+        
+        <div class="stats">
+          <div class="stat-box">
+            <strong>${stats.total}</strong><br>Total Usuários
+          </div>
+          <div class="stat-box">
+            <strong>${stats.pacientes}</strong><br>Pacientes
+          </div>
+          <div class="stat-box">
+            <strong>${stats.profissionais}</strong><br>Profissionais
+          </div>
+          <div class="stat-box">
+            <strong>${stats.goldenDoctors}</strong><br>Golden Doctors
+          </div>
+          <div class="stat-box">
+            <strong>${stats.suspended}</strong><br>Suspensos
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Tipo</th>
+              <th>Plano Clube da Beleza</th>
+              <th>Plano Beauty Club</th>
+              <th>Golden</th>
+              <th>Pontos</th>
+              <th>Coins</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredUsers.map(user => `
+              <tr>
+                <td>${user.full_name || 'N/A'}</td>
+                <td>${user.email}</td>
+                <td>${user.tipo_usuario || 'visitante'}</td>
+                <td>${planoLabels[user.clube_plano || 'none']}</td>
+                <td>${planoLabels[user.beauty_club_plano || 'none']}</td>
+                <td>${user.is_golden_doctor ? '✓' : '✗'}</td>
+                <td>${user.pontos_clube || 0}</td>
+                <td>${user.beauty_coins || 0}</td>
+                <td>${user.account_suspended ? 'SUSPENSO' : 'Ativo'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <p>Club da Beleza © ${new Date().getFullYear()} - Relatório confidencial</p>
+          <p>Total de registros: ${filteredUsers.length}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Open in new window for printing
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   // Check if current user is admin
@@ -172,6 +291,14 @@ export default function Control() {
           <p className="text-lg text-gray-600">
             Gerencie usuários, planos e benefícios da plataforma
           </p>
+
+          <Button
+            onClick={generatePDFReport}
+            className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            Gerar Relatório PDF
+          </Button>
         </motion.div>
 
         {/* Stats */}
@@ -288,17 +415,18 @@ export default function Control() {
                       <TableHead>Nome</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Tipo</TableHead>
-                      <TableHead>Clube</TableHead>
-                      <TableHead>Beauty Club</TableHead>
+                      <TableHead>Club da Beleza</TableHead>
+                      <TableHead>Beauty Club (Clube+)</TableHead>
                       <TableHead>Golden</TableHead>
                       <TableHead>Pontos</TableHead>
                       <TableHead>Coins</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow key={user.id} className={user.account_suspended ? 'bg-red-50' : ''}>
                         <TableCell className="font-medium">{user.full_name}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
@@ -326,11 +454,19 @@ export default function Control() {
                         <TableCell>{user.pontos_clube || 0}</TableCell>
                         <TableCell>{user.beauty_coins || 0}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          {user.account_suspended ? (
+                            <Badge className="bg-red-100 text-red-800">Suspenso</Badge>
+                          ) : (
+                            <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleViewDetails(user)}
+                              title="Ver Detalhes"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -338,8 +474,27 @@ export default function Control() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(user)}
+                              title="Editar"
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSuspendToggle(user)}
+                              className={user.account_suspended ? 'text-green-600' : 'text-orange-600'}
+                              title={user.account_suspended ? 'Reativar' : 'Suspender'}
+                            >
+                              {user.account_suspended ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteUser(user)}
+                              className="text-red-600"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -455,17 +610,32 @@ export default function Control() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="is_golden_doctor"
-                    checked={editingUser.is_golden_doctor}
-                    onChange={(e) => setEditingUser({...editingUser, is_golden_doctor: e.target.checked})}
-                    className="w-4 h-4"
-                  />
-                  <Label htmlFor="is_golden_doctor">
-                    Membro Golden Doctors
-                  </Label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="is_golden_doctor"
+                      checked={editingUser.is_golden_doctor}
+                      onChange={(e) => setEditingUser({...editingUser, is_golden_doctor: e.target.checked})}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="is_golden_doctor">
+                      Membro Golden Doctors
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="account_suspended"
+                      checked={editingUser.account_suspended}
+                      onChange={(e) => setEditingUser({...editingUser, account_suspended: e.target.checked})}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="account_suspended" className="text-red-600">
+                      Conta Suspensa
+                    </Label>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-4">
