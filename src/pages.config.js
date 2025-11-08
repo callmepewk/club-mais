@@ -22,6 +22,8 @@ import Control from './pages/Control';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Plans from './pages/Plans';
+import EdBeautyCreateContent from './pages/EdBeautyCreateContent';
+import EdBeautyEditContent from './pages/EdBeautyEditContent';
 import Layout from './Layout.jsx';
 
 
@@ -50,6 +52,8 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "TermsOfService": TermsOfService,
     "Plans": Plans,
+    "EdBeautyCreateContent": EdBeautyCreateContent,
+    "EdBeautyEditContent": EdBeautyEditContent,
 }
 
 export const pagesConfig = {

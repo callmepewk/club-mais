@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   GraduationCap, Search, BookOpen, Video, FileText,
-  Clock, Award, ExternalLink, Sparkles, Lock, ArrowRight
+  Clock, Award, ExternalLink, Sparkles, Lock, ArrowRight, Plus
 } from "lucide-react";
 import BeautySearcher from "../components/BeautySearcher"; // New import
 
@@ -115,8 +115,8 @@ export default function EdBeauty() {
   const canUploadContent = () => {
     if (!user) return false;
     if (user.role === 'admin') return true;
-    // Apenas profissionais com plano EdBeauty podem enviar conteúdo
-    return user.tipo_usuario === 'profissional' && user.edbeauty_plano !== 'none';
+    // Apenas profissionais podem enviar conteúdo
+    return user.tipo_usuario === 'profissional';
   };
 
   const filteredContents = useMemo(() => {
@@ -223,13 +223,26 @@ export default function EdBeauty() {
       {/* Filters */}
       <div className="py-12 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h2 className="font-serif text-3xl font-bold text-gray-800 mb-2">
-              Cursos e Conteúdos Educacionais
-            </h2>
-            <p className="text-gray-600">
-              Explore nossa biblioteca de cursos, vídeo aulas e e-books
-            </p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="font-serif text-3xl font-bold text-gray-800 mb-2">
+                Cursos e Conteúdos Educacionais
+              </h2>
+              <p className="text-gray-600">
+                Explore nossa biblioteca de cursos, vídeo aulas e e-books
+              </p>
+            </div>
+
+            {canUploadContent() && (
+              <Link to={createPageUrl("EdBeautyCreateContent")}>
+                <Button
+                  className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Adicionar Conteúdo
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="grid md:grid-cols-5 gap-4">
