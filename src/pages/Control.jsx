@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -25,9 +24,9 @@ import {
 } from "@/components/ui/table";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield, Search, Edit, Trash2, Eye, AlertCircle,
-  Users, Crown, Star, Coins, TrendingUp, CheckCircle, FileText, XCircle,
-  RefreshCw, Calendar, Bell, History, Zap, GitBranch, Package, FileDown, Ban, UserCheck
+  Shield, Search, Edit, Trash2, Eye,
+  Users, Crown, Star, Coins, CheckCircle, XCircle,
+  Calendar, Zap, GitBranch, Package, FileDown, Ban, UserCheck
 } from "lucide-react";
 import UserDetailsModal from "../components/UserDetailsModal";
 import {
@@ -41,23 +40,23 @@ import {
 const planColors = {
   none: "bg-gray-200 text-gray-700",
   light: "bg-blue-100 text-blue-800",
-  gold: "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white", // Updated gold from outline
-  vip: "bg-gradient-to-r from-purple-500 to-purple-700 text-white", // Updated vip from outline
-  basic: "bg-green-100 text-green-800", // Kept from original
-  pro: "bg-indigo-100 text-indigo-800", // Kept from original
-  exclusive: "bg-pink-100 text-pink-800", // Kept from original
-  premium: "bg-orange-100 text-orange-800" // Kept from original
+  gold: "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white",
+  vip: "bg-gradient-to-r from-purple-500 to-purple-700 text-white",
+  basic: "bg-green-100 text-green-800",
+  pro: "bg-indigo-100 text-indigo-800",
+  exclusive: "bg-pink-100 text-pink-800",
+  premium: "bg-orange-100 text-orange-800"
 };
 
 const planLabels = {
-  none: "Sem Plano", // Updated from outline
+  none: "Sem Plano",
   light: "Light",
   gold: "Gold",
   vip: "VIP",
-  basic: "Basic", // Kept from original
-  pro: "Pro", // Kept from original
-  exclusive: "Exclusive", // Kept from original
-  premium: "Premium" // Kept from original
+  basic: "Basic",
+  pro: "Pro",
+  exclusive: "Exclusive",
+  premium: "Premium"
 };
 
 export default function Control() {
@@ -68,7 +67,7 @@ export default function Control() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [editFormData, setEditFormData] = useState({});
-  const [showDetailsModal, setShowDetailsModal] = useState(false); // Kept from original
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [versionFormData, setVersionFormData] = useState({
@@ -79,21 +78,19 @@ export default function Control() {
     data_agendada: "",
   });
 
-  const { data: user } = useQuery({ // Renamed from currentUser to user
+  const { data: user } = useQuery({
     queryKey: ['current-user-control'],
     queryFn: () => base44.auth.me(),
   });
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['all-users'],
-    queryFn: async () => { // Added async and data check as per outline
-      const { data } = await base44.entities.User.list('-created_date'); // Kept original sort
+    queryFn: async () => {
+      const { data } = await base44.entities.User.list('-created_date');
       return data || [];
     },
     initialData: [],
   });
-
-  // Removed updateHistory query
 
   const { data: versions = [] } = useQuery({
     queryKey: ['app-versions'],
@@ -116,12 +113,10 @@ export default function Control() {
       queryClient.invalidateQueries({ queryKey: ['all-users'] });
       alert('Usuário excluído com sucesso!');
     },
-    onError: (error) => { // Kept original onError for robustness
+    onError: (error) => {
       alert('Erro ao excluir usuário. Verifique se não há dependências.');
     }
   });
-
-  // Removed createUpdateMutation
 
   const createVersionMutation = useMutation({
     mutationFn: (data) => base44.entities.AppVersion.create(data),
@@ -135,9 +130,9 @@ export default function Control() {
         arquivos_alterados: [],
         data_agendada: "",
       });
-      alert('Nova versão criada com sucesso!'); // Added success alert
+      alert('Nova versão criada com sucesso!');
     },
-    onError: (error) => { // Added onError for robustness
+    onError: (error) => {
       console.error("Erro ao criar versão:", error);
       alert("Erro ao criar versão. Detalhes no console.");
     }
@@ -146,19 +141,17 @@ export default function Control() {
   const publishVersionMutation = useMutation({
     mutationFn: async (versionId) => {
       const version = versions.find(v => v.id === versionId);
-      if (!version) throw new Error("Version not found."); // Added check
+      if (!version) throw new Error("Version not found.");
 
-      // Update version status
       await base44.entities.AppVersion.update(versionId, {
         status: 'publicada',
         data_publicacao: new Date().toISOString(),
         cache_version: Date.now().toString(),
       });
 
-      // Notify all users
       const { data: allUsers } = await base44.entities.User.list();
       
-      for (const currentUser of allUsers) { // Renamed user to currentUser to avoid conflict
+      for (const currentUser of allUsers) {
         await base44.integrations.Core.SendEmail({
           to: currentUser.email,
           subject: `🚀 Nova Versão ${version.versao} Disponível!`,
@@ -182,7 +175,7 @@ export default function Control() {
       queryClient.invalidateQueries({ queryKey: ['app-versions'] });
       alert('Versão publicada e usuários notificados com sucesso!');
     },
-    onError: (error) => { // Added onError for robustness
+    onError: (error) => {
       console.error("Erro ao publicar versão:", error);
       alert("Erro ao publicar versão. Detalhes no console.");
     }
@@ -191,18 +184,16 @@ export default function Control() {
   const scheduleVersionMutation = useMutation({
     mutationFn: async ({ versionId, data_agendada }) => {
       const version = versions.find(v => v.id === versionId);
-      if (!version) throw new Error("Version not found."); // Added check
+      if (!version) throw new Error("Version not found.");
 
-      // Update version with scheduled date
       await base44.entities.AppVersion.update(versionId, {
         status: 'agendada',
         data_agendada: data_agendada,
       });
 
-      // Notify users about scheduled update
       const { data: allUsers } = await base44.entities.User.list();
       
-      for (const currentUser of allUsers) { // Renamed user to currentUser to avoid conflict
+      for (const currentUser of allUsers) {
         await base44.integrations.Core.SendEmail({
           to: currentUser.email,
           subject: `📅 Atualização Agendada: Versão ${version.versao}`,
@@ -227,28 +218,26 @@ export default function Control() {
       queryClient.invalidateQueries({ queryKey: ['app-versions'] });
       alert('Atualização agendada e usuários notificados!');
     },
-    onError: (error) => { // Added onError for robustness
+    onError: (error) => {
       console.error("Erro ao agendar versão:", error);
       alert("Erro ao agendar versão. Detalhes no console.");
     }
   });
 
-  // Replaced handleEdit
   const handleEditUser = (user) => {
     setEditingUser(user);
     setEditFormData({
-      tipo_usuario: user.tipo_usuario || 'visitante', // Kept this for functionality, was removed in outline
+      tipo_usuario: user.tipo_usuario || 'visitante',
       clube_plano: user.clube_plano || 'none',
-      beauty_club_plano: user.beauty_club_plano || 'none', // Kept this for functionality, was removed in outline
+      beauty_club_plano: user.beauty_club_plano || 'none',
       edbeauty_plano: user.edbeauty_plano || 'none',
-      is_golden_doctor: user.is_golden_doctor || false, // Kept this for functionality, was removed in outline
+      is_golden_doctor: user.is_golden_doctor || false,
       pontos_clube: user.pontos_clube || 0,
       beauty_coins: user.beauty_coins || 0,
-      account_suspended: user.account_suspended || false, // Kept this for functionality, was removed in outline
+      account_suspended: user.account_suspended || false,
     });
   };
 
-  // Replaced handleSaveEdit
   const handleSaveUser = () => {
     if (editingUser) {
       updateUserMutation.mutate({
@@ -258,7 +247,6 @@ export default function Control() {
     }
   };
 
-  // Replaced handleSuspendToggle
   const handleSuspendUser = (userToSuspend) => {
     if (confirm(`Deseja ${userToSuspend.account_suspended ? 'reativar' : 'suspender'} o acesso de ${userToSuspend.full_name}?`)) {
       updateUserMutation.mutate({
@@ -268,7 +256,6 @@ export default function Control() {
     }
   };
 
-  // Replaced handleDeleteUser
   const handleDeleteUser = (userToDelete) => {
     if (confirm(`ATENÇÃO: Deseja realmente EXCLUIR permanentemente o usuário ${userToDelete.full_name}? Esta ação não pode ser desfeita!`)) {
       if (confirm('Tem certeza? Digite "CONFIRMAR" para continuar.')) {
@@ -277,7 +264,7 @@ export default function Control() {
     }
   };
 
-  const handleViewDetails = (user) => { // Kept from original
+  const handleViewDetails = (user) => {
     setSelectedUser(user);
     setShowDetailsModal(true);
   };
@@ -291,7 +278,6 @@ export default function Control() {
     createVersionMutation.mutate({
       ...versionFormData,
       status: 'em_desenvolvimento',
-      // cache_version: Date.now().toString(), // this should be set on publish, not create
       criado_por: user?.email,
     });
   };
@@ -331,16 +317,15 @@ export default function Control() {
     const pacientes = users.filter(u => u.tipo_usuario === 'paciente').length;
     const profissionais = users.filter(u => u.tipo_usuario === 'profissional').length;
     const planosAtivos = users.filter(u => u.clube_plano && u.clube_plano !== 'none').length;
-    const goldenDoctors = users.filter(u => u.is_golden_doctor).length; // Kept from original
-    const totalPontos = users.reduce((sum, u) => sum + (u.pontos_clube || 0), 0); // Kept from original
-    const totalCoins = users.reduce((sum, u) => sum + (u.beauty_coins || 0), 0); // Kept from original
-    const suspended = users.filter(u => u.account_suspended).length; // Kept from original
+    const goldenDoctors = users.filter(u => u.is_golden_doctor).length;
+    const totalPontos = users.reduce((sum, u) => sum + (u.pontos_clube || 0), 0);
+    const totalCoins = users.reduce((sum, u) => sum + (u.beauty_coins || 0), 0);
+    const suspended = users.filter(u => u.account_suspended).length;
 
     return { total, pacientes, profissionais, planosAtivos, goldenDoctors, totalPontos, totalCoins, suspended };
   }, [users]);
 
-  const generatePDFReport = () => { // Kept from original
-    // Create HTML content for PDF
+  const generatePDFReport = () => {
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -420,15 +405,13 @@ export default function Control() {
       </html>
     `;
 
-    // Open in new window for printing
     const printWindow = window.open('', '_blank');
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.print();
   };
 
-  // Check if current user is admin
-  if (!user || user.role !== 'admin') { // Changed currentUser to user
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white py-20 px-6">
         <div className="max-w-2xl mx-auto text-center space-y-6">
@@ -446,7 +429,6 @@ export default function Control() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
-      {/* Hero Section */}
       <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
         <div className="relative z-10 max-w-7xl mx-auto">
           <motion.div
@@ -473,7 +455,6 @@ export default function Control() {
 
       <div className="py-12 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
-          {/* Version Management Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -543,7 +524,6 @@ export default function Control() {
                   </Card>
                 </div>
 
-                {/* Version List */}
                 <div className="space-y-4">
                   <h3 className="font-serif text-xl font-bold text-gray-800">
                     Histórico de Versões
@@ -629,7 +609,6 @@ export default function Control() {
             </Card>
           </motion.div>
 
-          {/* Stats */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -692,7 +671,7 @@ export default function Control() {
                 </CardContent>
               </Card>
 
-              <Card className="border-[#E8DCC4]"> {/* Kept from original */}
+              <Card className="border-[#E8DCC4]">
                 <CardContent className="p-6 text-center">
                   <Star className="w-8 h-8 text-orange-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-gray-800">{stats.totalPontos.toLocaleString()}</div>
@@ -700,7 +679,7 @@ export default function Control() {
                 </CardContent>
               </Card>
 
-              <Card className="border-[#E8DCC4]"> {/* Kept from original */}
+              <Card className="border-[#E8DCC4]">
                 <CardContent className="p-6 text-center">
                   <Coins className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
                   <div className="text-2xl font-bold text-gray-800">{stats.totalCoins.toLocaleString()}</div>
@@ -710,21 +689,20 @@ export default function Control() {
             </div>
           </motion.div>
 
-          {/* Filters */}
           <Card className="border-[#E8DCC4] shadow-xl">
             <CardContent className="p-6">
-              <div className="grid md:grid-cols-3 gap-4 mb-4"> {/* Added mb-4 for spacing */}
+              <div className="grid md:grid-cols-3 gap-4 mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
-                    value={searchTerm} // Changed to searchTerm
-                    onChange={(e) => setSearchTerm(e.target.value)} // Changed to setSearchTerm
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar por nome ou email..."
                     className="pl-10 border-[#E8DCC4]"
                   />
                 </div>
 
-                <Select value={filterTipo} onValueChange={setFilterTipo}> {/* Changed to filterTipo */}
+                <Select value={filterTipo} onValueChange={setFilterTipo}>
                   <SelectTrigger className="border-[#E8DCC4]">
                     <SelectValue />
                   </SelectTrigger>
@@ -736,7 +714,7 @@ export default function Control() {
                   </SelectContent>
                 </Select>
 
-                <Select value={filterPlano} onValueChange={setFilterPlano}> {/* Changed to filterPlano */}
+                <Select value={filterPlano} onValueChange={setFilterPlano}>
                   <SelectTrigger className="border-[#E8DCC4]">
                     <SelectValue />
                   </SelectTrigger>
@@ -746,14 +724,14 @@ export default function Control() {
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="gold">Gold</SelectItem>
                     <SelectItem value="vip">VIP</SelectItem>
-                    <SelectItem value="basic">Basic</SelectItem> {/* Added from original */}
-                    <SelectItem value="pro">Pro</SelectItem> {/* Added from original */}
-                    <SelectItem value="exclusive">Exclusive</SelectItem> {/* Added from original */}
-                    <SelectItem value="premium">Premium</SelectItem> {/* Added from original */}
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="exclusive">Exclusive</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex justify-end"> {/* Added PDF button here */}
+              <div className="flex justify-end">
                 <Button
                   onClick={generatePDFReport}
                   className="bg-white/90 text-[#D4AF37] hover:bg-white transition-colors border border-[#D4AF37]"
@@ -766,7 +744,6 @@ export default function Control() {
             </CardContent>
           </Card>
 
-          {/* Users Table */}
           <Card className="border-[#E8DCC4] shadow-xl">
             <CardHeader>
               <CardTitle className="font-serif text-2xl">
@@ -807,13 +784,13 @@ export default function Control() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={planColors[user.clube_plano || 'none']}> {/* Changed to planColors */}
-                              {planLabels[user.clube_plano || 'none']} {/* Changed to planLabels */}
+                            <Badge className={planColors[user.clube_plano || 'none']}>
+                              {planLabels[user.clube_plano || 'none']}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={planColors[user.beauty_club_plano || 'none']}> {/* Changed to planColors */}
-                              {planLabels[user.beauty_club_plano || 'none']} {/* Changed to planLabels */}
+                            <Badge className={planColors[user.beauty_club_plano || 'none']}>
+                              {planLabels[user.beauty_club_plano || 'none']}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -881,7 +858,6 @@ export default function Control() {
         </div>
       </div>
 
-      {/* Edit Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-2xl w-full border-[#E8DCC4] shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -892,7 +868,7 @@ export default function Control() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2"> {/* Kept from original */}
+                <div className="space-y-2">
                   <Label>Tipo de Usuário</Label>
                   <Select
                     value={editFormData.tipo_usuario}
@@ -919,7 +895,7 @@ export default function Control() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem Plano</SelectItem> {/* Changed to planLabels */}
+                      <SelectItem value="none">Sem Plano</SelectItem>
                       <SelectItem value="light">Light</SelectItem>
                       <SelectItem value="gold">Gold</SelectItem>
                       <SelectItem value="vip">VIP</SelectItem>
@@ -927,7 +903,7 @@ export default function Control() {
                   </Select>
                 </div>
 
-                <div className="space-y-2"> {/* Kept from original */}
+                <div className="space-y-2">
                   <Label>Plano Beauty Club (Clube+)</Label>
                   <Select
                     value={editFormData.beauty_club_plano}
@@ -937,7 +913,7 @@ export default function Control() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem Plano</SelectItem> {/* Changed to planLabels */}
+                      <SelectItem value="none">Sem Plano</SelectItem>
                       <SelectItem value="basic">Basic</SelectItem>
                       <SelectItem value="pro">Pro</SelectItem>
                       <SelectItem value="exclusive">Exclusive</SelectItem>
@@ -955,7 +931,7 @@ export default function Control() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem Plano</SelectItem> {/* Changed to planLabels */}
+                      <SelectItem value="none">Sem Plano</SelectItem>
                       <SelectItem value="basic">Basic</SelectItem>
                       <SelectItem value="pro">Pro</SelectItem>
                       <SelectItem value="premium">Premium</SelectItem>
@@ -985,7 +961,7 @@ export default function Control() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2"> {/* Kept from original */}
+                <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="is_golden_doctor"
@@ -998,7 +974,7 @@ export default function Control() {
                   </Label>
                 </div>
 
-                <div className="flex items-center gap-2"> {/* Kept from original */}
+                <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="account_suspended"
@@ -1021,7 +997,7 @@ export default function Control() {
                   Cancelar
                 </Button>
                 <Button
-                  onClick={handleSaveUser} {/* Changed to handleSaveUser */}
+                  onClick={handleSaveUser}
                   disabled={updateUserMutation.isPending}
                   className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
                 >
@@ -1033,7 +1009,6 @@ export default function Control() {
         </div>
       )}
 
-      {/* Version Modal */}
       <AnimatePresence>
         {showVersionModal && (
           <Dialog open={showVersionModal} onOpenChange={setShowVersionModal}>
@@ -1084,7 +1059,7 @@ export default function Control() {
                   <Textarea
                     value={versionFormData.changelog}
                     onChange={(e) => setVersionFormData({...versionFormData, changelog: e.target.value})}
-                    placeholder={`Ex:\n- Adicionado sistema de notificações\n- Corrigido bug no login\n- Melhorada performance do mapa`}
+                    placeholder="Ex:\n- Adicionado sistema de notificações\n- Corrigido bug no login\n- Melhorada performance do mapa"
                     className="border-[#E8DCC4] h-32"
                   />
                 </div>
@@ -1120,7 +1095,6 @@ export default function Control() {
         )}
       </AnimatePresence>
 
-      {/* User Details Modal */}
       {showDetailsModal && selectedUser && (
         <UserDetailsModal
           user={selectedUser}
