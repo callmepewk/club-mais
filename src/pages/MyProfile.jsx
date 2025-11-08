@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Crown, Award, Sparkles, CheckCircle, ArrowRight,
   CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield,
-  Send, MessageSquare, Scan, Users, Copy, Star, Coins // Added new icons
+  Send, MessageSquare, Scan, Users, Copy, Star, Coins, MapPin, Locate
 } from "lucide-react";
 
 const planDetails = {
@@ -92,6 +92,7 @@ const edbeautyPlanDetails = {
 export default function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+  const [loadingLocation, setLoadingLocation] = useState(false);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
@@ -143,12 +144,58 @@ export default function MyProfile() {
     setEditFormData({
       full_name: user?.full_name || '',
       telefone: user?.telefone || '',
+      whatsapp: user?.whatsapp || '',
+      cpf: user?.cpf || '',
       endereco: user?.endereco || '',
+      numero: user?.numero || '',
+      complemento: user?.complemento || '',
+      bairro: user?.bairro || '',
       cidade: user?.cidade || '',
       estado: user?.estado || '',
+      pais: user?.pais || 'Brasil',
+      cep: user?.cep || '',
       data_nascimento: user?.data_nascimento ? new Date(user.data_nascimento).toISOString().split('T')[0] : '', // Format date for input type="date"
     });
     setIsEditing(true);
+  };
+
+  const getUserLocation = async () => {
+    setLoadingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            );
+            const data = await response.json();
+
+            setEditFormData(prev => ({
+              ...prev,
+              endereco: data.address.road || '',
+              numero: data.address.house_number || '',
+              bairro: data.address.suburb || data.address.neighbourhood || '',
+              cidade: data.address.city || data.address.town || data.address.village || '',
+              estado: data.address.state || '',
+              pais: data.address.country || 'Brasil',
+              cep: data.address.postcode || '',
+            }));
+          } catch (error) {
+            console.error('Erro ao obter endereço a partir da localização:', error);
+            alert('Não foi possível obter o endereço. Por favor, preencha manualmente.');
+          }
+          setLoadingLocation(false);
+        },
+        (error) => {
+          console.error('Erro de geolocalização:', error);
+          alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+          setLoadingLocation(false);
+        }
+      );
+    } else {
+      alert('Geolocalização não é suportada pelo seu navegador.');
+      setLoadingLocation(false);
+    }
   };
 
   const handleSaveProfile = () => {
@@ -287,7 +334,11 @@ export default function MyProfile() {
 
                 <CardContent className="p-8">
                   {isEditing ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
+                        <User className="w-5 h-5 text-[#D4AF37]" />
+                        Informações Pessoais
+                      </h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Nome Completo</Label>
@@ -298,39 +349,25 @@ export default function MyProfile() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Telefone</Label>
+                          <Label>Telefone/WhatsApp</Label>
                           <Input
                             value={editFormData.telefone}
-                            onChange={(e) => setEditFormData({...editFormData, telefone: e.target.value})}
-                            className="border-[#E8DCC4]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Endereço</Label>
-                        <Input
-                          value={editFormData.endereco}
-                          onChange={(e) => setEditFormData({...editFormData, endereco: e.target.value})}
-                          className="border-[#E8DCC4]"
-                        />
-                      </div>
-
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Cidade</Label>
-                          <Input
-                            value={editFormData.cidade}
-                            onChange={(e) => setEditFormData({...editFormData, cidade: e.target.value})}
+                            onChange={(e) => {
+                              setEditFormData({
+                                ...editFormData,
+                                telefone: e.target.value,
+                                whatsapp: e.target.value
+                              });
+                            }}
                             className="border-[#E8DCC4]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Estado</Label>
+                          <Label>CPF</Label>
                           <Input
-                            value={editFormData.estado}
-                            onChange={(e) => setEditFormData({...editFormData, estado: e.target.value})}
-                            maxLength={2}
+                            value={editFormData.cpf}
+                            onChange={(e) => setEditFormData({...editFormData, cpf: e.target.value})}
+                            placeholder="000.000.000-00"
                             className="border-[#E8DCC4]"
                           />
                         </div>
@@ -342,6 +379,111 @@ export default function MyProfile() {
                             onChange={(e) => setEditFormData({...editFormData, data_nascimento: e.target.value})}
                             className="border-[#E8DCC4]"
                           />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-[#E8DCC4]">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-[#D4AF37]" />
+                            Localização
+                          </h3>
+                          <Button
+                            type="button"
+                            onClick={getUserLocation}
+                            disabled={loadingLocation}
+                            variant="outline"
+                            size="sm"
+                            className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                          >
+                            {loadingLocation ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37] mr-2" />
+                                Obtendo...
+                              </>
+                            ) : (
+                              <>
+                                <Locate className="w-4 h-4 mr-2" />
+                                Usar Localização Atual
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Endereço</Label>
+                            <Input
+                              value={editFormData.endereco}
+                              onChange={(e) => setEditFormData({...editFormData, endereco: e.target.value})}
+                              placeholder="Rua, Avenida..."
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Número</Label>
+                            <Input
+                              value={editFormData.numero}
+                              onChange={(e) => setEditFormData({...editFormData, numero: e.target.value})}
+                              placeholder="123"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Complemento</Label>
+                            <Input
+                              value={editFormData.complemento}
+                              onChange={(e) => setEditFormData({...editFormData, complemento: e.target.value})}
+                              placeholder="Apto, Bloco..."
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Bairro</Label>
+                            <Input
+                              value={editFormData.bairro}
+                              onChange={(e) => setEditFormData({...editFormData, bairro: e.target.value})}
+                              placeholder="Seu bairro"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Cidade</Label>
+                            <Input
+                              value={editFormData.cidade}
+                              onChange={(e) => setEditFormData({...editFormData, cidade: e.target.value})}
+                              placeholder="Sua cidade"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Estado</Label>
+                            <Input
+                              value={editFormData.estado}
+                              onChange={(e) => setEditFormData({...editFormData, estado: e.target.value})}
+                              placeholder="UF"
+                              maxLength={2}
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>País</Label>
+                            <Input
+                              value={editFormData.pais}
+                              onChange={(e) => setEditFormData({...editFormData, pais: e.target.value})}
+                              placeholder="Brasil"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>CEP</Label>
+                            <Input
+                              value={editFormData.cep}
+                              onChange={(e) => setEditFormData({...editFormData, cep: e.target.value})}
+                              placeholder="00000-000"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -363,30 +505,69 @@ export default function MyProfile() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                        <Shield className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Tipo de Conta</p>
-                        <p className="text-lg font-bold text-gray-800">
-                          {userType === 'profissional' ? 'Profissional' : 'Paciente'}
-                        </p>
+                    <div className="space-y-6">
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                          <Shield className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Tipo de Conta</p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {userType === 'profissional' ? 'Profissional' : 'Paciente'}
+                          </p>
+                        </div>
+
+                        <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                          <Award className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Plano Club</p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {clubePlanInfo.name}
+                          </p>
+                        </div>
+
+                        <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
+                          <Calendar className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Membro desde</p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {user?.created_date ? new Date(user.created_date).toLocaleDateString('pt-BR') : '-'}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                        <Award className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Plano Club</p>
-                        <p className="text-lg font-bold text-gray-800">
-                          {clubePlanInfo.name}
-                        </p>
-                      </div>
-
-                      <div className="text-center p-4 bg-[#F5EFE6] rounded-xl">
-                        <Calendar className="w-8 h-8 text-[#D4AF37] mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Membro desde</p>
-                        <p className="text-lg font-bold text-gray-800">
-                          {user?.created_date ? new Date(user.created_date).toLocaleDateString('pt-BR') : '-'}
-                        </p>
-                      </div>
+                      {(user?.telefone || user?.cpf || user?.endereco || user?.cidade) && (
+                        <div className="pt-4 border-t border-[#E8DCC4]">
+                          <h3 className="font-semibold text-gray-800 mb-4">Informações de Contato</h3>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {user?.telefone && (
+                              <div className="p-3 bg-[#F5EFE6] rounded-lg">
+                                <p className="text-xs text-gray-600 mb-1">Telefone/WhatsApp</p>
+                                <p className="font-semibold text-gray-800">{user.telefone}</p>
+                              </div>
+                            )}
+                            {user?.cpf && (
+                              <div className="p-3 bg-[#F5EFE6] rounded-lg">
+                                <p className="text-xs text-gray-600 mb-1">CPF</p>
+                                <p className="font-semibold text-gray-800">{user.cpf}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {(user?.endereco || user?.numero || user?.complemento || user?.bairro || user?.cidade || user?.estado || user?.cep) && (
+                            <div className="mt-4 p-4 bg-[#F5EFE6] rounded-lg">
+                              <p className="text-xs text-gray-600 mb-2">Endereço Completo</p>
+                              <p className="font-semibold text-gray-800">
+                                {[
+                                  user?.endereco,
+                                  user?.numero,
+                                  user?.complemento,
+                                  user?.bairro,
+                                  user?.cidade,
+                                  user?.estado,
+                                  user?.cep
+                                ].filter(Boolean).join(', ')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
