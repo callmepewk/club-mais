@@ -1,7 +1,8 @@
-
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, 
   Package, CreditCard, Bot, MapPin, Map as MapIcon, Coins, 
@@ -27,6 +28,7 @@ import Footer from "./components/Footer";
 import DrBelezaChat from "./components/DrBelezaChat";
 import SignUpPopup from "./components/SignUpPopup";
 import CookieConsent from "./components/CookieConsent";
+import SignUpModal from "./components/SignUpModal";
 
 const navigationItems = [
   {
@@ -80,8 +82,8 @@ const navigationItems = [
     icon: Award,
   },
   {
-    title: "Associe-se",
-    url: createPageUrl("Join"),
+    title: "Planos",
+    url: createPageUrl("Plans"),
     icon: Users,
   },
   {
@@ -99,6 +101,25 @@ const navigationItems = [
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [showTopBanner, setShowTopBanner] = useState(true);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+
+  const { data: user } = useQuery({
+    queryKey: ['current-user-layout'],
+    queryFn: async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        
+        // Check if user needs to complete registration
+        if (currentUser && (!currentUser.tipo_usuario || !currentUser.telefone || !currentUser.cpf)) {
+          setShowSignUpModal(true);
+        }
+        
+        return currentUser;
+      } catch (error) {
+        return null;
+      }
+    },
+  });
 
   const handleWhatsAppSignup = () => {
     const whatsappNumber = "5531972595643";
@@ -144,21 +165,28 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-[#F5EFE6] hover:text-[#D4AF37] transition-all duration-300 rounded-xl my-1 ${
-                          location.pathname === item.url ? 'bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] text-[#D4AF37] shadow-sm' : ''
-                        }`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {navigationItems.map((item) => {
+                    // Hide Control menu item for non-admins
+                    if (item.title === "Controle" && user?.role !== 'admin') {
+                      return null;
+                    }
+                    
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-[#F5EFE6] hover:text-[#D4AF37] transition-all duration-300 rounded-xl my-1 ${
+                            location.pathname === item.url ? 'bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] text-[#D4AF37] shadow-sm' : ''
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                            <item.icon className="w-5 h-5" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -198,15 +226,14 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Link to={createPageUrl("Join")} className="hidden sm:block">
-                        <Button
-                          size="sm"
-                          className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
-                        >
-                          <Users className="w-3 h-3 mr-1" />
-                          Associar
-                        </Button>
-                      </Link>
+                      <Button
+                        onClick={() => setShowSignUpModal(true)}
+                        size="sm"
+                        className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
+                      >
+                        <Users className="w-3 h-3 mr-1" />
+                        Registrar
+                      </Button>
                       
                       <Button
                         onClick={handleWhatsAppSignup}
@@ -252,8 +279,13 @@ export default function Layout({ children, currentPageName }) {
 
         <DrBelezaChat />
         <SignUpPopup />
+        <CookieConsent />
+        
+        {/* Sign Up Modal */}
+        {showSignUpModal && (
+          <SignUpModal onClose={() => setShowSignUpModal(false)} />
+        )}
       </div>
-      <CookieConsent />
     </SidebarProvider>
   );
 }

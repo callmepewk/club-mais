@@ -21,6 +21,7 @@ import Eventos from './pages/Eventos';
 import Control from './pages/Control';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Plans from './pages/Plans';
 import Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "Control": Control,
     "PrivacyPolicy": PrivacyPolicy,
     "TermsOfService": TermsOfService,
+    "Plans": Plans,
 }
 
 export const pagesConfig = {
