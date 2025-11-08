@@ -387,7 +387,7 @@ export default function Control() {
               <th>Nome</th>
               <th>Email</th>
               <th>Tipo</th>
-              <th>Plano Clube da Beleza</th>
+              <th>Plano Club da Beleza</th>
               <th>Plano Beauty Club</th>
               <th>Golden</th>
               <th>Pontos</th>
@@ -562,7 +562,7 @@ export default function Control() {
                               <div className="flex items-center gap-3 mb-2">
                                 <h4 className="font-bold text-xl text-gray-800">
                                   v{version.versao}
-                                h4>
+                                </h4>
                                 <Badge className={
                                   version.status === 'publicada' ? 'bg-green-100 text-green-800' :
                                   version.status === 'agendada' ? 'bg-orange-100 text-orange-800' :
