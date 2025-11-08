@@ -131,137 +131,247 @@ export default function Layout({ children, currentPageName }) {
   // ULTRA-AGGRESSIVE: Remove "Edit with Base44" button
   useEffect(() => {
     const removeBase44Button = () => {
-      // Method 1: Remove by class
-      const buttons = document.querySelectorAll('[class*="base44" i], [class*="edit" i]');
-      buttons.forEach(btn => {
-        const text = btn.textContent?.toLowerCase() || '';
-        if (text.includes('edit') && text.includes('base44')) {
-          btn.remove();
-        }
-      });
-
-      // Method 2: Remove by text content
-      const allButtons = document.querySelectorAll('button, a, div[role="button"]');
-      allButtons.forEach(btn => {
-        const text = btn.textContent?.toLowerCase() || '';
-        if (text.includes('edit') && text.includes('base44')) {
-          btn.remove();
-        }
-      });
-
-      // Method 3: Remove by aria-label
-      const ariaButtons = document.querySelectorAll('[aria-label*="edit" i], [aria-label*="base44" i]');
-      ariaButtons.forEach(btn => {
-        const ariaLabel = btn.getAttribute('aria-label')?.toLowerCase() || '';
-        if (ariaLabel.includes('edit') && ariaLabel.includes('base44')) {
-          btn.remove();
-        }
-      });
-
-      // Method 4: Remove by title
-      const titleButtons = document.querySelectorAll('[title*="edit" i], [title*="base44" i]');
-      titleButtons.forEach(btn => {
-        const titleText = btn.getAttribute('title')?.toLowerCase() || '';
-        if (titleText.includes('edit') && titleText.includes('base44')) {
-          btn.remove();
-        }
-      });
-
-      // Method 5: Check shadow DOM
+      // Method 1: Remove by text content and HTML content (most aggressive, targeting any element)
       const allElements = document.querySelectorAll('*');
       allElements.forEach(el => {
+        const text = el.textContent?.toLowerCase() || '';
+        const html = el.innerHTML?.toLowerCase() || '';
+        
+        if ((text.includes('edit') && text.includes('base44')) ||
+            (html.includes('edit') && html.includes('base44'))) {
+          // Add a check to prevent removing the entire body or too broad elements
+          if (el.tagName !== 'BODY' && el.tagName !== 'HTML' && el.parentElement) {
+            // Attempt to remove the element itself or its closest interactive parent
+            if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button' || el.getAttribute('aria-label')?.toLowerCase().includes('edit') || el.getAttribute('title')?.toLowerCase().includes('edit')) {
+              el.remove();
+            } else {
+              // If not an interactive element, try to remove its closest interactive parent
+              let current = el;
+              let removed = false;
+              while(current && current !== document.body && current !== document.documentElement) {
+                if (current.tagName === 'BUTTON' || current.tagName === 'A' || current.getAttribute('role') === 'button' || current.getAttribute('aria-label')?.toLowerCase().includes('edit') || current.getAttribute('title')?.toLowerCase().includes('edit')) {
+                  current.remove();
+                  removed = true;
+                  break;
+                }
+                current = current.parentElement;
+              }
+              if (!removed && el.parentElement && el.children.length === 0) { // If it's a leaf node with the text
+                el.remove();
+              }
+            }
+          }
+        }
+      });
+
+      // Method 2: Remove by class patterns
+      const classPatterns = [
+        '[class*="base44" i]',
+        '[class*="edit-with" i]',
+        '[class*="base44-editor" i]'
+      ];
+      
+      classPatterns.forEach(pattern => {
+        document.querySelectorAll(pattern).forEach(el => {
+          const text = el.textContent?.toLowerCase() || '';
+          if (text.includes('edit') && text.includes('base44')) {
+            el.remove();
+          }
+        });
+      });
+
+      // Method 3: Remove by attributes
+      const attrPatterns = [
+        '[aria-label*="edit" i]',
+        '[title*="edit" i]',
+        '[data-base44-editor]',
+        '[data-base44-edit-button]'
+      ];
+      
+      attrPatterns.forEach(pattern => {
+        document.querySelectorAll(pattern).forEach(el => {
+          const ariaLabel = el.getAttribute('aria-label')?.toLowerCase() || '';
+          const title = el.getAttribute('title')?.toLowerCase() || '';
+          if ((ariaLabel.includes('base44') || title.includes('base44')) || el.hasAttribute('data-base44-editor') || el.hasAttribute('data-base44-edit-button')) {
+            el.remove();
+          }
+        });
+      });
+
+      // Method 4: Check shadow DOM
+      document.querySelectorAll('*').forEach(el => {
         if (el.shadowRoot) {
-          const shadowButtons = el.shadowRoot.querySelectorAll('button, a, div[role="button"]');
-          shadowButtons.forEach(btn => {
-            const text = btn.textContent?.toLowerCase() || '';
+          const shadowEls = el.shadowRoot.querySelectorAll('*');
+          shadowEls.forEach(shadowEl => {
+            const text = shadowEl.textContent?.toLowerCase() || '';
             if (text.includes('edit') && text.includes('base44')) {
-              btn.remove();
+              shadowEl.remove();
             }
           });
         }
       });
 
-      // Method 6: Remove Radix Portal content
-      const portals = document.querySelectorAll('[data-radix-portal], [data-radix-popper-content-wrapper]');
+      // Method 5: Remove Radix/Portal content
+      const portals = document.querySelectorAll(
+        '[data-radix-portal], [data-radix-popper-content-wrapper], [data-radix-tooltip-content]'
+      );
       portals.forEach(portal => {
-        const buttonsInPortal = portal.querySelectorAll('button, a');
-        buttonsInPortal.forEach(btn => {
-          const text = btn.textContent?.toLowerCase() || '';
+        const els = portal.querySelectorAll('*');
+        els.forEach(el => {
+          const text = el.textContent?.toLowerCase() || '';
           if (text.includes('edit') && text.includes('base44')) {
-            btn.remove();
+            el.remove();
           }
         });
+      });
+
+      // Method 6: Remove fixed/absolute positioned suspicious elements
+      document.querySelectorAll('button, a, [role="button"], div').forEach(el => { // Include div as it might be a container
+        const style = window.getComputedStyle(el);
+        const text = el.textContent?.toLowerCase() || '';
+        
+        if ((style.position === 'fixed' || style.position === 'absolute') &&
+            text.includes('edit') && text.includes('base44')) {
+          el.remove();
+        }
       });
     };
 
     // Execute immediately
     removeBase44Button();
 
-    // Execute on DOM changes (MutationObserver)
-    const observer = new MutationObserver(() => {
-      removeBase44Button();
+    // MutationObserver for DOM changes
+    const observer = new MutationObserver((mutations) => {
+      // Small debounce for observer to avoid excessive calls
+      clearTimeout(window._base44_remove_debounce);
+      window._base44_remove_debounce = setTimeout(removeBase44Button, 50);
     });
 
     observer.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class', 'id', 'style', 'aria-label', 'title'] // Watch for relevant attribute changes
+      attributeFilter: ['class', 'id', 'style', 'aria-label', 'title', 'data-base44-editor', 'data-base44-edit-button']
     });
 
-    // Execute repeatedly with setInterval (backup)
-    const interval = setInterval(removeBase44Button, 100);
+    // Interval backup (every 50ms for maximum coverage)
+    const interval = setInterval(removeBase44Button, 50);
 
-    // Execute on common events
-    const events = ['DOMContentLoaded', 'load', 'mousemove', 'scroll', 'click', 'animationend', 'transitionend']; // Added more events
+    // Event listeners for common triggers (capture phase for earlier detection)
+    const events = ['DOMContentLoaded', 'load', 'mousemove', 'scroll', 'click', 'focusin', 'focusout', 'resize', 'transitionend', 'animationend'];
     events.forEach(event => {
-      window.addEventListener(event, removeBase44Button);
+      window.addEventListener(event, removeBase44Button, true);
     });
+
+    // RequestAnimationFrame loop (catches async renders more smoothly)
+    let animationFrameId;
+    const rafLoop = () => {
+      removeBase44Button();
+      animationFrameId = requestAnimationFrame(rafLoop);
+    };
+    rafLoop();
 
     // Cleanup
     return () => {
       observer.disconnect();
       clearInterval(interval);
+      clearTimeout(window._base44_remove_debounce);
+      cancelAnimationFrame(animationFrameId);
       events.forEach(event => {
-        window.removeEventListener(event, removeBase44Button);
+        window.removeEventListener(event, removeBase44Button, true);
       });
     };
   }, []);
 
-  // CSS to hide any potential button
+  // CSS to hide any potential button (multiple layers)
   useEffect(() => {
     const style = document.createElement('style');
+    style.id = 'hide-base44-button-style';
     style.innerHTML = `
-      /* Hide Base44 Edit Button - Multiple Strategies (Valid CSS only) */
-      [class*="base44" i],
+      /* ULTRA-AGGRESSIVE HIDE - Layer 1: Direct targeting by attributes/classes */
       [aria-label*="edit" i][aria-label*="base44" i],
       [title*="edit" i][title*="base44" i],
-      /* Specific selector if a known pattern exists */
-      /* For example, if there's a specific data attribute like data-base44-editor-button */
-      /* [data-base44-editor-button] { display: none !important; } */
-
-      /* Hide in Radix portals */
-      [data-radix-portal] button[class*="edit" i],
-      [data-radix-portal] a[class*="edit" i],
-      [data-radix-popper-content-wrapper] button[class*="edit" i],
-      [data-radix-popper-content-wrapper] a[class*="edit" i] {
+      [class*="base44" i],
+      [class*="Base44" i],
+      [class*="edit-with" i],
+      [class*="base44-editor" i],
+      [id*="base44" i],
+      [id*="Base44" i],
+      [data-base44-editor],
+      [data-base44-edit-button],
+      [data-base44-toolbar],
+      /* Broader class/ID matches combined */
+      [class*="edit" i][class*="base" i],
+      [id*="edit" i][id*="base" i] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
         position: absolute !important;
-        left: -9999px !important;
+        left: -99999px !important;
+        top: -99999px !important;
         width: 0 !important;
         height: 0 !important;
         overflow: hidden !important;
+        z-index: -99999 !important;
+        content-visibility: hidden !important; /* modern property */
+      }
+
+      /* Layer 2: Radix UI Portals - targeting any element inside with base44 identifiers */
+      [data-radix-portal] [class*="base44" i],
+      [data-radix-portal] [aria-label*="base44" i],
+      [data-radix-portal] [data-base44-editor],
+      [data-radix-popper-content-wrapper] [class*="base44" i],
+      [data-radix-popper-content-wrapper] [aria-label*="base44" i],
+      [data-radix-popper-content-wrapper] [data-base44-editor],
+      [data-radix-tooltip-content] [class*="base44" i],
+      [data-radix-tooltip-content] [aria-label*="base44" i],
+      [data-radix-tooltip-content] [data-base44-editor] {
+        display: none !important;
+      }
+
+      /* Layer 3: Fixed/Absolute positioned elements (targeting parent or child) */
+      /* If the container is fixed/absolute AND contains a base44 identifier */
+      [style*="position: fixed"] [class*="base44" i],
+      [style*="position: absolute"] [class*="base44" i],
+      [style*="position: fixed"] [aria-label*="base44" i],
+      [style*="position: absolute"] [aria-label*="base44" i],
+      /* If the element itself is fixed/absolute AND has a base44 identifier */
+      [class*="base44" i][style*="position: fixed"],
+      [class*="base44" i][style*="position: absolute"],
+      [aria-label*="base44" i][style*="position: fixed"],
+      [aria-label*="base44" i][style*="position: absolute"],
+      [data-base44-editor][style*="position: fixed"],
+      [data-base44-editor][style*="position: absolute"] {
+        display: none !important;
+      }
+
+      /* Layer 4: Shadow DOM pierce (if content is exposed via ::part) */
+      ::part(base44-editor),
+      ::part(edit-button) {
+        display: none !important;
+      }
+
+      /* Layer 5: Hide any button/link containing the text (less specific but broad) */
+      button[aria-label*="edit" i],
+      a[aria-label*="edit" i],
+      [role="button"][aria-label*="edit" i],
+      button[title*="edit" i],
+      a[title*="edit" i],
+      [role="button"][title*="edit" i] {
+        /* This rule is intentionally less specific to avoid hiding too much,
+           relying on JS for text content check. */
+        /* If it's a base44 edit button, it should be caught by Layer 1/2/3 or JS. */
       }
     `;
-    document.head.appendChild(style);
+    
+    // Insert at the very beginning of head to maximize priority
+    document.head.insertBefore(style, document.head.firstChild);
 
     return () => {
-      // Only remove if it's still attached to the head
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
+      const existingStyle = document.getElementById('hide-base44-button-style');
+      if (existingStyle) {
+        existingStyle.remove();
       }
     };
   }, []);

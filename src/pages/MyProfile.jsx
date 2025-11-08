@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Crown, Award, Sparkles, CheckCircle, ArrowRight,
   CreditCard, GraduationCap, Calendar, TrendingUp, User, Mail, Shield,
-  Send, MessageSquare, Scan, Users, Copy, Star, Coins, MapPin, Locate
+  Send, MessageSquare, Scan, Users, Copy, Star, Coins, MapPin, Locate,
+  Edit, Trash2, Plus
 } from "lucide-react";
 
 const planDetails = {
@@ -106,6 +107,13 @@ export default function MyProfile() {
     initialData: [],
   });
 
+  const { data: myContents = [] } = useQuery({
+    queryKey: ['my-edbeauty-contents', user?.email],
+    queryFn: () => base44.entities.EdBeautyContent.filter({ autor_email: user?.email }, '-created_date'),
+    enabled: !!user?.email && user?.tipo_usuario === 'profissional',
+    initialData: [],
+  });
+
   const userAvatar = avatarData?.[0] || null;
 
   const queryClient = useQueryClient();
@@ -120,6 +128,19 @@ export default function MyProfile() {
     onError: (error) => {
       console.error("Error updating profile:", error);
       alert('Erro ao atualizar perfil. Tente novamente.');
+    }
+  });
+
+  const deleteContentMutation = useMutation({
+    mutationFn: (id) => base44.entities.EdBeautyContent.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-edbeauty-contents'] });
+      queryClient.invalidateQueries({ queryKey: ['edbeauty-contents'] });
+      alert('Conteúdo excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error("Error deleting content:", error);
+      alert('Erro ao excluir conteúdo. Tente novamente.');
     }
   });
 
@@ -200,6 +221,12 @@ export default function MyProfile() {
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate(editFormData);
+  };
+
+  const handleDeleteContent = (content) => {
+    if (confirm(`Deseja realmente excluir "${content.titulo}"?`)) {
+      deleteContentMutation.mutate(content.id);
+    }
   };
 
   const [supportForm, setSupportForm] = useState({
@@ -822,6 +849,106 @@ export default function MyProfile() {
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
                         </Link>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* My EdBeauty Contents (for professionals) */}
+            {userType === 'profissional' && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.25 }}
+              >
+                <Card className="border-[#E8DCC4] shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
+                        <GraduationCap className="w-6 h-6 text-[#D4AF37]" />
+                        Meus Conteúdos EdBeauty
+                      </CardTitle>
+                      <Link to={createPageUrl("EdBeautyCreateContent")}>
+                        <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    {myContents.length === 0 ? (
+                      <div className="text-center py-12">
+                        <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-4">
+                          Você ainda não publicou nenhum conteúdo
+                        </p>
+                        <Link to={createPageUrl("EdBeautyCreateContent")}>
+                          <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Criar Primeiro Conteúdo
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {myContents.map((content) => (
+                          <div
+                            key={content.id}
+                            className="flex items-center gap-4 p-4 border border-[#E8DCC4] rounded-xl hover:border-[#D4AF37] transition-all"
+                          >
+                            {content.thumbnail && (
+                              <img
+                                src={content.thumbnail}
+                                alt={content.titulo}
+                                className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                              />
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-serif text-lg font-bold text-gray-800 mb-1 truncate">
+                                {content.titulo}
+                              </h3>
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                  {content.tipo}
+                                </Badge>
+                                <Badge className="bg-purple-100 text-purple-800 text-xs">
+                                  {content.categoria === 'Outros' && content.categoria_outros ? content.categoria_outros : content.categoria}
+                                </Badge>
+                                <Badge className="bg-green-100 text-green-800 text-xs">
+                                  {content.tipo_acesso}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 line-clamp-2">
+                                {content.descricao}
+                              </p>
+                            </div>
+
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Link to={createPageUrl("EdBeautyEditContent") + `?id=${content.id}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-[#D4AF37] text-[#D4AF37]"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteContent(content)}
+                                disabled={deleteContentMutation.isPending}
+                                className="border-red-500 text-red-500 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </CardContent>
