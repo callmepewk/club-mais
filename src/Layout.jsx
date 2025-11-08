@@ -5,7 +5,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Sparkles, Home, Users, Award, Info, Newspaper, Phone, Briefcase, 
   Package, CreditCard, Bot, MapPin, Map as MapIcon, Coins, 
-  GraduationCap, User as UserIcon, Scan, Heart, X, MessageCircle, Crown
+  GraduationCap, User as UserIcon, Scan, Heart, X, MessageCircle, Crown, Shield
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Footer from "./components/Footer";
 import DrBelezaChat from "./components/DrBelezaChat";
 import SignUpPopup from "./components/SignUpPopup";
+import CookieConsent from "./components/CookieConsent";
 
 const navigationItems = [
   {
@@ -87,6 +88,11 @@ const navigationItems = [
     title: "Meu Perfil",
     url: createPageUrl("MyProfile"),
     icon: UserIcon,
+  },
+  {
+    title: "Controle",
+    url: createPageUrl("Control"),
+    icon: Shield,
   },
 ];
 
@@ -247,6 +253,7 @@ export default function Layout({ children, currentPageName }) {
         <DrBelezaChat />
         <SignUpPopup />
       </div>
+      <CookieConsent />
     </SidebarProvider>
   );
 }

@@ -18,6 +18,9 @@ import MyPlan from './pages/MyPlan';
 import AvatarScanner from './pages/AvatarScanner';
 import MyProfile from './pages/MyProfile';
 import Eventos from './pages/Eventos';
+import Control from './pages/Control';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import Layout from './Layout.jsx';
 
 
@@ -42,6 +45,9 @@ export const PAGES = {
     "AvatarScanner": AvatarScanner,
     "MyProfile": MyProfile,
     "Eventos": Eventos,
+    "Control": Control,
+    "PrivacyPolicy": PrivacyPolicy,
+    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {
