@@ -562,7 +562,7 @@ export default function Control() {
                               <div className="flex items-center gap-3 mb-2">
                                 <h4 className="font-bold text-xl text-gray-800">
                                   v{version.versao}
-                                </h4>
+                                h4>
                                 <Badge className={
                                   version.status === 'publicada' ? 'bg-green-100 text-green-800' :
                                   version.status === 'agendada' ? 'bg-orange-100 text-orange-800' :
@@ -845,7 +845,7 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleEditUser(user)} {/* Changed to handleEditUser */}
+                                onClick={() => handleEditUser(user)}
                                 title="Editar"
                               >
                                 <Edit className="w-4 h-4" />
@@ -853,7 +853,7 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleSuspendUser(user)} {/* Changed to handleSuspendUser */}
+                                onClick={() => handleSuspendUser(user)}
                                 className={user.account_suspended ? 'text-green-600' : 'text-orange-600'}
                                 title={user.account_suspended ? 'Reativar' : 'Suspender'}
                               >
@@ -862,7 +862,7 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDeleteUser(user)} {/* Changed to handleDeleteUser */}
+                                onClick={() => handleDeleteUser(user)}
                                 className="text-red-600"
                                 title="Excluir"
                               >
