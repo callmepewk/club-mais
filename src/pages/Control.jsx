@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +27,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Search, Edit, Trash2, Eye,
   Users, Crown, Star, Coins, CheckCircle, XCircle,
-  Calendar, Zap, GitBranch, Package, FileDown, Ban, UserCheck
+  Calendar, Zap, GitBranch, Package, FileDown, Ban, UserCheck,
+  Megaphone, TrendingUp, BarChart
 } from "lucide-react";
 import UserDetailsModal from "../components/UserDetailsModal";
 import {
@@ -78,6 +80,22 @@ export default function Control() {
     data_agendada: "",
   });
 
+  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [bannerFormData, setBannerFormData] = useState({
+    titulo: "",
+    descricao: "",
+    imagem: "",
+    link_acao: "",
+    texto_botao: "",
+    duracao_minima: 5,
+    tipo_banner: "informativo",
+    publico_alvo: "todos",
+    status: "ativo",
+    data_inicio: "",
+    data_fim: "",
+    prioridade: 1
+  });
+
   const { data: user } = useQuery({
     queryKey: ['current-user-control'],
     queryFn: () => base44.auth.me(),
@@ -95,6 +113,12 @@ export default function Control() {
   const { data: versions = [] } = useQuery({
     queryKey: ['app-versions'],
     queryFn: () => base44.entities.AppVersion.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: banners = [] } = useQuery({
+    queryKey: ['all-banners'],
+    queryFn: () => base44.entities.Banner.list('-created_date'),
     initialData: [],
   });
 
@@ -224,6 +248,46 @@ export default function Control() {
     }
   });
 
+  const createBannerMutation = useMutation({
+    mutationFn: (data) => base44.entities.Banner.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-banners'] });
+      // Assuming 'active-banners' would be a filtered query. Invalidating all-banners is enough for now.
+      setShowBannerModal(false);
+      setBannerFormData({
+        titulo: "",
+        descricao: "",
+        imagem: "",
+        link_acao: "",
+        texto_botao: "",
+        duracao_minima: 5,
+        tipo_banner: "informativo",
+        publico_alvo: "todos",
+        status: "ativo",
+        data_inicio: "",
+        data_fim: "",
+        prioridade: 1
+      });
+      alert('Banner criado com sucesso!');
+    },
+  });
+
+  const updateBannerMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Banner.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-banners'] });
+      alert('Banner atualizado!');
+    },
+  });
+
+  const deleteBannerMutation = useMutation({
+    mutationFn: (id) => base44.entities.Banner.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-banners'] });
+      alert('Banner excluído com sucesso!');
+    },
+  });
+
   const handleEditUser = (user) => {
     setEditingUser(user);
     setEditFormData({
@@ -296,6 +360,29 @@ export default function Control() {
         versionId, 
         data_agendada: dataAgendada 
       });
+    }
+  };
+
+  const handleCreateBanner = () => {
+    if (!bannerFormData.titulo || !bannerFormData.descricao) {
+      alert('Por favor, preencha título e descrição.');
+      return;
+    }
+
+    createBannerMutation.mutate(bannerFormData);
+  };
+
+  const handleToggleBannerStatus = (banner) => {
+    const newStatus = banner.status === 'ativo' ? 'inativo' : 'ativo';
+    updateBannerMutation.mutate({
+      id: banner.id,
+      data: { status: newStatus }
+    });
+  };
+
+  const handleDeleteBanner = (banner) => {
+    if (confirm(`Deseja realmente excluir o banner "${banner.titulo}"?`)) {
+      deleteBannerMutation.mutate(banner.id);
     }
   };
 
@@ -455,6 +542,173 @@ export default function Control() {
 
       <div className="py-12 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
+          {/* Banner Management Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.05 }}
+          >
+            <Card className="border-[#E8DCC4] shadow-2xl bg-gradient-to-br from-white to-[#F5EFE6]">
+              <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                      <Megaphone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <CardTitle className="font-serif text-2xl">
+                        Sistema de Banners e Anúncios
+                      </CardTitle>
+                      <p className="text-white/90 text-sm mt-1">
+                        Crie anúncios pop-up que serão exibidos para todos os usuários
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setShowBannerModal(true)}
+                    className="bg-white text-purple-600 hover:bg-white/90"
+                  >
+                    <Megaphone className="w-4 h-4 mr-2" />
+                    Novo Banner
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-4 gap-6 mb-8">
+                  <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                        {banners.filter(b => b.status === 'ativo').length}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Banners Ativos</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+                        {banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0)}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Total Visualizações</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        {banners.reduce((sum, b) => sum + (b.cliques || 0), 0)}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Total Cliques</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">
+                        {banners.length > 0 && banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0) > 0 ? 
+                          ((banners.reduce((sum, b) => sum + (b.cliques || 0), 0) / 
+                            banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0)) * 100).toFixed(1)
+                          : '0.0'}%
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Taxa de Cliques</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-serif text-xl font-bold text-gray-800">
+                    Todos os Banners
+                  </h3>
+                  {banners.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg">
+                      <Megaphone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-600">Nenhum banner criado ainda</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Título</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Público</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Duração</TableHead>
+                            <TableHead>Visualizações</TableHead>
+                            <TableHead>Cliques</TableHead>
+                            <TableHead>Taxa</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {banners.map((banner) => (
+                            <TableRow key={banner.id}>
+                              <TableCell className="font-medium">{banner.titulo}</TableCell>
+                              <TableCell>
+                                <Badge className={
+                                  banner.tipo_banner === 'urgente' ? 'bg-red-100 text-red-800' :
+                                  banner.tipo_banner === 'promocional' ? 'bg-purple-100 text-purple-800' :
+                                  banner.tipo_banner === 'aviso' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-blue-100 text-blue-800'
+                                }>
+                                  {banner.tipo_banner}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm text-gray-600">
+                                  {banner.publico_alvo === 'todos' ? 'Todos' : banner.publico_alvo}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={
+                                  banner.status === 'ativo' ? 'bg-green-100 text-green-800' :
+                                  banner.status === 'agendado' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }>
+                                  {banner.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{banner.duracao_minima}s</TableCell>
+                              <TableCell>{banner.visualizacoes || 0}</TableCell>
+                              <TableCell>{banner.cliques || 0}</TableCell>
+                              <TableCell>
+                                {banner.visualizacoes > 0 
+                                  ? ((banner.cliques / banner.visualizacoes) * 100).toFixed(1) 
+                                  : '0.0'}%
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleToggleBannerStatus(banner)}
+                                    className={banner.status === 'ativo' ? 'text-orange-600' : 'text-green-600'}
+                                    title={banner.status === 'ativo' ? 'Desativar' : 'Ativar'}
+                                  >
+                                    {banner.status === 'ativo' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDeleteBanner(banner)}
+                                    className="text-red-600"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1104,6 +1358,227 @@ export default function Control() {
           }}
         />
       )}
+
+      {/* Banner Modal */}
+      <AnimatePresence>
+        {showBannerModal && (
+          <Dialog open={showBannerModal} onOpenChange={setShowBannerModal}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+                  <Megaphone className="w-6 h-6 text-purple-600" />
+                  Criar Novo Banner/Anúncio
+                </DialogTitle>
+                <DialogDescription>
+                  Crie um banner que será exibido como pop-up para os usuários
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Título *</Label>
+                    <Input
+                      value={bannerFormData.titulo}
+                      onChange={(e) => setBannerFormData({...bannerFormData, titulo: e.target.value})}
+                      placeholder="Ex: Promoção Imperdível!"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Tipo de Banner *</Label>
+                    <Select 
+                      value={bannerFormData.tipo_banner} 
+                      onValueChange={(v) => setBannerFormData({...bannerFormData, tipo_banner: v})}
+                    >
+                      <SelectTrigger className="border-[#E8DCC4]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="informativo">Informativo</SelectItem>
+                        <SelectItem value="promocional">Promocional</SelectItem>
+                        <SelectItem value="urgente">Urgente</SelectItem>
+                        <SelectItem value="aviso">Aviso</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Descrição *</Label>
+                  <Textarea
+                    value={bannerFormData.descricao}
+                    onChange={(e) => setBannerFormData({...bannerFormData, descricao: e.target.value})}
+                    placeholder="Descreva o anúncio de forma clara e atrativa..."
+                    className="border-[#E8DCC4] h-32"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>URL da Imagem (opcional)</Label>
+                    <Input
+                      value={bannerFormData.imagem}
+                      onChange={(e) => setBannerFormData({...bannerFormData, imagem: e.target.value})}
+                      placeholder="https://..."
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Link de Ação (opcional)</Label>
+                    <Input
+                      value={bannerFormData.link_acao}
+                      onChange={(e) => setBannerFormData({...bannerFormData, link_acao: e.target.value})}
+                      placeholder="https://..."
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Texto do Botão</Label>
+                    <Input
+                      value={bannerFormData.texto_botao}
+                      onChange={(e) => setBannerFormData({...bannerFormData, texto_botao: e.target.value})}
+                      placeholder="Ex: Saiba Mais"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Duração Mínima (segundos) *</Label>
+                    <Input
+                      type="number"
+                      min="5"
+                      value={bannerFormData.duracao_minima}
+                      onChange={(e) => setBannerFormData({...bannerFormData, duracao_minima: parseInt(e.target.value) || 5})}
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Prioridade</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={bannerFormData.prioridade}
+                      onChange={(e) => setBannerFormData({...bannerFormData, prioridade: parseInt(e.target.value) || 1})}
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Público Alvo *</Label>
+                    <Select 
+                      value={bannerFormData.publico_alvo} 
+                      onValueChange={(v) => setBannerFormData({...bannerFormData, publico_alvo: v})}
+                    >
+                      <SelectTrigger className="border-[#E8DCC4]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Todos os Usuários</SelectItem>
+                        <SelectItem value="paciente">Todos os Pacientes</SelectItem>
+                        <SelectItem value="profissional">Todos os Profissionais</SelectItem>
+                        <SelectItem value="paciente-light">Pacientes Light+</SelectItem>
+                        <SelectItem value="paciente-gold">Pacientes Gold+</SelectItem>
+                        <SelectItem value="paciente-vip">Pacientes VIP</SelectItem>
+                        <SelectItem value="profissional-light">Profissionais Light+</SelectItem>
+                        <SelectItem value="profissional-gold">Profissionais Gold+</SelectItem>
+                        <SelectItem value="profissional-vip">Profissionais VIP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Status *</Label>
+                    <Select 
+                      value={bannerFormData.status} 
+                      onValueChange={(v) => setBannerFormData({...bannerFormData, status: v})}
+                    >
+                      <SelectTrigger className="border-[#E8DCC4]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ativo">Ativo (exibir agora)</SelectItem>
+                        <SelectItem value="inativo">Inativo</SelectItem>
+                        <SelectItem value="agendado">Agendado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data de Início (opcional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={bannerFormData.data_inicio}
+                      onChange={(e) => setBannerFormData({...bannerFormData, data_inicio: e.target.value})}
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Data de Fim (opcional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={bannerFormData.data_fim}
+                      onChange={(e) => setBannerFormData({...bannerFormData, data_fim: e.target.value})}
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                  <p className="text-sm text-purple-800">
+                    <strong>💡 Dica:</strong> O banner será exibido automaticamente para todos os usuários do público-alvo que ainda não o visualizaram. 
+                    O usuário só poderá fechar após {bannerFormData.duracao_minima} segundos.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowBannerModal(false);
+                      setBannerFormData({
+                        titulo: "",
+                        descricao: "",
+                        imagem: "",
+                        link_acao: "",
+                        texto_botao: "",
+                        duracao_minima: 5,
+                        tipo_banner: "informativo",
+                        publico_alvo: "todos",
+                        status: "ativo",
+                        data_inicio: "",
+                        data_fim: "",
+                        prioridade: 1
+                      });
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleCreateBanner}
+                    disabled={createBannerMutation.isPending}
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+                  >
+                    {createBannerMutation.isPending ? 'Criando...' : 'Criar Banner'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
