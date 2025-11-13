@@ -250,17 +250,6 @@ const estadosBrasileiros = [
   { sigla: "TO", nome: "Tocantins" }
 ];
 
-const paises = [
-  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
-  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
-  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
-  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
-  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
-  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
-  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
-  "Israel", "Arábia Saudita", "Outros"
-];
-
 const cidadesPrincipaisPorEstado = {
   "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco"],
   "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis"],
@@ -361,8 +350,8 @@ export default function DrBeleza() {
     budget: "",
     timeframe: "",
     pais: "Brasil",
-    city: "",
-    state: "",
+    city: "todas",
+    state: "todos",
     latitude: "",
     longitude: "",
     maxDistance: "all"
@@ -395,7 +384,7 @@ export default function DrBeleza() {
         newData.area = "";
       }
       if (field === "state") {
-        newData.city = ""; // Clear city when state changes
+        newData.city = "todas";
       }
       return newData;
     });
@@ -452,13 +441,13 @@ export default function DrBeleza() {
         const matchCountry = !formData.pais || est.pais === formData.pais;
 
         // Filter by state
-        const matchState = !formData.state ||
-          (formData.pais === "Brasil" && est.estado === formData.state) ||
-          (formData.pais !== "Brasil"); // If not Brazil, state filter might not apply or needs different logic
+        const matchState = formData.state === "todos" || // If "todos" is selected, match all states
+                           (formData.pais === "Brasil" && est.estado === formData.state) ||
+                           (formData.pais !== "Brasil"); // If not Brazil, state filter might not apply or needs different logic
 
         // Filter by city
-        const matchCity = !formData.city ||
-          est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
+        const matchCity = formData.city === "todas" || // If "todas" is selected, match all cities
+                          est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
 
         return matchCountry && matchState && matchCity;
       })
@@ -507,7 +496,7 @@ export default function DrBeleza() {
   };
 
   const cidadesDisponiveis = useMemo(() => {
-    if (formData.pais === "Brasil" && formData.state) {
+    if (formData.pais === "Brasil" && formData.state !== "todos") {
       return cidadesPrincipaisPorEstado[formData.state] || [];
     }
     return [];
@@ -867,7 +856,7 @@ export default function DrBeleza() {
                         onValueChange={(value) => handleInputChange("pais", value)}
                       >
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                          <SelectValue placeholder="Selecione o país" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {paises.map((pais) => (
@@ -877,81 +866,62 @@ export default function DrBeleza() {
                       </Select>
                     </div>
 
-                    {formData.pais === "Brasil" && (
-                      <div className="space-y-2 w-full">
-                        <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                          Estado
-                        </Label>
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Estado
+                      </Label>
+                      <Select
+                        value={formData.state}
+                        onValueChange={(value) => handleInputChange("state", value)}
+                      >
+                        <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                          <SelectValue placeholder="Selecione o estado" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          <SelectItem value="todos">Todos os estados</SelectItem>
+                          {estadosBrasileiros.map((estado) => (
+                            <SelectItem key={estado.sigla} value={estado.sigla}>
+                              {estado.nome} ({estado.sigla})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        Cidade
+                      </Label>
+                      {formData.pais === "Brasil" && cidadesDisponiveis.length > 0 && formData.state !== "todos" ? (
                         <Select
-                          value={formData.state}
-                          onValueChange={(value) => handleInputChange("state", value)}
+                          value={formData.city}
+                          onValueChange={(value) => handleInputChange("city", value)}
+                          disabled={formData.state === "todos"}
                         >
                           <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                            <SelectValue placeholder="Selecione o estado" />
+                            <SelectValue placeholder="Selecione a cidade" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            <SelectItem value={""}>Todos os estados</SelectItem>
-                            {estadosBrasileiros.map((estado) => (
-                              <SelectItem key={estado.sigla} value={estado.sigla}>
-                                {estado.nome} ({estado.sigla})
-                              </SelectItem>
+                            <SelectItem value="todas">Todas as Cidades</SelectItem>
+                            {cidadesDisponiveis.map((cidade) => (
+                              <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                             ))}
+                            <SelectItem value={"__custom__"}>Outra cidade...</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                    )}
-
-                    {formData.pais === "Brasil" ? (
-                      <div className="space-y-2 w-full">
-                        <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                          Cidade
-                        </Label>
-                        {cidadesDisponiveis.length > 0 ? (
-                          <Select
-                            value={formData.city}
-                            onValueChange={(value) => handleInputChange("city", value)}
-                            disabled={!formData.state}
-                          >
-                            <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                              <SelectValue placeholder="Selecione a cidade" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-[300px]">
-                              <SelectItem value={""}>Todas as Cidades</SelectItem>
-                              {cidadesDisponiveis.map((cidade) => (
-                                <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
-                              ))}
-                              {/* Option to type a city not in the list */}
-                              <SelectItem value={"__custom__"}>Outra cidade...</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Input
-                            id="city"
-                            value={formData.city}
-                            onChange={(e) => handleInputChange("city", e.target.value)}
-                            placeholder={formData.state ? "Digite a cidade" : "Selecione o estado para ver cidades"}
-                            className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                            disabled={!formData.state}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-2 w-full">
-                        <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                          Cidade
-                        </Label>
+                      ) : (
                         <Input
                           id="city"
-                          value={formData.city}
-                          onChange={(e) => handleInputChange("city", e.target.value)}
-                          placeholder="Digite a cidade"
+                          value={formData.city === "todas" ? "" : formData.city}
+                          onChange={(e) => handleInputChange("city", e.target.value || "todas")}
+                          placeholder={formData.state !== "todos" ? "Digite a cidade" : "Selecione o estado"}
                           className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                          disabled={formData.state === "todos" && formData.pais === "Brasil"}
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
 
 
                     <div className="space-y-2 w-full">

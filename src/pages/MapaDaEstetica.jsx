@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -207,11 +208,11 @@ export default function MapaDaEstetica() {
   const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]);
   const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
   const [filters, setFilters] = useState({
-    categoria: "",
+    categoria: "todas",
     pais: "Brasil",
-    cidade: "",
-    estado: "",
-    plano: ""
+    cidade: "todas",
+    estado: "todos",
+    plano: "todos"
   });
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -251,10 +252,10 @@ export default function MapaDaEstetica() {
   const filteredEstabelecimentos = useMemo(() => {
     return estabelecimentos
       .filter(est => {
-        const matchCategoria = !filters.categoria || est.categoria === filters.categoria;
-        const matchCidade = !filters.cidade || (est.cidade && est.cidade.toLowerCase().includes(filters.cidade.toLowerCase()));
-        const matchEstado = !filters.estado || (est.estado && est.estado.toUpperCase() === filters.estado.toUpperCase());
-        const matchPlano = !filters.plano || est.plano_desconto === filters.plano;
+        const matchCategoria = filters.categoria === "todas" || est.categoria === filters.categoria;
+        const matchCidade = filters.cidade === "todas" || (est.cidade && est.cidade.toLowerCase().includes(filters.cidade.toLowerCase()));
+        const matchEstado = filters.estado === "todos" || (est.estado && est.estado.toUpperCase() === filters.estado.toUpperCase());
+        const matchPlano = filters.plano === "todos" || est.plano_desconto === filters.plano;
         
         return matchCategoria && matchCidade && matchEstado && matchPlano;
       })
@@ -292,7 +293,7 @@ export default function MapaDaEstetica() {
     }
   };
 
-  const cidadesDisponiveis = filters.estado ? (cidadesPrincipaisPorEstado[filters.estado] || []) : [];
+  const cidadesDisponiveis = filters.estado !== "todos" ? (cidadesPrincipaisPorEstado[filters.estado] || []) : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -582,7 +583,7 @@ export default function MapaDaEstetica() {
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={null}>Todas</SelectItem>
+                      <SelectItem value="todas">Todas</SelectItem>
                       <SelectItem value="Salão de Beleza">Salão de Beleza</SelectItem>
                       <SelectItem value="Clínica de Estética">Clínica de Estética</SelectItem>
                       <SelectItem value="Spa">Spa</SelectItem>
@@ -614,13 +615,13 @@ export default function MapaDaEstetica() {
                   <Label htmlFor="estado-filter" className="text-gray-700">Estado</Label>
                   <Select
                     value={filters.estado}
-                    onValueChange={(v) => setFilters(prev => ({...prev, estado: v, cidade: ''}))}
+                    onValueChange={(v) => setFilters(prev => ({...prev, estado: v, cidade: 'todas'}))}
                   >
                     <SelectTrigger id="estado-filter" className="border-[#E8DCC4]">
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
-                      <SelectItem value={null}>Todos os Estados</SelectItem>
+                      <SelectItem value="todos">Todos os Estados</SelectItem>
                       {estadosBrasileiros.map(estado => (
                         <SelectItem key={estado.sigla} value={estado.sigla}>
                           {estado.nome} ({estado.sigla})
@@ -641,7 +642,7 @@ export default function MapaDaEstetica() {
                         <SelectValue placeholder="Todas" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
-                        <SelectItem value={null}>Todas as Cidades</SelectItem>
+                        <SelectItem value="todas">Todas as Cidades</SelectItem>
                         {cidadesDisponiveis.map(cidade => (
                           <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                         ))}
@@ -651,11 +652,11 @@ export default function MapaDaEstetica() {
                   ) : (
                     <Input
                       id="cidade-filter"
-                      value={filters.cidade}
-                      onChange={(e) => setFilters(prev => ({...prev, cidade: e.target.value}))}
-                      placeholder={filters.estado ? "Digite a cidade" : "Selecione o estado"}
+                      value={filters.cidade === "todas" ? "" : filters.cidade}
+                      onChange={(e) => setFilters(prev => ({...prev, cidade: e.target.value || "todas"}))}
+                      placeholder={filters.estado !== "todos" ? "Digite a cidade" : "Selecione o estado"}
                       className="border-[#E8DCC4]"
-                      disabled={!filters.estado}
+                      disabled={filters.estado === "todos"}
                     />
                   )}
                 </div>
