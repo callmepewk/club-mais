@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,7 +28,7 @@ import {
   Shield, Search, Edit, Trash2, Eye,
   Users, Crown, Star, Coins, CheckCircle, XCircle,
   Calendar, Zap, GitBranch, Package, FileDown, Ban, UserCheck,
-  Megaphone, TrendingUp, BarChart, Clock, UserPlus
+  Megaphone, TrendingUp, BarChart, Clock, UserPlus, Sparkles
 } from "lucide-react";
 import UserDetailsModal from "../components/UserDetailsModal";
 import {
@@ -75,9 +76,11 @@ export default function Control() {
     versao: "",
     tipo_release: "patch",
     changelog: "",
+    mudancas_tecnicas: "", // Added new field
     arquivos_alterados: [],
     data_agendada: "",
   });
+  const [generatingAI, setGeneratingAI] = useState(false); // New state for AI generation
 
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [bannerFormData, setBannerFormData] = useState({
@@ -163,6 +166,7 @@ export default function Control() {
         versao: "",
         tipo_release: "patch",
         changelog: "",
+        mudancas_tecnicas: "", // Reset after creation
         arquivos_alterados: [],
         data_agendada: "",
       });
@@ -216,6 +220,55 @@ export default function Control() {
       alert("Erro ao publicar versão. Detalhes no console.");
     }
   });
+
+  const handleGenerateChangelogWithAI = async () => {
+    if (!versionFormData.mudancas_tecnicas || !versionFormData.versao) {
+      alert('Por favor, preencha a versão e descreva as mudanças técnicas primeiro.');
+      return;
+    }
+
+    setGeneratingAI(true);
+    
+    try {
+      const aiDescription = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um comunicador profissional do Club da Beleza, uma plataforma premium de estética e beleza.
+
+Versão: ${versionFormData.versao}
+Tipo de Release: ${versionFormData.tipo_release}
+
+Mudanças Técnicas:
+${versionFormData.mudancas_tecnicas}
+
+Crie uma descrição AMIGÁVEL e EMPOLGANTE para os usuários sobre esta atualização.
+- Use uma linguagem acessível, não-técnica
+- Foque nos BENEFÍCIOS para o usuário final
+- Seja positivo e entusiasmado
+- Use emojis quando apropriado
+- Organize em tópicos se houver várias mudanças
+- Máximo de 3-4 parágrafos ou 5-8 bullet points
+
+Exemplo de tom:
+"Estamos muito felizes em trazer novidades incríveis para você! 🎉
+- Agora você pode fazer X de forma muito mais rápida e intuitiva
+- Melhoramos Y para sua experiência ser ainda mais agradável
+- Corrigimos alguns detalhes para tudo funcionar perfeitamente"
+
+Gere APENAS a descrição, sem introduções ou explicações extras.`
+      });
+
+      setVersionFormData(prev => ({
+        ...prev,
+        changelog: aiDescription
+      }));
+
+      alert('Descrição gerada com IA! Revise e ajuste se necessário antes de criar a versão.');
+    } catch (error) {
+      console.error('Erro ao gerar descrição:', error);
+      alert('Erro ao gerar descrição com IA. Tente novamente.');
+    }
+
+    setGeneratingAI(false);
+  };
 
   const scheduleVersionMutation = useMutation({
     mutationFn: async ({ versionId, data_agendada }) => {
@@ -1646,14 +1699,14 @@ export default function Control() {
       <AnimatePresence>
         {showVersionModal && (
           <Dialog open={showVersionModal} onOpenChange={setShowVersionModal}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-serif text-2xl flex items-center gap-2">
                   <Package className="w-6 h-6 text-indigo-600" />
                   Criar Nova Versão
                 </DialogTitle>
                 <DialogDescription>
-                  Crie uma nova versão para deploy manual ou agendado
+                  Crie uma nova versão para deploy manual ou agendado. Todos os usuários serão notificados por email.
                 </DialogDescription>
               </DialogHeader>
 
@@ -1688,14 +1741,60 @@ export default function Control() {
                   </div>
                 </div>
 
+                <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold text-purple-800">Gerar Descrição com IA</h4>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-purple-700">Descreva as mudanças técnicas</Label>
+                    <Textarea
+                      value={versionFormData.mudancas_tecnicas}
+                      onChange={(e) => setVersionFormData({...versionFormData, mudancas_tecnicas: e.target.value})}
+                      placeholder="Ex: Adicionei sistema de notificações por email, corrigi bug no filtro de cidades, melhorei performance do mapa"
+                      className="border-purple-300 h-24"
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleGenerateChangelogWithAI}
+                    disabled={generatingAI || !versionFormData.mudancas_tecnicas || !versionFormData.versao}
+                    className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+                  >
+                    {generatingAI ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Gerando descrição amigável...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Gerar Descrição Amigável com IA
+                      </>
+                    )}
+                  </Button>
+                </div>
+
                 <div className="space-y-2">
-                  <Label>Changelog (O que mudou?) *</Label>
+                  <Label>Changelog (Descrição para os usuários) *</Label>
                   <Textarea
                     value={versionFormData.changelog}
                     onChange={(e) => setVersionFormData({...versionFormData, changelog: e.target.value})}
-                    placeholder="Ex:\n- Adicionado sistema de notificações\n- Corrigido bug no login\n- Melhorada performance do mapa"
-                    className="border-[#E8DCC4] h-32"
+                    placeholder="Descrição que será enviada por email para todos os usuários..."
+                    className="border-[#E8DCC4] h-40"
                   />
+                  <p className="text-xs text-gray-500">
+                    💡 Dica: Use a IA acima para gerar uma descrição amigável automaticamente
+                  </p>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>📧 Notificação Automática:</strong> Ao publicar ou agendar esta versão, 
+                    TODOS os usuários cadastrados receberão um email informando sobre a atualização.
+                  </p>
                 </div>
 
                 <div className="flex gap-3 pt-4">
@@ -1707,6 +1806,7 @@ export default function Control() {
                         versao: "",
                         tipo_release: "patch",
                         changelog: "",
+                        mudancas_tecnicas: "", // Reset when cancelling
                         arquivos_alterados: [],
                         data_agendada: "",
                       });
