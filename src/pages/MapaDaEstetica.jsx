@@ -80,6 +80,76 @@ function MapController({ center }) {
   return null;
 }
 
+const estadosBrasileiros = [
+  { sigla: "AC", nome: "Acre" },
+  { sigla: "AL", nome: "Alagoas" },
+  { sigla: "AP", nome: "Amapá" },
+  { sigla: "AM", nome: "Amazonas" },
+  { sigla: "BA", nome: "Bahia" },
+  { sigla: "CE", nome: "Ceará" },
+  { sigla: "DF", nome: "Distrito Federal" },
+  { sigla: "ES", nome: "Espírito Santo" },
+  { sigla: "GO", nome: "Goiás" },
+  { sigla: "MA", nome: "Maranhão" },
+  { sigla: "MT", nome: "Mato Grosso" },
+  { sigla: "MS", nome: "Mato Grosso do Sul" },
+  { sigla: "MG", nome: "Minas Gerais" },
+  { sigla: "PA", nome: "Pará" },
+  { sigla: "PB", nome: "Paraíba" },
+  { sigla: "PR", nome: "Paraná" },
+  { sigla: "PE", nome: "Pernambuco" },
+  { sigla: "PI", nome: "Piauí" },
+  { sigla: "RJ", nome: "Rio de Janeiro" },
+  { sigla: "RN", nome: "Rio Grande do Norte" },
+  { sigla: "RS", nome: "Rio Grande do Sul" },
+  { sigla: "RO", nome: "Rondônia" },
+  { sigla: "RR", nome: "Roraima" },
+  { sigla: "SC", nome: "Santa Catarina" },
+  { sigla: "SP", nome: "São Paulo" },
+  { sigla: "SE", nome: "Sergipe" },
+  { sigla: "TO", nome: "Tocantins" }
+];
+
+const paises = [
+  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
+  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
+  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
+  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
+  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
+  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
+  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
+  "Israel", "Arábia Saudita", "Outros"
+];
+
+const cidadesPrincipaisPorEstado = {
+  "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco", "Santo André"],
+  "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis", "Volta Redonda"],
+  "MG": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim", "Montes Claros", "Uberaba"],
+  "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro", "Ilhéus"],
+  "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel", "Foz do Iguaçu"],
+  "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria", "Gravataí"],
+  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru", "Petrolina"],
+  "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú", "Sobral"],
+  "PA": ["Belém", "Ananindeua", "Santarém", "Marabá", "Castanhal"],
+  "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó", "Criciúma"],
+  "GO": ["Goiânia", "Aparecida de Goiânia", "Anápolis", "Rio Verde"],
+  "MA": ["São Luís", "Imperatriz", "São José de Ribamar", "Timon"],
+  "ES": ["Vitória", "Vila Velha", "Serra", "Cariacica"],
+  "PB": ["João Pessoa", "Campina Grande", "Santa Rita"],
+  "RN": ["Natal", "Mossoró", "Parnamirim"],
+  "AL": ["Maceió", "Arapiraca", "Rio Largo"],
+  "SE": ["Aracaju", "Nossa Senhora do Socorro"],
+  "PI": ["Teresina", "Parnaíba", "Picos"],
+  "MT": ["Cuiabá", "Várzea Grande", "Rondonópolis"],
+  "MS": ["Campo Grande", "Dourados", "Três Lagoas"],
+  "AC": ["Rio Branco", "Cruzeiro do Sul"],
+  "RO": ["Porto Velho", "Ji-Paraná"],
+  "RR": ["Boa Vista"],
+  "AP": ["Macapá", "Santana"],
+  "TO": ["Palmas", "Araguaína"],
+  "DF": ["Brasília", "Taguatinga", "Ceilândia"]
+};
+
 const features = [
   {
     icon: Shield,
@@ -141,9 +211,10 @@ export default function MapaDaEstetica() {
   const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
   const [filters, setFilters] = useState({
     categoria: "",
+    pais: "Brasil", // Added new filter for country
     cidade: "",
     estado: "",
-    plano: "" // Assuming you might add a plan filter later
+    plano: "" 
   });
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -186,9 +257,10 @@ export default function MapaDaEstetica() {
         const matchCategoria = !filters.categoria || est.categoria === filters.categoria;
         const matchCidade = !filters.cidade || (est.cidade && est.cidade.toLowerCase().includes(filters.cidade.toLowerCase()));
         const matchEstado = !filters.estado || (est.estado && est.estado.toUpperCase() === filters.estado.toUpperCase());
-        const matchPlano = !filters.plano || est.plano_desconto === filters.plano; // Placeholder for future plan filter
+        const matchPais = !filters.pais || (est.pais && est.pais.toLowerCase() === filters.pais.toLowerCase()); // Added country filter logic
+        const matchPlano = !filters.plano || est.plano_desconto === filters.plano; 
         
-        return matchCategoria && matchCidade && matchEstado && matchPlano;
+        return matchCategoria && matchCidade && matchEstado && matchPais && matchPlano;
       })
       .map(est => ({
         ...est,
@@ -224,6 +296,8 @@ export default function MapaDaEstetica() {
       getUserLocation(); // Prompt user to enable location
     }
   };
+
+  const cidadesDisponiveis = filters.estado ? (cidadesPrincipaisPorEstado[filters.estado] || []) : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -508,7 +582,7 @@ export default function MapaDaEstetica() {
           {/* Filters */}
           <Card className="mb-8 border-[#E8DCC4] shadow-xl">
             <CardContent className="p-6">
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4"> {/* Changed to md:grid-cols-5 */}
                 <div className="space-y-2">
                   <Label htmlFor="categoria-filter" className="text-gray-700">Categoria</Label>
                   <Select
@@ -519,7 +593,7 @@ export default function MapaDaEstetica() {
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={null}>Todas</SelectItem>
+                      <SelectItem value={null}>Todas</SelectItem> {/* Changed value to empty string for "Todas" */}
                       {/* You might want to get these from your actual categories data or API */}
                       <SelectItem value="Salão de Beleza">Salão de Beleza</SelectItem>
                       <SelectItem value="Clínica de Estética">Clínica de Estética</SelectItem>
@@ -532,26 +606,70 @@ export default function MapaDaEstetica() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cidade-filter" className="text-gray-700">Cidade</Label>
-                  <Input
-                    id="cidade-filter"
-                    value={filters.cidade}
-                    onChange={(e) => setFilters(prev => ({...prev, cidade: e.target.value}))}
-                    placeholder="Ex: Belo Horizonte"
-                    className="border-[#E8DCC4]"
-                  />
+                  <Label htmlFor="estado-filter" className="text-gray-700">Estado</Label>
+                  <Select
+                    value={filters.estado}
+                    onValueChange={(v) => setFilters(prev => ({...prev, estado: v, cidade: ''}))} {/* Reset city when state changes */}
+                  >
+                    <SelectTrigger id="estado-filter" className="border-[#E8DCC4]">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem value={null}>Todos os Estados</SelectItem> {/* Changed value to empty string */}
+                      {estadosBrasileiros.map(estado => (
+                        <SelectItem key={estado.sigla} value={estado.sigla}>
+                          {estado.nome} ({estado.sigla})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="estado-filter" className="text-gray-700">Estado</Label>
-                  <Input
-                    id="estado-filter"
-                    value={filters.estado}
-                    onChange={(e) => setFilters(prev => ({...prev, estado: e.target.value.toUpperCase()}))}
-                    placeholder="Ex: MG"
-                    maxLength={2}
-                    className="border-[#E8DCC4]"
-                  />
+                  <Label htmlFor="cidade-filter" className="text-gray-700">Cidade</Label>
+                  {cidadesDisponiveis.length > 0 && filters.estado ? (
+                    <Select
+                      value={filters.cidade}
+                      onValueChange={(v) => setFilters(prev => ({...prev, cidade: v}))}
+                    >
+                      <SelectTrigger id="cidade-filter" className="border-[#E8DCC4]">
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        <SelectItem value={null}>Todas as Cidades</SelectItem> {/* Changed value to empty string */}
+                        {cidadesDisponiveis.map(cidade => (
+                          <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                        ))}
+                        {/* Option to type a custom city if desired, could be implemented with an input below the select */}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="cidade-filter"
+                      value={filters.cidade}
+                      onChange={(e) => setFilters(prev => ({...prev, cidade: e.target.value}))}
+                      placeholder={filters.estado ? "Digite a cidade" : "Selecione o estado"}
+                      className="border-[#E8DCC4]"
+                      disabled={!filters.estado}
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pais-filter" className="text-gray-700">País</Label>
+                  <Select
+                    value={filters.pais}
+                    onValueChange={(v) => setFilters(prev => ({...prev, pais: v}))}
+                  >
+                    <SelectTrigger id="pais-filter" className="border-[#E8DCC4]">
+                      <SelectValue placeholder="Selecione um país" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {paises.map(pais => (
+                        <SelectItem key={pais} value={pais}>{pais}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

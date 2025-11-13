@@ -220,11 +220,75 @@ const timeframes = [
   "Planejando para depois"
 ];
 
-const estados = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+const estadosBrasileiros = [
+  { sigla: "AC", nome: "Acre" },
+  { sigla: "AL", nome: "Alagoas" },
+  { sigla: "AP", nome: "Amapá" },
+  { sigla: "AM", nome: "Amazonas" },
+  { sigla: "BA", nome: "Bahia" },
+  { sigla: "CE", nome: "Ceará" },
+  { sigla: "DF", nome: "Distrito Federal" },
+  { sigla: "ES", nome: "Espírito Santo" },
+  { sigla: "GO", nome: "Goiás" },
+  { sigla: "MA", nome: "Maranhão" },
+  { sigla: "MT", nome: "Mato Grosso" },
+  { sigla: "MS", nome: "Mato Grosso do Sul" },
+  { sigla: "MG", nome: "Minas Gerais" },
+  { sigla: "PA", nome: "Pará" },
+  { sigla: "PB", nome: "Paraíba" },
+  { sigla: "PR", nome: "Paraná" },
+  { sigla: "PE", nome: "Pernambuco" },
+  { sigla: "PI", nome: "Piauí" },
+  { sigla: "RJ", nome: "Rio de Janeiro" },
+  { sigla: "RN", nome: "Rio Grande do Norte" },
+  { sigla: "RS", nome: "Rio Grande do Sul" },
+  { sigla: "RO", nome: "Rondônia" },
+  { sigla: "RR", nome: "Roraima" },
+  { sigla: "SC", nome: "Santa Catarina" },
+  { sigla: "SP", nome: "São Paulo" },
+  { sigla: "SE", nome: "Sergipe" },
+  { sigla: "TO", nome: "Tocantins" }
 ];
+
+const paises = [
+  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
+  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
+  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
+  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
+  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
+  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
+  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
+  "Israel", "Arábia Saudita", "Outros"
+];
+
+const cidadesPrincipaisPorEstado = {
+  "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco"],
+  "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis"],
+  "MG": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim", "Montes Claros"],
+  "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro"],
+  "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel"],
+  "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria"],
+  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruarí"],
+  "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú"],
+  "PA": ["Belém", "Ananindeua", "Santarém", "Marabá"],
+  "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó"],
+  "GO": ["Goiânia", "Aparecida de Goiânia", "Anápolis"],
+  "MA": ["São Luís", "Imperatriz", "São José de Ribamar"],
+  "ES": ["Vitória", "Vila Velha", "Serra"],
+  "PB": ["João Pessoa", "Campina Grande"],
+  "RN": ["Natal", "Mossoró"],
+  "AL": ["Maceió", "Arapiraca"],
+  "SE": ["Aracaju"],
+  "PI": ["Teresina", "Parnaíba"],
+  "MT": ["Cuiabá", "Várzea Grande"],
+  "MS": ["Campo Grande", "Dourados"],
+  "AC": ["Rio Branco"],
+  "RO": ["Porto Velho"],
+  "RR": ["Boa Vista"],
+  "AP": ["Macapá"],
+  "TO": ["Palmas"],
+  "DF": ["Brasília"]
+};
 
 const distanceRanges = [
   { value: "0.5", label: "Até 500m" },
@@ -296,6 +360,7 @@ export default function DrBeleza() {
     area: "",
     budget: "",
     timeframe: "",
+    pais: "Brasil",
     city: "",
     state: "",
     latitude: "",
@@ -329,6 +394,9 @@ export default function DrBeleza() {
       if (field === "treatment") {
         newData.area = "";
       }
+      if (field === "state") {
+        newData.city = ""; // Clear city when state changes
+      }
       return newData;
     });
   };
@@ -352,7 +420,8 @@ export default function DrBeleza() {
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6),
             city: city,
-            state: state.substring(0, 2).toUpperCase()
+            state: state.substring(0, 2).toUpperCase(), // Ensure state is 2-letter code
+            pais: "Brasil" // Assume Brazil if location is obtained within Brazil
           }));
 
           setLoadingLocation(false);
@@ -379,13 +448,19 @@ export default function DrBeleza() {
 
     return estabelecimentos
       .filter(est => {
+        // Filter by country
+        const matchCountry = !formData.pais || est.pais === formData.pais;
+
+        // Filter by state
+        const matchState = !formData.state ||
+          (formData.pais === "Brasil" && est.estado === formData.state) ||
+          (formData.pais !== "Brasil"); // If not Brazil, state filter might not apply or needs different logic
+
+        // Filter by city
         const matchCity = !formData.city ||
           est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
 
-        const matchState = !formData.state ||
-          est.estado === formData.state;
-
-        return matchCity && matchState;
+        return matchCountry && matchState && matchCity;
       })
       .map(est => ({
         ...est,
@@ -406,7 +481,7 @@ export default function DrBeleza() {
         if (b.distancia === null) return -1;
         return a.distancia - b.distancia;
       });
-  }, [estabelecimentos, formData.city, formData.state, formData.maxDistance, userLocation, showResults]);
+  }, [estabelecimentos, formData.pais, formData.city, formData.state, formData.maxDistance, userLocation, showResults]);
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -416,6 +491,8 @@ export default function DrBeleza() {
       setIsSearching(false);
       if (filteredEstabelecimentos.length > 0 && filteredEstabelecimentos[0].latitude) {
         setMapCenter([filteredEstabelecimentos[0].latitude, filteredEstabelecimentos[0].longitude]);
+      } else if (userLocation) {
+        setMapCenter(userLocation); // Fallback to user location if no results or first result has no lat/lng
       }
     }, 1000);
   };
@@ -428,6 +505,14 @@ export default function DrBeleza() {
     setSelectedEstabelecimento(est);
     setMapCenter([est.latitude, est.longitude]);
   };
+
+  const cidadesDisponiveis = useMemo(() => {
+    if (formData.pais === "Brasil" && formData.state) {
+      return cidadesPrincipaisPorEstado[formData.state] || [];
+    }
+    return [];
+  }, [formData.pais, formData.state]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -773,39 +858,101 @@ export default function DrBeleza() {
                     </div>
 
                     <div className="space-y-2 w-full">
-                      <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                      <Label htmlFor="pais" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                        Cidade
-                      </Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange("city", e.target.value)}
-                        placeholder="Digite sua cidade ou use geolocalização"
-                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                        Estado
+                        País
                       </Label>
                       <Select
-                        value={formData.state}
-                        onValueChange={(value) => handleInputChange("state", value)}
+                        value={formData.pais}
+                        onValueChange={(value) => handleInputChange("pais", value)}
                       >
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
-                          <SelectValue placeholder="Selecione ou use geolocalização" />
+                          <SelectValue placeholder="Selecione o país" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
-                          <SelectItem value={null}>Todos os estados</SelectItem>
-                          {estados.map((estado) => (
-                            <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                          {paises.map((pais) => (
+                            <SelectItem key={pais} value={pais}>{pais}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {formData.pais === "Brasil" && (
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="state" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                          Estado
+                        </Label>
+                        <Select
+                          value={formData.state}
+                          onValueChange={(value) => handleInputChange("state", value)}
+                        >
+                          <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                            <SelectValue placeholder="Selecione o estado" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            <SelectItem value={""}>Todos os estados</SelectItem>
+                            {estadosBrasileiros.map((estado) => (
+                              <SelectItem key={estado.sigla} value={estado.sigla}>
+                                {estado.nome} ({estado.sigla})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {formData.pais === "Brasil" ? (
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                          Cidade
+                        </Label>
+                        {cidadesDisponiveis.length > 0 ? (
+                          <Select
+                            value={formData.city}
+                            onValueChange={(value) => handleInputChange("city", value)}
+                            disabled={!formData.state}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
+                              <SelectValue placeholder="Selecione a cidade" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value={""}>Todas as Cidades</SelectItem>
+                              {cidadesDisponiveis.map((cidade) => (
+                                <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                              ))}
+                              {/* Option to type a city not in the list */}
+                              <SelectItem value={"__custom__"}>Outra cidade...</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange("city", e.target.value)}
+                            placeholder={formData.state ? "Digite a cidade" : "Selecione o estado para ver cidades"}
+                            className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                            disabled={!formData.state}
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2 w-full">
+                        <Label htmlFor="city" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
+                          <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                          Cidade
+                        </Label>
+                        <Input
+                          id="city"
+                          value={formData.city}
+                          onChange={(e) => handleInputChange("city", e.target.value)}
+                          placeholder="Digite a cidade"
+                          className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                        />
+                      </div>
+                    )}
+
 
                     <div className="space-y-2 w-full">
                       <Label htmlFor="latitude" className="text-gray-700 flex items-center gap-2 text-sm md:text-base">
