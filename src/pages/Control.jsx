@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -76,11 +75,11 @@ export default function Control() {
     versao: "",
     tipo_release: "patch",
     changelog: "",
-    mudancas_tecnicas: "", // Added new field
+    mudancas_tecnicas: "",
     arquivos_alterados: [],
     data_agendada: "",
   });
-  const [generatingAI, setGeneratingAI] = useState(false); // New state for AI generation
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [bannerFormData, setBannerFormData] = useState({
@@ -166,7 +165,7 @@ export default function Control() {
         versao: "",
         tipo_release: "patch",
         changelog: "",
-        mudancas_tecnicas: "", // Reset after creation
+        mudancas_tecnicas: "",
         arquivos_alterados: [],
         data_agendada: "",
       });
@@ -194,17 +193,48 @@ export default function Control() {
       for (const currentUser of allUsers) {
         await base44.integrations.Core.SendEmail({
           to: currentUser.email,
-          subject: `🚀 Nova Versão ${version.versao} Disponível!`,
+          subject: `🚀 Nova Versão ${version.versao} Disponível - Club da Beleza!`,
           body: `
-            <h2>Nova Atualização Disponível!</h2>
-            <p>Olá ${currentUser.full_name || 'Usuário'}!</p>
-            <p>O Club da Beleza foi atualizado para a versão <strong>${version.versao}</strong>!</p>
-            <hr/>
-            <h3>📋 O que há de novo:</h3>
-            <p>${version.changelog.replace(/\n/g, '<br/>')}</p>
-            <hr/>
-            <p><strong>🔄 Ação recomendada:</strong> Ao acessar o site, você verá um aviso de atualização. Clique em "Atualizar Agora" para aproveitar as novidades!</p>
-            <p><small>Club da Beleza - Versão ${version.versao}</small></p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(to right, #D4AF37, #C8A882); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">🚀 Nova Atualização!</h1>
+                <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Versão ${version.versao}</p>
+              </div>
+              
+              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 16px; color: #333;">Olá <strong>${currentUser.full_name || 'Usuário'}</strong>!</p>
+                
+                <p style="font-size: 16px; color: #333; margin-top: 20px;">
+                  Acabamos de lançar a versão <strong style="color: #D4AF37;">${version.versao}</strong> do Club da Beleza!
+                </p>
+                
+                <hr style="border: none; border-top: 2px solid #F5EFE6; margin: 25px 0;"/>
+                
+                <h3 style="color: #D4AF37; font-size: 20px; margin-bottom: 15px;">✨ O que há de novo:</h3>
+                <div style="background: #F5EFE6; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                  <p style="font-size: 15px; color: #333; line-height: 1.6; white-space: pre-line;">${version.changelog}</p>
+                </div>
+                
+                <hr style="border: none; border-top: 2px solid #F5EFE6; margin: 25px 0;"/>
+                
+                <div style="background: #E8F5E9; padding: 20px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+                  <p style="margin: 0; color: #2E7D32; font-size: 14px;">
+                    <strong>🔄 Próximo passo:</strong> Na próxima vez que você acessar o Club da Beleza, 
+                    verá um aviso de atualização. Clique em "Atualizar Agora" para aproveitar todas as novidades!
+                  </p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="${window.location.origin}" style="background: linear-gradient(to right, #D4AF37, #C8A882); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                    Acessar Club da Beleza
+                  </a>
+                </div>
+                
+                <p style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
+                  Club da Beleza © ${new Date().getFullYear()} - Versão ${version.versao}
+                </p>
+              </div>
+            </div>
           `
         });
       }
@@ -213,62 +243,13 @@ export default function Control() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app-versions'] });
-      alert('Versão publicada e usuários notificados com sucesso!');
+      alert('Versão publicada e todos os usuários foram notificados por email!');
     },
     onError: (error) => {
       console.error("Erro ao publicar versão:", error);
       alert("Erro ao publicar versão. Detalhes no console.");
     }
   });
-
-  const handleGenerateChangelogWithAI = async () => {
-    if (!versionFormData.mudancas_tecnicas || !versionFormData.versao) {
-      alert('Por favor, preencha a versão e descreva as mudanças técnicas primeiro.');
-      return;
-    }
-
-    setGeneratingAI(true);
-    
-    try {
-      const aiDescription = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um comunicador profissional do Club da Beleza, uma plataforma premium de estética e beleza.
-
-Versão: ${versionFormData.versao}
-Tipo de Release: ${versionFormData.tipo_release}
-
-Mudanças Técnicas:
-${versionFormData.mudancas_tecnicas}
-
-Crie uma descrição AMIGÁVEL e EMPOLGANTE para os usuários sobre esta atualização.
-- Use uma linguagem acessível, não-técnica
-- Foque nos BENEFÍCIOS para o usuário final
-- Seja positivo e entusiasmado
-- Use emojis quando apropriado
-- Organize em tópicos se houver várias mudanças
-- Máximo de 3-4 parágrafos ou 5-8 bullet points
-
-Exemplo de tom:
-"Estamos muito felizes em trazer novidades incríveis para você! 🎉
-- Agora você pode fazer X de forma muito mais rápida e intuitiva
-- Melhoramos Y para sua experiência ser ainda mais agradável
-- Corrigimos alguns detalhes para tudo funcionar perfeitamente"
-
-Gere APENAS a descrição, sem introduções ou explicações extras.`
-      });
-
-      setVersionFormData(prev => ({
-        ...prev,
-        changelog: aiDescription
-      }));
-
-      alert('Descrição gerada com IA! Revise e ajuste se necessário antes de criar a versão.');
-    } catch (error) {
-      console.error('Erro ao gerar descrição:', error);
-      alert('Erro ao gerar descrição com IA. Tente novamente.');
-    }
-
-    setGeneratingAI(false);
-  };
 
   const scheduleVersionMutation = useMutation({
     mutationFn: async ({ versionId, data_agendada }) => {
@@ -285,27 +266,65 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
       for (const currentUser of allUsers) {
         await base44.integrations.Core.SendEmail({
           to: currentUser.email,
-          subject: `📅 Atualização Agendada: Versão ${version.versao}`,
+          subject: `📅 Atualização Agendada - Versão ${version.versao} - Club da Beleza`,
           body: `
-            <h2>Manutenção Programada</h2>
-            <p>Olá ${currentUser.full_name || 'Usuário'}!</p>
-            <p>O Club da Beleza será atualizado para a versão <strong>${version.versao}</strong></p>
-            <p><strong>📅 Data e Horário:</strong> ${new Date(data_agendada).toLocaleString('pt-BR')}</p>
-            <hr/>
-            <h3>📋 Melhorias previstas:</h3>
-            <p>${version.changelog.replace(/\n/g, '<br/>')}</p>
-            <hr/>
-            <p><strong>ℹ️ Importante:</strong> Durante o horário programado, você pode ser solicitado a recarregar a página para aplicar as atualizações.</p>
-            <p><small>Club da Beleza</small></p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(to right, #FF9800, #F57C00); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">📅 Manutenção Programada</h1>
+                <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Versão ${version.versao}</p>
+              </div>
+              
+              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 16px; color: #333;">Olá <strong>${currentUser.full_name || 'Usuário'}</strong>!</p>
+                
+                <p style="font-size: 16px; color: #333; margin-top: 20px;">
+                  Informamos que o Club da Beleza receberá uma atualização para a versão <strong style="color: #D4AF37;">${version.versao}</strong>.
+                </p>
+                
+                <div style="background: #FFF3E0; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #FF9800;">
+                  <p style="margin: 0; color: #E65100; font-size: 16px;">
+                    <strong>📅 Data e Horário:</strong> ${new Date(data_agendada).toLocaleString('pt-BR', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                
+                <hr style="border: none; border-top: 2px solid #F5EFE6; margin: 25px 0;"/>
+                
+                <h3 style="color: #D4AF37; font-size: 20px; margin-bottom: 15px;">✨ Melhorias previstas:</h3>
+                <div style="background: #F5EFE6; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                  <p style="font-size: 15px; color: #333; line-height: 1.6; white-space: pre-line;">${version.changelog}</p>
+                </div>
+                
+                <hr style="border: none; border-top: 2px solid #F5EFE6; margin: 25px 0;"/>
+                
+                <div style="background: #E3F2FD; padding: 20px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                  <p style="margin: 0; color: #1565C0; font-size: 14px;">
+                    <strong>ℹ️ O que você precisa saber:</strong><br/>
+                    Durante o horário programado, você poderá ser solicitado a recarregar a página para aplicar as atualizações.
+                    Não se preocupe, é rápido e simples!
+                  </p>
+                </div>
+                
+                <p style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
+                  Club da Beleza © ${new Date().getFullYear()} - Sempre evoluindo para você
+                </p>
+              </div>
+            </div>
           `
         });
       }
 
       return allUsers.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['app-versions'] });
-      alert('Atualização agendada e usuários notificados!');
+      alert(`Atualização agendada e ${count} usuários notificados por email!`);
     },
     onError: (error) => {
       console.error("Erro ao agendar versão:", error);
@@ -509,6 +528,62 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
     }
   });
 
+  const handleGenerateChangelogWithAI = async () => {
+    if (!versionFormData.mudancas_tecnicas || !versionFormData.versao) {
+      alert('Por favor, preencha a versão e descreva as mudanças técnicas primeiro.');
+      return;
+    }
+
+    setGeneratingAI(true);
+    
+    try {
+      const aiDescription = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um comunicador profissional do Club da Beleza, uma plataforma premium de estética e beleza.
+
+Versão: ${versionFormData.versao}
+Tipo de Release: ${versionFormData.tipo_release}
+
+Mudanças Técnicas (o que você fez):
+${versionFormData.mudancas_tecnicas}
+
+Crie uma descrição AMIGÁVEL, EMPOLGANTE e PROFISSIONAL para os usuários sobre esta atualização.
+
+REGRAS IMPORTANTES:
+- Use linguagem acessível e não-técnica
+- Foque nos BENEFÍCIOS para o usuário final (não em detalhes técnicos)
+- Seja positivo, empolgante e acolhedor
+- Use emojis sutilmente quando apropriado (máximo 3-4)
+- Organize em tópicos se houver várias mudanças
+- Máximo de 4-5 parágrafos curtos OU 5-8 bullet points
+- Não use jargões técnicos como "bug", "correção de código", etc.
+
+EXEMPLOS DE TRANSFORMAÇÃO:
+❌ "Corrigido bug no filtro de cidades"
+✅ "Agora você encontra estabelecimentos na sua cidade de forma ainda mais precisa! 🎯"
+
+❌ "Adicionado sistema de notificações por email"
+✅ "Você receberá avisos personalizados sobre novidades, eventos e promoções exclusivas! 💌"
+
+❌ "Melhorada performance do mapa"
+✅ "O mapa carrega mais rápido e é ainda mais fácil de navegar! 🗺️"
+
+Gere APENAS a descrição amigável, sem introduções, títulos ou explicações extras.`,
+      });
+
+      setVersionFormData(prev => ({
+        ...prev,
+        changelog: aiDescription
+      }));
+
+      alert('✨ Descrição gerada com IA! Revise e ajuste se necessário.');
+    } catch (error) {
+      console.error('Erro ao gerar descrição:', error);
+      alert('Erro ao gerar descrição com IA. Tente novamente.');
+    }
+
+    setGeneratingAI(false);
+  };
+
   const handleEditUser = (user) => {
     setEditingUser(user);
     setEditFormData({
@@ -566,7 +641,7 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
   };
 
   const handleForcePublish = (versionId) => {
-    if (confirm('⚠️ FORÇAR PUBLICAÇÃO: Isso enviará a atualização imediatamente para TODOS os usuários. Continuar?')) {
+    if (confirm('⚠️ FORÇAR PUBLICAÇÃO: Isso enviará a atualização imediatamente para TODOS os usuários por email. Continuar?')) {
       publishVersionMutation.mutate(versionId);
     }
   };
@@ -575,10 +650,12 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
     const dataAgendada = prompt('Digite a data e hora para publicação (formato: YYYY-MM-DDTHH:mm):');
     
     if (dataAgendada) {
-      scheduleVersionMutation.mutate({ 
-        versionId, 
-        data_agendada: dataAgendada 
-      });
+      if (confirm(`📅 Confirma agendar para ${new Date(dataAgendada).toLocaleString('pt-BR')}? TODOS os usuários serão notificados por email.`)) {
+        scheduleVersionMutation.mutate({ 
+          versionId, 
+          data_agendada: dataAgendada 
+        });
+      }
     }
   };
 
@@ -1149,7 +1226,7 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
                         Sistema de Versões (CI/CD Interno)
                       </CardTitle>
                       <p className="text-white/90 text-sm mt-1">
-                        Deploy automático de alterações - Publique ou agende atualizações
+                        Deploy automático com notificação por email para todos os usuários
                       </p>
                     </div>
                   </div>
@@ -1706,7 +1783,7 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
                   Criar Nova Versão
                 </DialogTitle>
                 <DialogDescription>
-                  Crie uma nova versão para deploy manual ou agendado. Todos os usuários serão notificados por email.
+                  Crie uma nova versão. Ao publicar ou agendar, TODOS os usuários serão notificados por email.
                 </DialogDescription>
               </DialogHeader>
 
@@ -1744,15 +1821,15 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
                 <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200 space-y-3">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-purple-600" />
-                    <h4 className="font-semibold text-purple-800">Gerar Descrição com IA</h4>
+                    <h4 className="font-semibold text-purple-800">✨ Gerar Descrição Amigável com IA</h4>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="text-purple-700">Descreva as mudanças técnicas</Label>
+                    <Label className="text-purple-700">Descreva as mudanças técnicas que você fez</Label>
                     <Textarea
                       value={versionFormData.mudancas_tecnicas}
                       onChange={(e) => setVersionFormData({...versionFormData, mudancas_tecnicas: e.target.value})}
-                      placeholder="Ex: Adicionei sistema de notificações por email, corrigi bug no filtro de cidades, melhorei performance do mapa"
+                      placeholder="Ex: Adicionei gerador de descrição com IA no painel de versões, corrigi bug no filtro de cidades do DrBeleza, melhorei layout dos emails de notificação"
                       className="border-purple-300 h-24"
                     />
                   </div>
@@ -1766,34 +1843,39 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
                     {generatingAI ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Gerando descrição amigável...
+                        Gerando descrição empolgante para os usuários...
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Gerar Descrição Amigável com IA
+                        Transformar em Descrição Amigável com IA
                       </>
                     )}
                   </Button>
+                  
+                  <p className="text-xs text-purple-700">
+                    💡 A IA vai transformar detalhes técnicos em uma mensagem empolgante e fácil de entender para os usuários!
+                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Changelog (Descrição para os usuários) *</Label>
+                  <Label>Changelog (Descrição que será enviada por email) *</Label>
                   <Textarea
                     value={versionFormData.changelog}
                     onChange={(e) => setVersionFormData({...versionFormData, changelog: e.target.value})}
-                    placeholder="Descrição que será enviada por email para todos os usuários..."
+                    placeholder="Descrição amigável que os usuários verão no email..."
                     className="border-[#E8DCC4] h-40"
                   />
                   <p className="text-xs text-gray-500">
-                    💡 Dica: Use a IA acima para gerar uma descrição amigável automaticamente
+                    💡 Use a IA acima para gerar automaticamente uma descrição empolgante!
                   </p>
                 </div>
 
                 <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                   <p className="text-sm text-blue-800">
                     <strong>📧 Notificação Automática:</strong> Ao publicar ou agendar esta versão, 
-                    TODOS os usuários cadastrados receberão um email informando sobre a atualização.
+                    <strong> TODOS os {stats.total} usuários</strong> cadastrados receberão um email profissional 
+                    informando sobre a atualização com a descrição acima.
                   </p>
                 </div>
 
@@ -1806,7 +1888,7 @@ Gere APENAS a descrição, sem introduções ou explicações extras.`
                         versao: "",
                         tipo_release: "patch",
                         changelog: "",
-                        mudancas_tecnicas: "", // Reset when cancelling
+                        mudancas_tecnicas: "",
                         arquivos_alterados: [],
                         data_agendada: "",
                       });
