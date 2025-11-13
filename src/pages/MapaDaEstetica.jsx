@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +24,6 @@ import {
   Shield, CheckCircle, ExternalLink, Map as MapIconLucide, Locate, Navigation
 } from "lucide-react";
 
-// Fix leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -33,7 +31,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom icons
 const userIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml;base64,' + btoa(`
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
@@ -58,7 +55,7 @@ const estabelecimentoIcon = new L.Icon({
 });
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Raio da Terra em km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -122,32 +119,32 @@ const paises = [
 ];
 
 const cidadesPrincipaisPorEstado = {
-  "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco", "Santo André"],
-  "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis", "Volta Redonda"],
-  "MG": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim", "Montes Claros", "Uberaba"],
-  "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro", "Ilhéus"],
-  "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel", "Foz do Iguaçu"],
-  "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria", "Gravataí"],
-  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru", "Petrolina"],
-  "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú", "Sobral"],
-  "PA": ["Belém", "Ananindeua", "Santarém", "Marabá", "Castanhal"],
-  "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó", "Criciúma"],
-  "GO": ["Goiânia", "Aparecida de Goiânia", "Anápolis", "Rio Verde"],
-  "MA": ["São Luís", "Imperatriz", "São José de Ribamar", "Timon"],
-  "ES": ["Vitória", "Vila Velha", "Serra", "Cariacica"],
-  "PB": ["João Pessoa", "Campina Grande", "Santa Rita"],
-  "RN": ["Natal", "Mossoró", "Parnamirim"],
-  "AL": ["Maceió", "Arapiraca", "Rio Largo"],
-  "SE": ["Aracaju", "Nossa Senhora do Socorro"],
-  "PI": ["Teresina", "Parnaíba", "Picos"],
-  "MT": ["Cuiabá", "Várzea Grande", "Rondonópolis"],
-  "MS": ["Campo Grande", "Dourados", "Três Lagoas"],
-  "AC": ["Rio Branco", "Cruzeiro do Sul"],
-  "RO": ["Porto Velho", "Ji-Paraná"],
+  "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco"],
+  "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis"],
+  "MG": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim", "Montes Claros"],
+  "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro"],
+  "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel"],
+  "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria"],
+  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru"],
+  "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú"],
+  "PA": ["Belém", "Ananindeua", "Santarém", "Marabá"],
+  "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó"],
+  "GO": ["Goiânia", "Aparecida de Goiânia", "Anápolis"],
+  "MA": ["São Luís", "Imperatriz", "São José de Ribamar"],
+  "ES": ["Vitória", "Vila Velha", "Serra"],
+  "PB": ["João Pessoa", "Campina Grande"],
+  "RN": ["Natal", "Mossoró"],
+  "AL": ["Maceió", "Arapiraca"],
+  "SE": ["Aracaju"],
+  "PI": ["Teresina", "Parnaíba"],
+  "MT": ["Cuiabá", "Várzea Grande"],
+  "MS": ["Campo Grande", "Dourados"],
+  "AC": ["Rio Branco"],
+  "RO": ["Porto Velho"],
   "RR": ["Boa Vista"],
-  "AP": ["Macapá", "Santana"],
-  "TO": ["Palmas", "Araguaína"],
-  "DF": ["Brasília", "Taguatinga", "Ceilândia"]
+  "AP": ["Macapá"],
+  "TO": ["Palmas"],
+  "DF": ["Brasília"]
 };
 
 const features = [
@@ -207,14 +204,14 @@ const categories = [
 
 export default function MapaDaEstetica() {
   const [userLocation, setUserLocation] = useState(null);
-  const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]); // Belo Horizonte default
+  const [mapCenter, setMapCenter] = useState([-19.9167, -43.9345]);
   const [selectedEstabelecimento, setSelectedEstabelecimento] = useState(null);
   const [filters, setFilters] = useState({
     categoria: "",
-    pais: "Brasil", // Added new filter for country
+    pais: "Brasil",
     cidade: "",
     estado: "",
-    plano: "" 
+    plano: ""
   });
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -257,14 +254,12 @@ export default function MapaDaEstetica() {
         const matchCategoria = !filters.categoria || est.categoria === filters.categoria;
         const matchCidade = !filters.cidade || (est.cidade && est.cidade.toLowerCase().includes(filters.cidade.toLowerCase()));
         const matchEstado = !filters.estado || (est.estado && est.estado.toUpperCase() === filters.estado.toUpperCase());
-        const matchPais = !filters.pais || (est.pais && est.pais.toLowerCase() === filters.pais.toLowerCase()); // Added country filter logic
-        const matchPlano = !filters.plano || est.plano_desconto === filters.plano; 
+        const matchPlano = !filters.plano || est.plano_desconto === filters.plano;
         
-        return matchCategoria && matchCidade && matchEstado && matchPais && matchPlano;
+        return matchCategoria && matchCidade && matchEstado && matchPlano;
       })
       .map(est => ({
         ...est,
-        // Only calculate distance if est.latitude and est.longitude are valid numbers
         distancia: (userLocation && typeof est.latitude === 'number' && typeof est.longitude === 'number') ? calcularDistancia(
           userLocation[0],
           userLocation[1],
@@ -293,7 +288,7 @@ export default function MapaDaEstetica() {
       window.open(url, '_blank');
     } else {
       alert("Ative sua geolocalização primeiro para obter rotas.");
-      getUserLocation(); // Prompt user to enable location
+      getUserLocation();
     }
   };
 
@@ -301,7 +296,6 @@ export default function MapaDaEstetica() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
-      {/* Hero Section */}
       <div className="relative py-24 px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
@@ -405,7 +399,6 @@ export default function MapaDaEstetica() {
         </div>
       </div>
 
-      {/* Mission Section */}
       <div className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -465,7 +458,6 @@ export default function MapaDaEstetica() {
         </div>
       </div>
 
-      {/* Features Section */}
       <div className="py-24 px-6 bg-gradient-to-br from-white to-[#F5EFE6]">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -517,7 +509,6 @@ export default function MapaDaEstetica() {
         </div>
       </div>
 
-      {/* Categories Section */}
       <div className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -555,7 +546,6 @@ export default function MapaDaEstetica() {
         </div>
       </div>
 
-      {/* Interactive Map Section */}
       <div className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -579,10 +569,9 @@ export default function MapaDaEstetica() {
             </h2>
           </motion.div>
 
-          {/* Filters */}
           <Card className="mb-8 border-[#E8DCC4] shadow-xl">
             <CardContent className="p-6">
-              <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4"> {/* Changed to md:grid-cols-5 */}
+              <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="categoria-filter" className="text-gray-700">Categoria</Label>
                   <Select
@@ -593,8 +582,7 @@ export default function MapaDaEstetica() {
                       <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={null}>Todas</SelectItem> {/* Changed value to empty string for "Todas" */}
-                      {/* You might want to get these from your actual categories data or API */}
+                      <SelectItem value={null}>Todas</SelectItem>
                       <SelectItem value="Salão de Beleza">Salão de Beleza</SelectItem>
                       <SelectItem value="Clínica de Estética">Clínica de Estética</SelectItem>
                       <SelectItem value="Spa">Spa</SelectItem>
@@ -606,16 +594,33 @@ export default function MapaDaEstetica() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="pais-filter" className="text-gray-700">País</Label>
+                  <Select
+                    value={filters.pais}
+                    onValueChange={(v) => setFilters(prev => ({...prev, pais: v}))}
+                  >
+                    <SelectTrigger id="pais-filter" className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {paises.map(pais => (
+                        <SelectItem key={pais} value={pais}>{pais}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="estado-filter" className="text-gray-700">Estado</Label>
                   <Select
                     value={filters.estado}
-                    onValueChange={(v) => setFilters(prev => ({...prev, estado: v, cidade: ''}))} {/* Reset city when state changes */}
+                    onValueChange={(v) => setFilters(prev => ({...prev, estado: v, cidade: ''}))}
                   >
                     <SelectTrigger id="estado-filter" className="border-[#E8DCC4]">
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
-                      <SelectItem value={null}>Todos os Estados</SelectItem> {/* Changed value to empty string */}
+                      <SelectItem value={null}>Todos os Estados</SelectItem>
                       {estadosBrasileiros.map(estado => (
                         <SelectItem key={estado.sigla} value={estado.sigla}>
                           {estado.nome} ({estado.sigla})
@@ -627,7 +632,7 @@ export default function MapaDaEstetica() {
 
                 <div className="space-y-2">
                   <Label htmlFor="cidade-filter" className="text-gray-700">Cidade</Label>
-                  {cidadesDisponiveis.length > 0 && filters.estado ? (
+                  {cidadesDisponiveis.length > 0 ? (
                     <Select
                       value={filters.cidade}
                       onValueChange={(v) => setFilters(prev => ({...prev, cidade: v}))}
@@ -636,11 +641,11 @@ export default function MapaDaEstetica() {
                         <SelectValue placeholder="Todas" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
-                        <SelectItem value={null}>Todas as Cidades</SelectItem> {/* Changed value to empty string */}
+                        <SelectItem value={null}>Todas as Cidades</SelectItem>
                         {cidadesDisponiveis.map(cidade => (
                           <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                         ))}
-                        {/* Option to type a custom city if desired, could be implemented with an input below the select */}
+                        <SelectItem value="__custom__">Outra cidade...</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -653,23 +658,6 @@ export default function MapaDaEstetica() {
                       disabled={!filters.estado}
                     />
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="pais-filter" className="text-gray-700">País</Label>
-                  <Select
-                    value={filters.pais}
-                    onValueChange={(v) => setFilters(prev => ({...prev, pais: v}))}
-                  >
-                    <SelectTrigger id="pais-filter" className="border-[#E8DCC4]">
-                      <SelectValue placeholder="Selecione um país" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      {paises.map(pais => (
-                        <SelectItem key={pais} value={pais}>{pais}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -702,7 +690,6 @@ export default function MapaDaEstetica() {
           </Card>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Map - 2/3 width */}
             <div className="lg:col-span-2">
               <Card className="border-[#E8DCC4] shadow-2xl">
                 <CardContent className="p-0">
@@ -762,7 +749,6 @@ export default function MapaDaEstetica() {
               </Card>
             </div>
 
-            {/* List - 1/3 width */}
             <div className="lg:col-span-1">
               <Card className="border-[#E8DCC4] shadow-xl">
                 <CardContent className="p-4">
@@ -770,7 +756,7 @@ export default function MapaDaEstetica() {
                     {filteredEstabelecimentos.length} Estabelecimentos
                   </h3>
 
-                  <div className="space-y-4 max-h-[540px] overflow-y-auto pr-2"> {/* Added pr-2 for scrollbar */}
+                  <div className="space-y-4 max-h-[540px] overflow-y-auto pr-2">
                     {isLoading ? (
                       <div className="text-center py-8">
                         <div className="animate-spin w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -843,7 +829,7 @@ export default function MapaDaEstetica() {
                                   variant="outline"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const formattedWhatsapp = est.whatsapp.replace(/\D/g, ''); // Remove non-digits
+                                    const formattedWhatsapp = est.whatsapp.replace(/\D/g, '');
                                     window.open(`https://wa.me/${formattedWhatsapp}`, '_blank');
                                   }}
                                   className="text-xs border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
@@ -865,7 +851,6 @@ export default function MapaDaEstetica() {
         </div>
       </div>
 
-      {/* CTA Section */}
       <div className="py-24 px-6 bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <motion.div
