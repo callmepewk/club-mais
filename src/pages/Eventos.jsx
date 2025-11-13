@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,27 +17,43 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar as CalendarIcon, MapPin, Users, ExternalLink,
-  Plus, X, CheckCircle, Clock, Sparkles
+  Plus, X, CheckCircle, Clock, Sparkles, Upload, Video,
+  Locate, Zap, Globe
 } from "lucide-react";
 
 export default function Eventos() {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [useAI, setUseAI] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
   const [formData, setFormData] = useState({
     titulo: "",
     descricao: "",
     imagem: "",
+    video_url: "",
     data_evento: "",
-    local: "",
-    categoria: "Outros", // New field
+    tipo_evento: "presencial",
+    rua: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    pais: "Brasil",
+    categoria: "Outros",
     publico_alvo: "todos",
     link_inscricao: "",
+    vagas_tipo: "ilimitadas",
     vagas: 0,
     status: "ativo"
   });
 
   const { data: user } = useQuery({
-    queryKey: ['current-user'],
+    queryKey: ['current-user-eventos'],
     queryFn: async () => {
       try {
         return await base44.auth.me();
@@ -58,38 +73,25 @@ export default function Eventos() {
     mutationFn: async (data) => {
       const evento = await base44.entities.Evento.create(data);
       
-      // Enviar notificações por email baseado no público-alvo
       const { data: usuarios } = await base44.entities.User.list();
       
-      // Filtrar usuários baseado no público-alvo com hierarquia
       let usuariosAlvo = [];
       
       if (data.publico_alvo === 'todos') {
         usuariosAlvo = usuarios;
       } else {
         const [targetTipo, targetPlano] = data.publico_alvo.split('-');
-        
-        // Hierarquia de planos: 'none' (0) < 'light' (1) < 'gold' (2) < 'vip' (3)
         const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
-        const targetLevel = planHierarchy[targetPlano] || 0; // Default to 0 if plan not found
+        const targetLevel = planHierarchy[targetPlano] || 0;
 
         usuariosAlvo = usuarios.filter(u => {
-          // Must match the user type (paciente or profissional)
           if (u.tipo_usuario !== targetTipo) return false;
-          
-          // Check user's plan level against event's target plan level
           const userPlan = u.clube_plano || 'none';
-          const userLevel = planHierarchy[userPlan] || 0; // Default to 0 for 'none' or unknown plans
-          
-          // Usuário pode ver eventos do seu nível ou abaixo (mais exclusivo)
-          // e.g., VIP (3) can see events for VIP (3), Gold (2), Light (1). Gold (2) can see Gold (2), Light (1).
-          // If event is for 'light', user must be 'light' or higher (gold, vip).
-          // If event is for 'gold', user must be 'gold' or higher (vip).
+          const userLevel = planHierarchy[userPlan] || 0;
           return userLevel >= targetLevel;
         });
       }
 
-      // Enviar email para cada usuário
       for (const usuario of usuariosAlvo) {
         await base44.integrations.Core.SendEmail({
           to: usuario.email,
@@ -102,8 +104,12 @@ export default function Eventos() {
             <p><strong>📂 Categoria:</strong> ${data.categoria}</p>
             <p>${data.descricao}</p>
             <p><strong>📅 Data:</strong> ${new Date(data.data_evento).toLocaleString('pt-BR')}</p>
-            <p><strong>📍 Local:</strong> ${data.local}</p>
-            ${data.vagas ? `<p><strong>👥 Vagas:</strong> ${data.vagas}</p>` : ''}
+            ${data.tipo_evento === 'presencial' ? `
+              <p><strong>📍 Local:</strong> ${[data.rua, data.numero, data.bairro, data.cidade, data.estado, data.pais].filter(Boolean).join(', ')}</p>
+            ` : `
+              <p><strong>🌐 Evento Online</strong></p>
+            `}
+            ${data.vagas_tipo === 'limitadas' && data.vagas ? `<p><strong>👥 Vagas:</strong> ${data.vagas}</p>` : ''}
             ${data.link_inscricao ? `<p><a href="${data.link_inscricao}" style="background: linear-gradient(to right, #D4AF37, #C8A882); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 16px;">Inscrever-se Agora</a></p>` : ''}
             <hr/>
             <p><small>Club da Beleza - Seu clube de benefícios</small></p>
@@ -120,17 +126,169 @@ export default function Eventos() {
         titulo: "",
         descricao: "",
         imagem: "",
+        video_url: "",
         data_evento: "",
-        local: "",
-        categoria: "Outros", // Reset with new field
+        tipo_evento: "presencial",
+        rua: "",
+        numero: "",
+        complemento: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+        pais: "Brasil",
+        categoria: "Outros",
         publico_alvo: "todos",
         link_inscricao: "",
+        vagas_tipo: "ilimitadas",
         vagas: 0,
         status: "ativo"
       });
       alert('Evento criado e notificações enviadas com sucesso!');
     },
   });
+
+  const handleGenerateWithAI = async (field) => {
+    setLoadingAI(true);
+    
+    try {
+      if (field === 'descricao' && formData.titulo) {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: `Crie uma descrição atrativa e profissional para um evento de estética/beleza com o título: "${formData.titulo}". 
+          Categoria: ${formData.categoria}. 
+          A descrição deve ter de 2-3 parágrafos, ser persuasiva e destacar os benefícios de participar.`,
+        });
+        setFormData(prev => ({ ...prev, descricao: result }));
+      } else if (field === 'titulo' && formData.descricao) {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: `Com base nesta descrição de evento: "${formData.descricao}", crie um título chamativo e profissional de no máximo 60 caracteres.`,
+        });
+        setFormData(prev => ({ ...prev, titulo: result }));
+      } else if (field === 'imagem') {
+        const imagePrompt = `Professional event banner for beauty and aesthetics industry, ${formData.titulo || 'beauty event'}, ${formData.categoria}, elegant, modern, high quality, professional photography`;
+        const imageResult = await base44.integrations.Core.GenerateImage({
+          prompt: imagePrompt
+        });
+        setFormData(prev => ({ ...prev, imagem: imageResult.url }));
+      }
+    } catch (error) {
+      console.error('Erro ao gerar com IA:', error);
+      alert('Erro ao gerar conteúdo. Tente novamente.');
+    }
+    
+    setLoadingAI(false);
+  };
+
+  const handleCreateWithAI = async () => {
+    if (!formData.titulo || !formData.categoria || !formData.data_evento) {
+      alert('Preencha título, categoria e data do evento para usar a IA.');
+      return;
+    }
+
+    setLoadingAI(true);
+
+    try {
+      const descricaoPrompt = `Crie uma descrição profissional e atrativa para um evento de estética/beleza:
+      Título: ${formData.titulo}
+      Categoria: ${formData.categoria}
+      Tipo: ${formData.tipo_evento}
+      Data: ${new Date(formData.data_evento).toLocaleDateString('pt-BR')}
+      Público: ${formData.publico_alvo}
+      ${formData.vagas_tipo === 'limitadas' ? `Vagas limitadas: ${formData.vagas}` : 'Vagas ilimitadas'}
+      
+      A descrição deve ter 2-3 parágrafos, ser persuasiva e destacar os benefícios.`;
+
+      const descricao = await base44.integrations.Core.InvokeLLM({
+        prompt: descricaoPrompt
+      });
+
+      const imagePrompt = `Professional event banner for beauty and aesthetics industry, ${formData.titulo}, ${formData.categoria}, elegant, modern, sophisticated, high quality`;
+      
+      const imageResult = await base44.integrations.Core.GenerateImage({
+        prompt: imagePrompt
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        descricao: descricao,
+        imagem: imageResult.url
+      }));
+
+      alert('Conteúdo gerado com IA! Revise e ajuste conforme necessário.');
+    } catch (error) {
+      console.error('Erro ao criar com IA:', error);
+      alert('Erro ao gerar conteúdo completo. Tente novamente.');
+    }
+
+    setLoadingAI(false);
+  };
+
+  const getUserLocation = async () => {
+    setLoadingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            );
+            const data = await response.json();
+
+            setFormData(prev => ({
+              ...prev,
+              rua: data.address.road || '',
+              numero: data.address.house_number || '',
+              bairro: data.address.suburb || data.address.neighbourhood || '',
+              cidade: data.address.city || data.address.town || data.address.village || '',
+              estado: data.address.state_code || '',
+              pais: data.address.country || 'Brasil',
+            }));
+          } catch (error) {
+            console.error('Erro ao obter endereço:', error);
+            alert('Não foi possível obter o endereço. Por favor, preencha manualmente.');
+          }
+          setLoadingLocation(false);
+        },
+        (error) => {
+          console.error('Erro de geolocalização:', error);
+          alert('Não foi possível obter sua localização.');
+          setLoadingLocation(false);
+        }
+      );
+    } else {
+      alert('Geolocalização não é suportada pelo seu navegador.');
+      setLoadingLocation(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, imagem: result.file_url }));
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload da imagem.');
+    }
+    setUploadingImage(false);
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVideo(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, video_url: result.file_url }));
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload do vídeo.');
+    }
+    setUploadingVideo(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -139,29 +297,21 @@ export default function Eventos() {
 
   const isAdmin = user?.role === 'admin';
 
-  // Filtrar eventos que o usuário pode ver baseado na hierarquia
   const canViewEvent = (evento) => {
-    // If no user is logged in, only show 'todos' events
     if (!user) return evento.publico_alvo === 'todos';
-    // Admin can see all events
     if (user.role === 'admin') return true;
-    // Everyone can see 'todos' events
     if (evento.publico_alvo === 'todos') return true;
     
     const [targetTipo, targetPlano] = evento.publico_alvo.split('-');
     const userTipo = user.tipo_usuario;
     const userPlan = user.clube_plano || 'none';
 
-    // Must match the user type (paciente or profissional)
     if (userTipo !== targetTipo) return false;
     
-    // Hierarquia de planos
     const planHierarchy = { none: 0, light: 1, gold: 2, vip: 3 };
     const userLevel = planHierarchy[userPlan] || 0;
     const targetLevel = planHierarchy[targetPlano] || 0;
     
-    // User can see events targeted at their plan level or any level below (less exclusive)
-    // e.g., VIP (3) can see VIP (3), Gold (2), Light (1) events. Gold (2) can see Gold (2), Light (1) events.
     return userLevel >= targetLevel;
   };
 
@@ -169,9 +319,8 @@ export default function Eventos() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
-      {/* Hero Section */}
       <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4xIi8+PC9nGjwvc3ZnPg==')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <motion.div
@@ -218,7 +367,6 @@ export default function Eventos() {
 
       <div className="py-16 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
-          {/* Create Form */}
           <AnimatePresence>
             {showCreateForm && isAdmin && (
               <motion.div
@@ -233,26 +381,83 @@ export default function Eventos() {
                       <CardTitle className="font-serif text-2xl text-gray-800">
                         Criar Novo Evento
                       </CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowCreateForm(false)}
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={useAI ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setUseAI(!useAI)}
+                          className={useAI ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white" : ""}
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          {useAI ? 'Modo IA Ativo' : 'Usar IA'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setShowCreateForm(false)}
+                        >
+                          <X className="w-5 h-5" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {useAI && (
+                        <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                          <div className="flex items-start gap-3 mb-4">
+                            <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-1" />
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-purple-800 mb-1">Criar Evento com IA</h4>
+                              <p className="text-sm text-purple-700">
+                                Preencha apenas: título, categoria, tipo, data/hora, vagas e público-alvo. 
+                                A IA irá gerar descrição e imagem automaticamente!
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={handleCreateWithAI}
+                            disabled={loadingAI || !formData.titulo}
+                            className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+                          >
+                            {loadingAI ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                                Gerando com IA...
+                              </>
+                            ) : (
+                              <>
+                                <Zap className="w-4 h-4 mr-2" />
+                                Gerar Descrição e Imagem com IA
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Título do Evento *</Label>
-                          <Input
-                            value={formData.titulo}
-                            onChange={(e) => setFormData({...formData, titulo: e.target.value})}
-                            required
-                            className="border-[#E8DCC4]"
-                          />
+                          <div className="flex gap-2">
+                            <Input
+                              value={formData.titulo}
+                              onChange={(e) => setFormData({...formData, titulo: e.target.value})}
+                              required
+                              className="border-[#E8DCC4]"
+                            />
+                            {formData.descricao && !formData.titulo && (
+                              <Button
+                                type="button"
+                                onClick={() => handleGenerateWithAI('titulo')}
+                                disabled={loadingAI}
+                                variant="outline"
+                                size="icon"
+                              >
+                                <Sparkles className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-2">
@@ -269,15 +474,30 @@ export default function Eventos() {
 
                       <div className="space-y-2">
                         <Label>Descrição *</Label>
-                        <Textarea
-                          value={formData.descricao}
-                          onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                          required
-                          className="border-[#E8DCC4] h-32"
-                        />
+                        <div className="flex flex-col gap-2">
+                          <Textarea
+                            value={formData.descricao}
+                            onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                            required
+                            className="border-[#E8DCC4] h-32"
+                          />
+                          {formData.titulo && (
+                            <Button
+                              type="button"
+                              onClick={() => handleGenerateWithAI('descricao')}
+                              disabled={loadingAI}
+                              variant="outline"
+                              size="sm"
+                              className="self-end"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              {loadingAI ? 'Gerando...' : 'Gerar Descrição com IA'}
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="grid md:grid-cols-3 gap-4"> {/* Changed to grid-cols-3 */}
+                      <div className="grid md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label>Categoria *</Label>
                           <Select 
@@ -301,26 +521,31 @@ export default function Eventos() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Local</Label>
-                          <Input
-                            value={formData.local}
-                            onChange={(e) => setFormData({...formData, local: e.target.value})}
-                            className="border-[#E8DCC4]"
-                          />
+                          <Label>Tipo de Evento *</Label>
+                          <Select 
+                            value={formData.tipo_evento} 
+                            onValueChange={(value) => setFormData({...formData, tipo_evento: value})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="presencial">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4" />
+                                  Presencial
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="online">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="w-4 h-4" />
+                                  Online
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label>Número de Vagas</Label>
-                          <Input
-                            type="number"
-                            value={formData.vagas}
-                            onChange={(e) => setFormData({...formData, vagas: parseInt(e.target.value)})}
-                            className="border-[#E8DCC4]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Público Alvo *</Label>
                           <Select 
@@ -341,26 +566,222 @@ export default function Eventos() {
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+
+                      {formData.tipo_evento === 'presencial' && (
+                        <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-blue-800">Localização do Evento</h4>
+                            <Button
+                              type="button"
+                              onClick={getUserLocation}
+                              disabled={loadingLocation}
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-300 text-blue-600"
+                            >
+                              {loadingLocation ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2" />
+                                  Obtendo...
+                                </>
+                              ) : (
+                                <>
+                                  <Locate className="w-4 h-4 mr-2" />
+                                  Usar Minha Localização
+                                </>
+                              )}
+                            </Button>
+                          </div>
+
+                          <div className="grid md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label>Rua</Label>
+                              <Input
+                                value={formData.rua}
+                                onChange={(e) => setFormData({...formData, rua: e.target.value})}
+                                placeholder="Nome da rua"
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Número</Label>
+                              <Input
+                                value={formData.numero}
+                                onChange={(e) => setFormData({...formData, numero: e.target.value})}
+                                placeholder="123"
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Complemento</Label>
+                              <Input
+                                value={formData.complemento}
+                                onChange={(e) => setFormData({...formData, complemento: e.target.value})}
+                                placeholder="Sala, Andar..."
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Bairro</Label>
+                              <Input
+                                value={formData.bairro}
+                                onChange={(e) => setFormData({...formData, bairro: e.target.value})}
+                                placeholder="Bairro"
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Cidade</Label>
+                              <Input
+                                value={formData.cidade}
+                                onChange={(e) => setFormData({...formData, cidade: e.target.value})}
+                                placeholder="Cidade"
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Estado</Label>
+                              <Input
+                                value={formData.estado}
+                                onChange={(e) => setFormData({...formData, estado: e.target.value.toUpperCase()})}
+                                placeholder="UF"
+                                maxLength={2}
+                                className="border-blue-300"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>País</Label>
+                            <Input
+                              value={formData.pais}
+                              onChange={(e) => setFormData({...formData, pais: e.target.value})}
+                              placeholder="País"
+                              className="border-blue-300"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Tipo de Vagas *</Label>
+                          <Select 
+                            value={formData.vagas_tipo} 
+                            onValueChange={(value) => setFormData({...formData, vagas_tipo: value, vagas: value === 'ilimitadas' ? 0 : formData.vagas})}
+                          >
+                            <SelectTrigger className="border-[#E8DCC4]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ilimitadas">Vagas Ilimitadas</SelectItem>
+                              <SelectItem value="limitadas">Número Específico de Vagas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {formData.vagas_tipo === 'limitadas' && (
+                          <div className="space-y-2">
+                            <Label>Número de Vagas</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={formData.vagas}
+                              onChange={(e) => setFormData({...formData, vagas: parseInt(e.target.value) || 0})}
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                        )}
 
                         <div className="space-y-2">
-                          <Label>Link de Inscrição</Label>
+                          <Label>Link de Inscrição/Pagamento</Label>
                           <Input
                             type="url"
                             value={formData.link_inscricao}
                             onChange={(e) => setFormData({...formData, link_inscricao: e.target.value})}
+                            placeholder="https://..."
                             className="border-[#E8DCC4]"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>URL da Imagem</Label>
-                        <Input
-                          type="url"
-                          value={formData.imagem}
-                          onChange={(e) => setFormData({...formData, imagem: e.target.value})}
-                          className="border-[#E8DCC4]"
-                        />
+                        <div className="flex items-center justify-between">
+                          <Label>Imagem do Evento</Label>
+                          {useAI && formData.titulo && (
+                            <Button
+                              type="button"
+                              onClick={() => handleGenerateWithAI('imagem')}
+                              disabled={loadingAI}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              {loadingAI ? 'Gerando...' : 'Gerar Imagem com IA'}
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              type="url"
+                              value={formData.imagem}
+                              onChange={(e) => setFormData({...formData, imagem: e.target.value})}
+                              placeholder="URL da imagem"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <Label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-[#E8DCC4] rounded-lg cursor-pointer hover:border-[#D4AF37] transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                            {uploadingImage ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#D4AF37]" />
+                            ) : (
+                              <Upload className="w-5 h-5 text-[#D4AF37]" />
+                            )}
+                          </Label>
+                        </div>
+                        {formData.imagem && (
+                          <img src={formData.imagem} alt="Preview" className="mt-2 w-full h-48 object-cover rounded-lg" />
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Vídeo do Evento (Opcional)</Label>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              type="url"
+                              value={formData.video_url}
+                              onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                              placeholder="URL do vídeo ou faça upload"
+                              className="border-[#E8DCC4]"
+                            />
+                          </div>
+                          <Label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-[#E8DCC4] rounded-lg cursor-pointer hover:border-[#D4AF37] transition-colors">
+                            <input
+                              type="file"
+                              accept="video/*"
+                              onChange={handleVideoUpload}
+                              className="hidden"
+                            />
+                            {uploadingVideo ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#D4AF37]" />
+                            ) : (
+                              <Video className="w-5 h-5 text-[#D4AF37]" />
+                            )}
+                          </Label>
+                        </div>
                       </div>
 
                       <Button
@@ -387,7 +808,6 @@ export default function Eventos() {
             )}
           </AnimatePresence>
 
-          {/* Events List */}
           {isLoading ? (
             <div className="text-center py-20">
               <div className="animate-spin w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto"></div>
@@ -417,13 +837,24 @@ export default function Eventos() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         
-                        <div className="absolute top-4 left-4 flex flex-wrap gap-2"> {/* Added flex and gap for multiple badges */}
+                        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
                           <Badge className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white border-0">
-                            {evento.categoria} {/* New category badge */}
+                            {evento.categoria}
                           </Badge>
+                          {evento.tipo_evento === 'online' ? (
+                            <Badge className="bg-green-600 text-white">
+                              <Globe className="w-3 h-3 mr-1" />
+                              Online
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-blue-600 text-white">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              Presencial
+                            </Badge>
+                          )}
                           <Badge className="bg-white/90 text-gray-800">
                             {evento.publico_alvo === 'todos' ? 'Para Todos' : 
-                             evento.publico_alvo.replace('paciente', 'Paciente').replace('profissional', 'Profissional').replace('-', ' - ')} {/* Updated publico_alvo display */}
+                             evento.publico_alvo.replace('paciente', 'Paciente').replace('profissional', 'Profissional').replace('-', ' - ')}
                           </Badge>
                         </div>
                       </div>
@@ -445,17 +876,28 @@ export default function Eventos() {
                           <span>{new Date(evento.data_evento).toLocaleString('pt-BR')}</span>
                         </div>
 
-                        {evento.local && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-[#D4AF37]" />
-                            <span>{evento.local}</span>
+                        {evento.tipo_evento === 'presencial' && (evento.cidade || evento.rua) && (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                            <span>
+                              {[evento.rua, evento.numero, evento.bairro, evento.cidade, evento.estado, evento.pais]
+                                .filter(Boolean)
+                                .join(', ')}
+                            </span>
                           </div>
                         )}
 
-                        {evento.vagas > 0 && (
+                        {evento.vagas_tipo === 'limitadas' && evento.vagas > 0 && (
                           <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-[#D4AF37]" />
                             <span>{evento.vagas} vagas disponíveis</span>
+                          </div>
+                        )}
+
+                        {evento.vagas_tipo === 'ilimitadas' && (
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-[#D4AF37]" />
+                            <span>Vagas ilimitadas</span>
                           </div>
                         )}
                       </div>

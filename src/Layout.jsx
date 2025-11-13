@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -129,7 +128,6 @@ export default function Layout({ children, currentPageName }) {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  // ULTRA-AGGRESSIVE: Remove "Edit with Base44" button
   useEffect(() => {
     const removeBase44Button = () => {
       const allElements = document.querySelectorAll('*');
