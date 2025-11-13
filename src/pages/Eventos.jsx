@@ -21,6 +21,76 @@ import {
   Locate, Zap, Globe
 } from "lucide-react";
 
+const estadosBrasileiros = [
+  { sigla: "AC", nome: "Acre" },
+  { sigla: "AL", nome: "Alagoas" },
+  { sigla: "AP", nome: "Amapá" },
+  { sigla: "AM", nome: "Amazonas" },
+  { sigla: "BA", nome: "Bahia" },
+  { sigla: "CE", nome: "Ceará" },
+  { sigla: "DF", nome: "Distrito Federal" },
+  { sigla: "ES", nome: "Espírito Santo" },
+  { sigla: "GO", nome: "Goiás" },
+  { sigla: "MA", nome: "Maranhão" },
+  { sigla: "MT", nome: "Mato Grosso" },
+  { sigla: "MS", nome: "Mato Grosso do Sul" },
+  { sigla: "MG", nome: "Minas Gerais" },
+  { sigla: "PA", nome: "Pará" },
+  { sigla: "PB", nome: "Paraíba" },
+  { sigla: "PR", nome: "Paraná" },
+  { sigla: "PE", nome: "Pernambuco" },
+  { sigla: "PI", nome: "Piauí" },
+  { sigla: "RJ", nome: "Rio de Janeiro" },
+  { sigla: "RN", nome: "Rio Grande do Norte" },
+  { sigla: "RS", nome: "Rio Grande do Sul" },
+  { sigla: "RO", nome: "Rondônia" },
+  { sigla: "RR", nome: "Roraima" },
+  { sigla: "SC", nome: "Santa Catarina" },
+  { sigla: "SP", nome: "São Paulo" },
+  { sigla: "SE", nome: "Sergipe" },
+  { sigla: "TO", nome: "Tocantins" }
+];
+
+const paises = [
+  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
+  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
+  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
+  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
+  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
+  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
+  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
+  "Israel", "Arábia Saudita", "Outros"
+];
+
+const cidadesPrincipaisPorEstado = {
+  "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco", "Santo André", "São Bernardo do Campo"],
+  "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis", "Volta Redonda", "Campos dos Goytacazes", "Macaé"],
+  "MG": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim", "Montes Claros", "Ribeirão das Neves", "Uberaba", "Governador Valadares", "Ipatinga"],
+  "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro", "Ilhéus", "Itabuna", "Lauro de Freitas", "Barreiras"],
+  "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel", "São José dos Pinhais", "Foz do Iguaçu", "Colombo", "Guarapuava"],
+  "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria", "Gravataí", "Viamão", "Novo Hamburgo", "São Leopoldo"],
+  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru", "Petrolina", "Paulista", "Cabo de Santo Agostinho", "Camaragibe"],
+  "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú", "Sobral", "Crato", "Itapipoca", "Maranguape"],
+  "PA": ["Belém", "Ananindeua", "Santarém", "Marabá", "Castanhal", "Parauapebas", "Itaituba", "Cametá"],
+  "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó", "Criciúma", "Itajaí", "Jaraguá do Sul", "Lages", "Palhoça"],
+  "GO": ["Goiânia", "Aparecida de Goiânia", "Anápolis", "Rio Verde", "Luziânia", "Águas Lindas de Goiás", "Valparaíso de Goiás"],
+  "MA": ["São Luís", "Imperatriz", "São José de Ribamar", "Timon", "Caxias", "Codó", "Paço do Lumiar"],
+  "ES": ["Vitória", "Vila Velha", "Serra", "Cariacica", "Linhares", "Cachoeiro de Itapemirim", "Colatina"],
+  "PB": ["João Pessoa", "Campina Grande", "Santa Rita", "Patos", "Bayeux", "Sousa", "Cajazeiras"],
+  "RN": ["Natal", "Mossoró", "Parnamirim", "São Gonçalo do Amarante", "Macaíba", "Ceará-Mirim"],
+  "AL": ["Maceió", "Arapiraca", "Rio Largo", "Palmeira dos Índios", "União dos Palmares"],
+  "SE": ["Aracaju", "Nossa Senhora do Socorro", "Lagarto", "Itabaiana", "Estância"],
+  "PI": ["Teresina", "Parnaíba", "Picos", "Piripiri", "Floriano", "Campo Maior"],
+  "MT": ["Cuiabá", "Várzea Grande", "Rondonópolis", "Sinop", "Tangará da Serra", "Cáceres"],
+  "MS": ["Campo Grande", "Dourados", "Três Lagoas", "Corumbá", "Ponta Porã", "Aquidauana"],
+  "AC": ["Rio Branco", "Cruzeiro do Sul", "Sena Madureira", "Tarauacá"],
+  "RO": ["Porto Velho", "Ji-Paraná", "Ariquemes", "Vilhena", "Cacoal"],
+  "RR": ["Boa Vista", "Rorainópolis", "Caracaraí"],
+  "AP": ["Macapá", "Santana", "Laranjal do Jari"],
+  "TO": ["Palmas", "Araguaína", "Gurupi", "Porto Nacional"],
+  "DF": ["Brasília", "Taguatinga", "Ceilândia", "Samambaia", "Planaltina"]
+};
+
 export default function Eventos() {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -317,6 +387,8 @@ export default function Eventos() {
 
   const eventosVisiveis = eventos.filter(canViewEvent);
 
+  const cidadesDisponiveis = formData.estado ? (cidadesPrincipaisPorEstado[formData.estado] || []) : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       <div className="relative py-20 px-6 overflow-hidden bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
@@ -596,6 +668,91 @@ export default function Eventos() {
 
                           <div className="grid md:grid-cols-3 gap-4">
                             <div className="space-y-2">
+                              <Label>País</Label>
+                              <Select 
+                                value={formData.pais} 
+                                onValueChange={(value) => setFormData({...formData, pais: value})}
+                              >
+                                <SelectTrigger className="border-blue-300">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                  {paises.map(pais => (
+                                    <SelectItem key={pais} value={pais}>{pais}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Estado</Label>
+                              <Select 
+                                value={formData.estado} 
+                                onValueChange={(value) => setFormData({...formData, estado: value, cidade: ''})}
+                              >
+                                <SelectTrigger className="border-blue-300">
+                                  <SelectValue placeholder="Selecione o estado" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                  {estadosBrasileiros.map(estado => (
+                                    <SelectItem key={estado.sigla} value={estado.sigla}>
+                                      {estado.nome} ({estado.sigla})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Cidade</Label>
+                              {cidadesDisponiveis.length > 0 ? (
+                                <Select 
+                                  value={formData.cidade} 
+                                  onValueChange={(value) => setFormData({...formData, cidade: value})}
+                                >
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue placeholder="Selecione a cidade" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-[300px]">
+                                    {cidadesDisponiveis.map(cidade => (
+                                      <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                                    ))}
+                                    <SelectItem value="__custom__">Outra cidade...</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Input
+                                  value={formData.cidade}
+                                  onChange={(e) => setFormData({...formData, cidade: e.target.value})}
+                                  placeholder={formData.estado ? "Digite a cidade" : "Selecione o estado primeiro"}
+                                  className="border-blue-300"
+                                  disabled={!formData.estado}
+                                />
+                              )}
+                              {formData.cidade === '__custom__' && (
+                                <Input
+                                  value=""
+                                  onChange={(e) => setFormData({...formData, cidade: e.target.value})}
+                                  placeholder="Digite o nome da cidade"
+                                  className="border-blue-300 mt-2"
+                                  autoFocus
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Bairro</Label>
+                              <Input
+                                value={formData.bairro}
+                                onChange={(e) => setFormData({...formData, bairro: e.target.value})}
+                                placeholder="Bairro"
+                                className="border-blue-300"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
                               <Label>Rua</Label>
                               <Input
                                 value={formData.rua}
@@ -624,47 +781,6 @@ export default function Eventos() {
                                 className="border-blue-300"
                               />
                             </div>
-
-                            <div className="space-y-2">
-                              <Label>Bairro</Label>
-                              <Input
-                                value={formData.bairro}
-                                onChange={(e) => setFormData({...formData, bairro: e.target.value})}
-                                placeholder="Bairro"
-                                className="border-blue-300"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Cidade</Label>
-                              <Input
-                                value={formData.cidade}
-                                onChange={(e) => setFormData({...formData, cidade: e.target.value})}
-                                placeholder="Cidade"
-                                className="border-blue-300"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Estado</Label>
-                              <Input
-                                value={formData.estado}
-                                onChange={(e) => setFormData({...formData, estado: e.target.value.toUpperCase()})}
-                                placeholder="UF"
-                                maxLength={2}
-                                className="border-blue-300"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>País</Label>
-                            <Input
-                              value={formData.pais}
-                              onChange={(e) => setFormData({...formData, pais: e.target.value})}
-                              placeholder="País"
-                              className="border-blue-300"
-                            />
                           </div>
                         </div>
                       )}
