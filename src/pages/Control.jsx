@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +27,7 @@ import {
   Shield, Search, Edit, Trash2, Eye,
   Users, Crown, Star, Coins, CheckCircle, XCircle,
   Calendar, Zap, GitBranch, Package, FileDown, Ban, UserCheck,
-  Megaphone, TrendingUp, BarChart
+  Megaphone, TrendingUp, BarChart, Clock, UserPlus
 } from "lucide-react";
 import UserDetailsModal from "../components/UserDetailsModal";
 import {
@@ -94,6 +93,19 @@ export default function Control() {
     data_inicio: "",
     data_fim: "",
     prioridade: 1
+  });
+
+  const [showTestAccountModal, setShowTestAccountModal] = useState(false);
+  const [testAccountFormData, setTestAccountFormData] = useState({
+    full_name: "",
+    email: "",
+    telefone: "",
+    password: "",
+    tipo_usuario: "paciente",
+    clube_plano: "none",
+    beauty_club_plano: "none",
+    edbeauty_plano: "none",
+    is_golden_doctor: false
   });
 
   const { data: user } = useQuery({
@@ -252,7 +264,7 @@ export default function Control() {
     mutationFn: (data) => base44.entities.Banner.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-banners'] });
-      // Assuming 'active-banners' would be a filtered query. Invalidating all-banners is enough for now.
+      queryClient.invalidateQueries({ queryKey: ['active-banners'] });
       setShowBannerModal(false);
       setBannerFormData({
         titulo: "",
@@ -276,6 +288,7 @@ export default function Control() {
     mutationFn: ({ id, data }) => base44.entities.Banner.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['active-banners'] });
       alert('Banner atualizado!');
     },
   });
@@ -284,8 +297,163 @@ export default function Control() {
     mutationFn: (id) => base44.entities.Banner.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['active-banners'] });
       alert('Banner excluído com sucesso!');
     },
+  });
+
+  const createTestAccountMutation = useMutation({
+    mutationFn: async (accountData) => {
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 7);
+
+      const userData = {
+        full_name: accountData.full_name,
+        email: accountData.email,
+        telefone: accountData.telefone,
+        whatsapp: accountData.telefone,
+        tipo_usuario: accountData.tipo_usuario,
+        clube_plano: accountData.clube_plano,
+        beauty_club_plano: accountData.beauty_club_plano,
+        edbeauty_plano: accountData.edbeauty_plano,
+        is_golden_doctor: accountData.is_golden_doctor,
+        is_test_account: true,
+        test_expiration_date: expirationDate.toISOString(),
+        test_expiration_notified: false,
+        pontos_clube: 0,
+        beauty_coins: 0,
+        account_suspended: false,
+      };
+
+      const siteUrl = window.location.origin;
+
+      await base44.integrations.Core.SendEmail({
+        to: accountData.email,
+        subject: '🎉 Bem-vindo ao Club da Beleza - Conta Teste (7 dias)',
+        body: `
+          <h2>Olá ${accountData.full_name}!</h2>
+          <p>Sua conta teste foi criada com sucesso no <strong>Club da Beleza</strong>!</p>
+          <hr/>
+          <h3>📋 Suas credenciais de acesso:</h3>
+          <p><strong>Email:</strong> ${accountData.email}</p>
+          <p><strong>Senha:</strong> ${accountData.password}</p>
+          <p><strong>Tipo de Conta:</strong> ${accountData.tipo_usuario}</p>
+          <hr/>
+          <h3>🎁 Seus planos de teste:</h3>
+          <p><strong>Club da Beleza:</strong> ${planLabels[accountData.clube_plano]}</p>
+          <p><strong>Clube+ (Beauty Club):</strong> ${planLabels[accountData.beauty_club_plano]}</p>
+          <p><strong>EdBeauty:</strong> ${planLabels[accountData.edbeauty_plano]}</p>
+          ${accountData.is_golden_doctor ? '<p><strong>⭐ Membro Golden Doctors</strong></p>' : ''}
+          <hr/>
+          <h3>⏰ Período de Teste:</h3>
+          <p>Sua conta teste estará ativa por <strong>7 dias</strong>, até <strong>${expirationDate.toLocaleDateString('pt-BR')}</strong>.</p>
+          <p>Aproveite este período para explorar todas as funcionalidades e benefícios do Club da Beleza!</p>
+          <p>Após este período, você receberá um email com informações sobre como continuar usando nossos serviços.</p>
+          <hr/>
+          <p style="text-align: center;">
+            <a href="${siteUrl}" style="background: linear-gradient(to right, #D4AF37, #C8A882); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+              Acessar Plataforma Agora
+            </a>
+          </p>
+          <hr/>
+          <p><small>Club da Beleza - Seu clube de benefícios exclusivos</small></p>
+        `
+      });
+
+      return userData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+      setShowTestAccountModal(false);
+      setTestAccountFormData({
+        full_name: "",
+        email: "",
+        telefone: "",
+        password: "",
+        tipo_usuario: "paciente",
+        clube_plano: "none",
+        beauty_club_plano: "none",
+        edbeauty_plano: "none",
+        is_golden_doctor: false
+      });
+      alert('Conta teste criada com sucesso! Email de boas-vindas enviado.');
+    },
+    onError: (error) => {
+      console.error("Erro ao criar conta teste:", error);
+      alert("Erro ao criar conta teste. Detalhes no console.");
+    }
+  });
+
+  const checkExpiredTestAccounts = useMutation({
+    mutationFn: async () => {
+      const now = new Date();
+      const expiredAccounts = users.filter(u => 
+        u.is_test_account && 
+        u.test_expiration_date && 
+        new Date(u.test_expiration_date) <= now &&
+        !u.test_expiration_notified
+      );
+
+      const siteUrl = window.location.origin;
+
+      for (const account of expiredAccounts) {
+        await base44.integrations.Core.SendEmail({
+          to: account.email,
+          subject: '⏰ Período de Teste Encerrado - Club da Beleza',
+          body: `
+            <h2>Olá ${account.full_name}!</h2>
+            <p>Seu período de teste de <strong>7 dias</strong> no Club da Beleza chegou ao fim.</p>
+            <hr/>
+            <h3>🌟 Gostou da experiência?</h3>
+            <p>Esperamos que você tenha aproveitado ao máximo todos os recursos e benefícios exclusivos que oferecemos!</p>
+            <hr/>
+            <h3>📱 Como continuar tendo acesso:</h3>
+            <ol>
+              <li><strong>Escolha um Plano:</strong> Acesse nossa plataforma e escolha o plano ideal para você</li>
+              <li><strong>WhatsApp:</strong> Entre em contato conosco: (31) 97259-5643</li>
+              <li><strong>Email:</strong> Responda este email com suas dúvidas</li>
+            </ol>
+            <hr/>
+            <h3>🎁 Benefícios de ser membro:</h3>
+            <ul>
+              <li>Descontos exclusivos em estabelecimentos parceiros</li>
+              <li>Acumule pontos e Beauty Coins</li>
+              <li>Acesso à plataforma educacional EdBeauty</li>
+              <li>Comunidade Golden Doctors</li>
+              <li>E muito mais!</li>
+            </ul>
+            <hr/>
+            <p style="text-align: center;">
+              <a href="${siteUrl}" style="background: linear-gradient(to right, #D4AF37, #C8A882); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0;">
+                Acessar Club da Beleza
+              </a>
+            </p>
+            <hr/>
+            <p style="text-align: center; color: #666;">
+              <small>Estamos ansiosos para tê-lo(a) como membro oficial do Club da Beleza!</small>
+            </p>
+            <p style="text-align: center;">
+              <small>Club da Beleza - Transformando a estética no Brasil</small>
+            </p>
+          `
+        });
+
+        await base44.entities.User.update(account.id, {
+          test_expiration_notified: true,
+          account_suspended: true
+        });
+      }
+
+      return expiredAccounts.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+      if (count > 0) {
+        alert(`${count} conta(s) teste expirada(s) notificada(s) e suspensa(s).`);
+      } else {
+        alert('Nenhuma conta teste expirada encontrada.');
+      }
+    }
   });
 
   const handleEditUser = (user) => {
@@ -322,9 +490,7 @@ export default function Control() {
 
   const handleDeleteUser = (userToDelete) => {
     if (confirm(`ATENÇÃO: Deseja realmente EXCLUIR permanentemente o usuário ${userToDelete.full_name}? Esta ação não pode ser desfeita!`)) {
-      if (confirm('Tem certeza? Digite "CONFIRMAR" para continuar.')) {
-        deleteUserMutation.mutate(userToDelete.id);
-      }
+      deleteUserMutation.mutate(userToDelete.id);
     }
   };
 
@@ -386,6 +552,15 @@ export default function Control() {
     }
   };
 
+  const handleCreateTestAccount = () => {
+    if (!testAccountFormData.full_name || !testAccountFormData.email || !testAccountFormData.password) {
+      alert('Por favor, preencha nome, email e senha.');
+      return;
+    }
+
+    createTestAccountMutation.mutate(testAccountFormData);
+  };
+
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
       const matchSearch = !searchTerm || 
@@ -408,8 +583,14 @@ export default function Control() {
     const totalPontos = users.reduce((sum, u) => sum + (u.pontos_clube || 0), 0);
     const totalCoins = users.reduce((sum, u) => sum + (u.beauty_coins || 0), 0);
     const suspended = users.filter(u => u.account_suspended).length;
+    const testAccounts = users.filter(u => u.is_test_account).length;
+    const expiredTests = users.filter(u => 
+      u.is_test_account && 
+      u.test_expiration_date && 
+      new Date(u.test_expiration_date) <= new Date()
+    ).length;
 
-    return { total, pacientes, profissionais, planosAtivos, goldenDoctors, totalPontos, totalCoins, suspended };
+    return { total, pacientes, profissionais, planosAtivos, goldenDoctors, totalPontos, totalCoins, suspended, testAccounts, expiredTests };
   }, [users]);
 
   const generatePDFReport = () => {
@@ -422,8 +603,8 @@ export default function Control() {
         <style>
           body { font-family: Arial, sans-serif; margin: 20px; }
           h1 { color: #D4AF37; text-align: center; }
-          .stats { display: flex; justify-content: space-around; margin: 20px 0; }
-          .stat-box { text-align: center; padding: 10px; background: #F5EFE6; border-radius: 8px; }
+          .stats { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; }
+          .stat-box { text-align: center; padding: 10px; background: #F5EFE6; border-radius: 8px; margin: 5px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
           th, td { border: 1px solid #E8DCC4; padding: 8px; text-align: left; font-size: 12px; }
           th { background-color: #D4AF37; color: white; }
@@ -446,6 +627,9 @@ export default function Control() {
             <strong>${stats.profissionais}</strong><br>Profissionais
           </div>
           <div class="stat-box">
+            <strong>${stats.testAccounts}</strong><br>Contas Teste
+          </div>
+          <div class="stat-box">
             <strong>${stats.goldenDoctors}</strong><br>Golden Doctors
           </div>
           <div class="stat-box">
@@ -459,8 +643,9 @@ export default function Control() {
               <th>Nome</th>
               <th>Email</th>
               <th>Tipo</th>
-              <th>Plano Club da Beleza</th>
-              <th>Plano Beauty Club</th>
+              <th>Plano Club</th>
+              <th>Plano Clube+</th>
+              <th>Teste</th>
               <th>Golden</th>
               <th>Pontos</th>
               <th>Coins</th>
@@ -475,6 +660,7 @@ export default function Control() {
                 <td>${u.tipo_usuario || 'visitante'}</td>
                 <td>${planLabels[u.clube_plano || 'none']}</td>
                 <td>${planLabels[u.beauty_club_plano || 'none']}</td>
+                <td>${u.is_test_account ? '✓ (7 dias)' : '✗'}</td>
                 <td>${u.is_golden_doctor ? '✓' : '✗'}</td>
                 <td>${u.pontos_clube || 0}</td>
                 <td>${u.beauty_coins || 0}</td>
@@ -542,6 +728,189 @@ export default function Control() {
 
       <div className="py-12 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
+          {/* Test Accounts Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Card className="border-[#E8DCC4] shadow-2xl bg-gradient-to-br from-white to-[#F5EFE6]">
+              <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                      <Clock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <CardTitle className="font-serif text-2xl">
+                        Contas Teste (7 dias)
+                      </CardTitle>
+                      <p className="text-white/90 text-sm mt-1">
+                        Crie contas teste com acesso limitado a 7 dias
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => checkExpiredTestAccounts.mutate()}
+                      disabled={checkExpiredTestAccounts.isPending}
+                      className="bg-white/20 text-white hover:bg-white/30"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Verificar Expirados
+                    </Button>
+                    <Button
+                      onClick={() => setShowTestAccountModal(true)}
+                      className="bg-white text-green-600 hover:bg-white/90"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Nova Conta Teste
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+                        {stats.testAccounts}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Contas Teste Ativas</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
+                        {stats.expiredTests}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Contas Expiradas</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        {stats.testAccounts - stats.expiredTests}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Ainda Válidas</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-serif text-xl font-bold text-gray-800">
+                    Contas Teste Cadastradas
+                  </h3>
+                  {users.filter(u => u.is_test_account).length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg">
+                      <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-600">Nenhuma conta teste criada ainda</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Planos</TableHead>
+                            <TableHead>Expira Em</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {users.filter(u => u.is_test_account).map((testUser) => {
+                            const isExpired = testUser.test_expiration_date && 
+                              new Date(testUser.test_expiration_date) <= new Date();
+                            const daysLeft = testUser.test_expiration_date ?
+                              Math.ceil((new Date(testUser.test_expiration_date) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+
+                            return (
+                              <TableRow key={testUser.id} className={isExpired ? 'bg-red-50' : ''}>
+                                <TableCell className="font-medium">{testUser.full_name}</TableCell>
+                                <TableCell>{testUser.email}</TableCell>
+                                <TableCell>
+                                  <Badge className="bg-blue-100 text-blue-800">
+                                    {testUser.tipo_usuario}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col gap-1">
+                                    {testUser.clube_plano && testUser.clube_plano !== 'none' && (
+                                      <Badge className={planColors[testUser.clube_plano]} style={{fontSize: '10px'}}>
+                                        Club: {planLabels[testUser.clube_plano]}
+                                      </Badge>
+                                    )}
+                                    {testUser.beauty_club_plano && testUser.beauty_club_plano !== 'none' && (
+                                      <Badge className={planColors[testUser.beauty_club_plano]} style={{fontSize: '10px'}}>
+                                        Clube+: {planLabels[testUser.beauty_club_plano]}
+                                      </Badge>
+                                    )}
+                                    {testUser.edbeauty_plano && testUser.edbeauty_plano !== 'none' && (
+                                      <Badge className={planColors[testUser.edbeauty_plano]} style={{fontSize: '10px'}}>
+                                        EdB: {planLabels[testUser.edbeauty_plano]}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {testUser.test_expiration_date ? (
+                                    <div className="flex flex-col">
+                                      <span className="text-sm">
+                                        {new Date(testUser.test_expiration_date).toLocaleDateString('pt-BR')}
+                                      </span>
+                                      <span className={`text-xs ${isExpired ? 'text-red-600 font-bold' : daysLeft <= 2 ? 'text-orange-600' : 'text-gray-500'}`}>
+                                        {isExpired ? 'EXPIRADA' : `${daysLeft} dia(s)`}
+                                      </span>
+                                    </div>
+                                  ) : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  {isExpired ? (
+                                    <Badge className="bg-red-100 text-red-800">Expirada</Badge>
+                                  ) : testUser.account_suspended ? (
+                                    <Badge className="bg-orange-100 text-orange-800">Suspensa</Badge>
+                                  ) : (
+                                    <Badge className="bg-green-100 text-green-800">Ativa</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleEditUser(testUser)}
+                                      title="Editar"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDeleteUser(testUser)}
+                                      className="text-red-600"
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Banner Management Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -550,7 +919,7 @@ export default function Control() {
           >
             <Card className="border-[#E8DCC4] shadow-2xl bg-gradient-to-br from-white to-[#F5EFE6]">
               <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                       <Megaphone className="w-6 h-6" />
@@ -605,10 +974,10 @@ export default function Control() {
                   <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
                     <CardContent className="p-6 text-center">
                       <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">
-                        {banners.length > 0 && banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0) > 0 ? 
+                        {banners.length > 0 ? 
                           ((banners.reduce((sum, b) => sum + (b.cliques || 0), 0) / 
-                            banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0)) * 100).toFixed(1)
-                          : '0.0'}%
+                            Math.max(banners.reduce((sum, b) => sum + (b.visualizacoes || 0), 0), 1) * 100) || 0).toFixed(1)
+                          : 0}%
                       </div>
                       <p className="text-sm text-gray-600 mt-1">Taxa de Cliques</p>
                     </CardContent>
@@ -709,14 +1078,15 @@ export default function Control() {
             </Card>
           </motion.div>
 
+          {/* Version Management Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
           >
             <Card className="border-[#E8DCC4] shadow-2xl bg-gradient-to-br from-white to-[#F5EFE6]">
               <CardHeader className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                       <GitBranch className="w-6 h-6" />
@@ -863,10 +1233,11 @@ export default function Control() {
             </Card>
           </motion.div>
 
+          {/* Stats Cards */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            transition={{ duration: 0.8, delay: 0.15 }}
           >
             <div className="grid md:grid-cols-6 gap-4">
               <Card className="border-[#E8DCC4] bg-gradient-to-br from-white to-[#F5EFE6]">
@@ -943,6 +1314,7 @@ export default function Control() {
             </div>
           </motion.div>
 
+          {/* User Filters */}
           <Card className="border-[#E8DCC4] shadow-xl">
             <CardContent className="p-6">
               <div className="grid md:grid-cols-3 gap-4 mb-4">
@@ -998,6 +1370,7 @@ export default function Control() {
             </CardContent>
           </Card>
 
+          {/* Users Table */}
           <Card className="border-[#E8DCC4] shadow-xl">
             <CardHeader>
               <CardTitle className="font-serif text-2xl">
@@ -1028,36 +1401,41 @@ export default function Control() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.id} className={user.account_suspended ? 'bg-red-50' : ''}>
-                          <TableCell className="font-medium">{user.full_name}</TableCell>
-                          <TableCell>{user.email}</TableCell>
+                      {filteredUsers.map((userData) => (
+                        <TableRow key={userData.id} className={userData.account_suspended ? 'bg-red-50' : userData.is_test_account ? 'bg-green-50' : ''}>
+                          <TableCell className="font-medium">
+                            {userData.full_name}
+                            {userData.is_test_account && (
+                              <Badge className="ml-2 bg-green-600 text-white text-xs">TESTE</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{userData.email}</TableCell>
                           <TableCell>
                             <Badge className="bg-blue-100 text-blue-800">
-                              {user.tipo_usuario || 'visitante'}
+                              {userData.tipo_usuario || 'visitante'}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={planColors[user.clube_plano || 'none']}>
-                              {planLabels[user.clube_plano || 'none']}
+                            <Badge className={planColors[userData.clube_plano || 'none']}>
+                              {planLabels[userData.clube_plano || 'none']}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={planColors[user.beauty_club_plano || 'none']}>
-                              {planLabels[user.beauty_club_plano || 'none']}
+                            <Badge className={planColors[userData.beauty_club_plano || 'none']}>
+                              {planLabels[userData.beauty_club_plano || 'none']}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {user.is_golden_doctor ? (
+                            {userData.is_golden_doctor ? (
                               <CheckCircle className="w-5 h-5 text-green-600" />
                             ) : (
                               <XCircle className="w-5 h-5 text-gray-300" />
                             )}
                           </TableCell>
-                          <TableCell>{user.pontos_clube || 0}</TableCell>
-                          <TableCell>{user.beauty_coins || 0}</TableCell>
+                          <TableCell>{userData.pontos_clube || 0}</TableCell>
+                          <TableCell>{userData.beauty_coins || 0}</TableCell>
                           <TableCell>
-                            {user.account_suspended ? (
+                            {userData.account_suspended ? (
                               <Badge className="bg-red-100 text-red-800">Suspenso</Badge>
                             ) : (
                               <Badge className="bg-green-100 text-green-800">Ativo</Badge>
@@ -1068,7 +1446,7 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleViewDetails(user)}
+                                onClick={() => handleViewDetails(userData)}
                                 title="Ver Detalhes"
                               >
                                 <Eye className="w-4 h-4" />
@@ -1076,7 +1454,7 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleEditUser(user)}
+                                onClick={() => handleEditUser(userData)}
                                 title="Editar"
                               >
                                 <Edit className="w-4 h-4" />
@@ -1084,16 +1462,16 @@ export default function Control() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleSuspendUser(user)}
-                                className={user.account_suspended ? 'text-green-600' : 'text-orange-600'}
-                                title={user.account_suspended ? 'Reativar' : 'Suspender'}
+                                onClick={() => handleSuspendUser(userData)}
+                                className={userData.account_suspended ? 'text-green-600' : 'text-orange-600'}
+                                title={userData.account_suspended ? 'Reativar' : 'Suspender'}
                               >
-                                {user.account_suspended ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                                {userData.account_suspended ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDeleteUser(user)}
+                                onClick={() => handleDeleteUser(userData)}
                                 className="text-red-600"
                                 title="Excluir"
                               >
@@ -1112,6 +1490,7 @@ export default function Control() {
         </div>
       </div>
 
+      {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-2xl w-full border-[#E8DCC4] shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -1263,6 +1642,7 @@ export default function Control() {
         </div>
       )}
 
+      {/* Version Modal */}
       <AnimatePresence>
         {showVersionModal && (
           <Dialog open={showVersionModal} onOpenChange={setShowVersionModal}>
@@ -1348,16 +1728,6 @@ export default function Control() {
           </Dialog>
         )}
       </AnimatePresence>
-
-      {showDetailsModal && selectedUser && (
-        <UserDetailsModal
-          user={selectedUser}
-          onClose={() => {
-            setShowDetailsModal(false);
-            setSelectedUser(null);
-          }}
-        />
-      )}
 
       {/* Banner Modal */}
       <AnimatePresence>
@@ -1579,6 +1949,215 @@ export default function Control() {
           </Dialog>
         )}
       </AnimatePresence>
+
+      {/* Test Account Modal */}
+      <AnimatePresence>
+        {showTestAccountModal && (
+          <Dialog open={showTestAccountModal} onOpenChange={setShowTestAccountModal}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+                  <UserPlus className="w-6 h-6 text-green-600" />
+                  Criar Conta Teste (7 dias)
+                </DialogTitle>
+                <DialogDescription>
+                  Crie uma conta com acesso temporário de 7 dias. Após este período, o usuário será notificado e a conta suspensa.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nome Completo *</Label>
+                    <Input
+                      value={testAccountFormData.full_name}
+                      onChange={(e) => setTestAccountFormData({...testAccountFormData, full_name: e.target.value})}
+                      placeholder="Ex: João Silva"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Email *</Label>
+                    <Input
+                      type="email"
+                      value={testAccountFormData.email}
+                      onChange={(e) => setTestAccountFormData({...testAccountFormData, email: e.target.value})}
+                      placeholder="email@exemplo.com"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Telefone/WhatsApp</Label>
+                    <Input
+                      value={testAccountFormData.telefone}
+                      onChange={(e) => setTestAccountFormData({...testAccountFormData, telefone: e.target.value})}
+                      placeholder="(00) 00000-0000"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Senha *</Label>
+                    <Input
+                      type="text"
+                      value={testAccountFormData.password}
+                      onChange={(e) => setTestAccountFormData({...testAccountFormData, password: e.target.value})}
+                      placeholder="Senha temporária"
+                      className="border-[#E8DCC4]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tipo de Usuário *</Label>
+                  <Select 
+                    value={testAccountFormData.tipo_usuario} 
+                    onValueChange={(v) => setTestAccountFormData({...testAccountFormData, tipo_usuario: v})}
+                  >
+                    <SelectTrigger className="border-[#E8DCC4]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="visitante">Visitante</SelectItem>
+                      <SelectItem value="paciente">Paciente</SelectItem>
+                      <SelectItem value="profissional">Profissional</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2">Planos de Acesso</h4>
+                  <p className="text-sm text-green-700 mb-3">
+                    Selecione os planos que esta conta teste terá acesso:
+                  </p>
+                  
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-green-700">Club da Beleza</Label>
+                      <Select 
+                        value={testAccountFormData.clube_plano} 
+                        onValueChange={(v) => setTestAccountFormData({...testAccountFormData, clube_plano: v})}
+                      >
+                        <SelectTrigger className="border-green-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem Plano</SelectItem>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
+                          <SelectItem value="vip">VIP</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-green-700">Clube+ (Beauty Club)</Label>
+                      <Select 
+                        value={testAccountFormData.beauty_club_plano} 
+                        onValueChange={(v) => setTestAccountFormData({...testAccountFormData, beauty_club_plano: v})}
+                      >
+                        <SelectTrigger className="border-green-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem Plano</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="pro">Pro</SelectItem>
+                          <SelectItem value="exclusive">Exclusive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-green-700">EdBeauty</Label>
+                      <Select 
+                        value={testAccountFormData.edbeauty_plano} 
+                        onValueChange={(v) => setTestAccountFormData({...testAccountFormData, edbeauty_plano: v})}
+                      >
+                        <SelectTrigger className="border-green-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem Plano</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="pro">Pro</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="test_golden_doctor"
+                    checked={testAccountFormData.is_golden_doctor}
+                    onChange={(e) => setTestAccountFormData({...testAccountFormData, is_golden_doctor: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor="test_golden_doctor" className="cursor-pointer">
+                    ⭐ Marcar como Golden Doctor
+                  </Label>
+                </div>
+
+                <div className="p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                  <p className="text-sm text-yellow-800">
+                    <strong>⏰ Importante:</strong> Esta conta expirará automaticamente em <strong>7 dias</strong>. 
+                    O usuário receberá um email de boas-vindas com as credenciais e, após a expiração, 
+                    será notificado por email com instruções de como continuar usando a plataforma.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowTestAccountModal(false);
+                      setTestAccountFormData({
+                        full_name: "",
+                        email: "",
+                        telefone: "",
+                        password: "",
+                        tipo_usuario: "paciente",
+                        clube_plano: "none",
+                        beauty_club_plano: "none",
+                        edbeauty_plano: "none",
+                        is_golden_doctor: false
+                      });
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleCreateTestAccount}
+                    disabled={createTestAccountMutation.isPending}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white"
+                  >
+                    {createTestAccountMutation.isPending ? 'Criando...' : 'Criar Conta Teste'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* User Details Modal */}
+      {showDetailsModal && selectedUser && (
+        <UserDetailsModal
+          user={selectedUser}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedUser(null);
+          }}
+        />
+      )}
     </div>
   );
 }
