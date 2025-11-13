@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -25,9 +24,8 @@ import {
 } from "lucide-react";
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
 import { Link } from "react-router-dom";
-import AvatarScanner from "./AvatarScanner"; // Import AvatarScanner directly
+import AvatarScanner from "./AvatarScanner";
 
-// Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -250,6 +248,17 @@ const estadosBrasileiros = [
   { sigla: "TO", nome: "Tocantins" }
 ];
 
+const paises = [
+  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
+  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
+  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
+  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
+  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
+  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
+  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
+  "Israel", "Arábia Saudita", "Outros"
+];
+
 const cidadesPrincipaisPorEstado = {
   "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco"],
   "RJ": ["Rio de Janeiro", "Niterói", "Duque de Caxias", "Nova Iguaçu", "São Gonçalo", "Petrópolis"],
@@ -257,7 +266,7 @@ const cidadesPrincipaisPorEstado = {
   "BA": ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro"],
   "PR": ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel"],
   "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria"],
-  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruarí"],
+  "PE": ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru"],
   "CE": ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú"],
   "PA": ["Belém", "Ananindeua", "Santarém", "Marabá"],
   "SC": ["Florianópolis", "Joinville", "Blumenau", "Chapecó"],
@@ -315,7 +324,6 @@ const features = [
   }
 ];
 
-// Função para geocoding reverso (obter cidade e estado a partir de coordenadas)
 async function getCityFromCoordinates(lat, lng) {
   try {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`);
@@ -331,12 +339,10 @@ async function getCityFromCoordinates(lat, lng) {
   }
 }
 
-// Minimal createPageUrl for demonstration purposes. In a real Base44 app, this would be an actual utility.
 const createPageUrl = (pageName) => {
   switch (pageName) {
     case "AvatarScanner":
       return "/avatar-scanner";
-    // Add other cases as needed
     default:
       return `/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
   }
@@ -409,8 +415,8 @@ export default function DrBeleza() {
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6),
             city: city,
-            state: state.substring(0, 2).toUpperCase(), // Ensure state is 2-letter code
-            pais: "Brasil" // Assume Brazil if location is obtained within Brazil
+            state: state.substring(0, 2).toUpperCase(),
+            pais: "Brasil"
           }));
 
           setLoadingLocation(false);
@@ -437,16 +443,11 @@ export default function DrBeleza() {
 
     return estabelecimentos
       .filter(est => {
-        // Filter by country
         const matchCountry = !formData.pais || est.pais === formData.pais;
-
-        // Filter by state
-        const matchState = formData.state === "todos" || // If "todos" is selected, match all states
+        const matchState = formData.state === "todos" ||
                            (formData.pais === "Brasil" && est.estado === formData.state) ||
-                           (formData.pais !== "Brasil"); // If not Brazil, state filter might not apply or needs different logic
-
-        // Filter by city
-        const matchCity = formData.city === "todas" || // If "todas" is selected, match all cities
+                           (formData.pais !== "Brasil");
+        const matchCity = formData.city === "todas" ||
                           est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
 
         return matchCountry && matchState && matchCity;
@@ -462,7 +463,7 @@ export default function DrBeleza() {
       }))
       .filter(est => {
         if (formData.maxDistance === "all") return true;
-        if (!est.distancia) return true; // If distance cannot be calculated (e.g., no user location), or is explicitly null
+        if (!est.distancia) return true;
         return est.distancia <= parseFloat(formData.maxDistance);
       })
       .sort((a, b) => {
@@ -481,7 +482,7 @@ export default function DrBeleza() {
       if (filteredEstabelecimentos.length > 0 && filteredEstabelecimentos[0].latitude) {
         setMapCenter([filteredEstabelecimentos[0].latitude, filteredEstabelecimentos[0].longitude]);
       } else if (userLocation) {
-        setMapCenter(userLocation); // Fallback to user location if no results or first result has no lat/lng
+        setMapCenter(userLocation);
       }
     }, 1000);
   };
@@ -505,7 +506,6 @@ export default function DrBeleza() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
-      {/* Hero Section */}
       <div className="relative py-12 md:py-20 px-4 md:px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
@@ -567,7 +567,6 @@ export default function DrBeleza() {
         </div>
       </div>
 
-      {/* Avatar Scanner Section */}
       <div className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -694,7 +693,6 @@ export default function DrBeleza() {
             </motion.div>
           </div>
 
-          {/* Avatar Form - Expanded Section */}
           <AnimatePresence>
             {showAvatarForm && (
               <motion.div
@@ -711,7 +709,6 @@ export default function DrBeleza() {
         </div>
       </div>
 
-      {/* Search Form */}
       <div className="py-12 md:py-24 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -908,7 +905,7 @@ export default function DrBeleza() {
                             {cidadesDisponiveis.map((cidade) => (
                               <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                             ))}
-                            <SelectItem value={"__custom__"}>Outra cidade...</SelectItem>
+                            <SelectItem value="__custom__">Outra cidade...</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
@@ -1017,7 +1014,6 @@ export default function DrBeleza() {
             </Card>
           </motion.div>
 
-          {/* Results Section with Map */}
           {showResults && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -1037,7 +1033,6 @@ export default function DrBeleza() {
                   </p>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6 space-y-6">
-                  {/* Map - Full Width */}
                   <div className="w-full h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-xl border-4 border-[#E8DCC4]">
                     <MapContainer
                       center={mapCenter}
@@ -1088,7 +1083,6 @@ export default function DrBeleza() {
                     </MapContainer>
                   </div>
 
-                  {/* List - Below Map in Grid */}
                   <div>
                     <h3 className="font-serif text-xl md:text-2xl font-bold text-gray-800 mb-6">
                       Estabelecimentos Encontrados
