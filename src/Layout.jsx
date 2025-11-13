@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -420,18 +421,9 @@ export default function Layout({ children, currentPageName }) {
                         className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
                       >
                         <Users className="w-3 h-3 mr-1" />
-                        Registrar
+                        Cadastrar
                       </Button>
                       
-                      <Button
-                        onClick={handleWhatsAppSignup}
-                        size="sm"
-                        className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
-                      >
-                        <MessageCircle className="w-3 h-3 mr-1" />
-                        WhatsApp
-                      </Button>
-
                       <button
                         onClick={() => setShowTopBanner(false)}
                         className="text-white/80 hover:text-white transition-colors p-1"
