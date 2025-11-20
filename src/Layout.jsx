@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,6 +31,7 @@ import CookieConsent from "./components/CookieConsent";
 import SignUpModal from "./components/SignUpModal";
 import VersionChecker from "./components/VersionChecker";
 import BannerDisplay from "./components/BannerDisplay";
+import MapaEsteticaSync from "./components/MapaEsteticaSync";
 
 const navigationItems = [
   {
@@ -461,6 +461,7 @@ export default function Layout({ children, currentPageName }) {
         <CookieConsent />
         <VersionChecker />
         <BannerDisplay />
+        <MapaEsteticaSync />
         
         {showSignUpModal && (
           <SignUpModal onClose={() => setShowSignUpModal(false)} />

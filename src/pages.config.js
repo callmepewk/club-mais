@@ -24,7 +24,7 @@ import TermsOfService from './pages/TermsOfService';
 import Plans from './pages/Plans';
 import EdBeautyCreateContent from './pages/EdBeautyCreateContent';
 import EdBeautyEditContent from './pages/EdBeautyEditContent';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -59,5 +59,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
