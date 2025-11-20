@@ -330,7 +330,7 @@ export default function Layout({ children, currentPageName }) {
         }
       `}</style>
       <div className="min-h-screen flex w-full bg-[#F5EFE6]">
-        <Sidebar className="border-r border-gray-200 bg-black text-white".
+        <Sidebar className="border-r border-gray-200 bg-black text-white">
           <SidebarHeader className="border-b border-gray-800 p-6">
             <Link to={createPageUrl("Home")} className="flex items-center gap-3 group">
               <img 
