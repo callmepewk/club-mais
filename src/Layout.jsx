@@ -322,36 +322,28 @@ export default function Layout({ children, currentPageName }) {
     <SidebarProvider>
       <style>{`
         :root {
-          --gold: #D4AF37;
-          --gold-light: #E8DCC4;
-          --beige: #F5EFE6;
-          --beige-dark: #E8DCC4;
-          --accent-gold: #C8A882;
+          --black-primary: #000000;
+          --gold-primary: #D4AF37;
+          --gold-light: #E5C158;
+          --off-white: #FAFAFA;
+          --gray-light: #F5F5F5;
         }
       `}</style>
       <div className="min-h-screen flex w-full bg-[#F5EFE6]">
-        <Sidebar className="border-r border-[#E8DCC4] bg-white/95 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-[#E8DCC4] p-6">
+        <Sidebar className="border-r border-gray-200 bg-black text-white".
+          <SidebarHeader className="border-b border-gray-800 p-6">
             <Link to={createPageUrl("Home")} className="flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center shadow-lg">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_68ca933db3f173d5b5ee5174/424de1767_clubeimg.jpeg"
-                  alt="Club Logo"
-                  className="w-8 h-8 object-contain"
-                />
-              </div>
-              <div>
-                <h2 className="font-serif text-xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                  Club da Beleza
-                </h2>
-                <p className="text-xs text-[#C8A882]">Seu clube de benefícios</p>
-              </div>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/2fe068660_clublogo.jpeg"
+                alt="Club+ Logo"
+                className="h-10 object-contain"
+              />
             </Link>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-medium text-[#C8A882] uppercase tracking-wider px-2 py-2">
+              <SidebarGroupLabel className="text-xs font-light text-[#D4AF37] uppercase tracking-widest px-2 py-2">
                 Navegação
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -365,8 +357,8 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`hover:bg-[#F5EFE6] hover:text-[#D4AF37] transition-all duration-300 rounded-xl my-1 ${
-                            location.pathname === item.url ? 'bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4] text-[#D4AF37] shadow-sm' : ''
+                          className={`hover:bg-gray-900 hover:text-[#D4AF37] transition-all duration-300 rounded-lg my-1 ${
+                            location.pathname === item.url ? 'bg-gray-900 text-[#D4AF37] border-l-2 border-[#D4AF37]' : 'text-gray-400'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
@@ -382,14 +374,14 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-[#E8DCC4] p-4">
-            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-[#F5EFE6] rounded-xl transition-all duration-300 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full flex items-center justify-center">
-                <Phone className="w-5 h-5 text-white" />
+          <SidebarFooter className="border-t border-gray-800 p-4">
+            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-gray-900 rounded-lg transition-all duration-300 group">
+              <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center">
+                <Phone className="w-5 h-5 text-black" />
               </div>
               <div>
-                <p className="text-xs text-[#C8A882] font-medium">Contato</p>
-                <p className="text-sm font-semibold text-gray-800">(31) 97259-5643</p>
+                <p className="text-xs text-gray-400 font-light">Contato</p>
+                <p className="text-sm font-light text-white">(31) 97259-5643</p>
               </div>
             </a>
           </SidebarFooter>
@@ -402,7 +394,7 @@ export default function Layout({ children, currentPageName }) {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-gradient-to-r from-[#D4AF37] via-[#C8A882] to-[#D4AF37] text-white overflow-hidden"
+                className="bg-black text-white overflow-hidden border-b border-[#D4AF37]"
               >
                 <div className="relative">
                   <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
@@ -418,7 +410,7 @@ export default function Layout({ children, currentPageName }) {
                       <Button
                         onClick={() => setShowSignUpModal(true)}
                         size="sm"
-                        className="bg-white text-[#D4AF37] hover:bg-white/90 text-xs px-3 py-1 h-auto font-semibold"
+                        className="bg-[#D4AF37] text-black hover:bg-[#E5C158] text-xs px-3 py-1 h-auto font-medium"
                       >
                         <Users className="w-3 h-3 mr-1" />
                         Cadastrar
@@ -438,15 +430,14 @@ export default function Layout({ children, currentPageName }) {
             )}
           </AnimatePresence>
 
-          <header className="bg-white/80 backdrop-blur-md border-b border-[#E8DCC4] px-6 py-4 md:hidden sticky top-0 z-50">
+          <header className="bg-black border-b border-gray-800 px-6 py-4 md:hidden sticky top-0 z-50">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-[#F5EFE6] p-2 rounded-lg transition-colors duration-200" />
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#D4AF37]" />
-                <h1 className="text-lg font-serif font-semibold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                  Club da Beleza
-                </h1>
-              </div>
+              <SidebarTrigger className="hover:bg-gray-900 p-2 rounded-lg transition-colors duration-200 text-white" />
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/2fe068660_clublogo.jpeg"
+                alt="Club+ Logo"
+                className="h-8 object-contain"
+              />
             </div>
           </header>
 

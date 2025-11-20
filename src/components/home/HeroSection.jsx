@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 
 export default function HeroSection() {
   return (
-    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
+    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
       {/* Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
