@@ -394,7 +394,7 @@ export default function Layout({ children, currentPageName }) {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-black text-white overflow-hidden border-b border-[#D4AF37]"
+                className="bg-white text-black overflow-hidden border-b border-[#D4AF37]"
               >
                 <div className="relative">
                   <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
@@ -430,9 +430,9 @@ export default function Layout({ children, currentPageName }) {
             )}
           </AnimatePresence>
 
-          <header className="bg-black border-b border-gray-800 px-6 py-4 md:hidden sticky top-0 z-50">
+          <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden sticky top-0 z-50">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-gray-900 p-2 rounded-lg transition-colors duration-200 text-white" />
+              <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200 text-black" />
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/2fe068660_clublogo.jpeg"
                 alt="Club+ Logo"
