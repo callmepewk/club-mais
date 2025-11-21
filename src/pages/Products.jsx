@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,31 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { 
   ExternalLink, MapPin, Zap, Stethoscope, 
-  Sparkles, CheckCircle, ArrowRight, Star
+  Sparkles, CheckCircle, ArrowRight, Star, Bot
 } from "lucide-react";
 
 const products = [
+  {
+    name: "Dr. Beleza AI",
+    tagline: "Inteligência Artificial para Medicina Estética",
+    description: "Assistente de IA especializado em medicina e medicina estética. Converse, envie fotos, gere imagens e receba orientações sobre tratamentos, procedimentos e cuidados baseados em evidências científicas.",
+    icon: Bot,
+    color: "from-purple-500 to-purple-700",
+    url: "https://dr-beleza-ai.base44.app",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/b44854449_image.png",
+    features: [
+      "Chat com IA especializada em estética",
+      "Análise de imagens e procedimentos",
+      "Histórico de conversas salvo",
+      "Geração de imagens com IA",
+      "Orientações baseadas em evidências científicas"
+    ],
+    stats: [
+      { label: "Precisão", value: "95%+" },
+      { label: "Procedimentos", value: "1000+" },
+      { label: "Consultas", value: "10k+" }
+    ]
+  },
   {
     name: "Mapa da Estética",
     tagline: "Encontre os melhores profissionais perto de você",
