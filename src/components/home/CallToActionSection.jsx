@@ -6,6 +6,8 @@ import { createPageUrl } from "@/utils";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function CallToActionSection() {
+  const { t } = useTranslation();
+  
   return (
     <div className="py-24 px-6 bg-gradient-to-br from-[#D4AF37] via-[#C8A882] to-[#D4AF37]">
       <div className="max-w-4xl mx-auto text-center space-y-8">

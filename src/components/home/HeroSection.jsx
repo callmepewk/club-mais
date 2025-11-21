@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function HeroSection() {
+  const { t } = useTranslation();
+  
   return (
     <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white">
       {/* Decorative Elements */}

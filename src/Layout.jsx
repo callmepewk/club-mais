@@ -32,78 +32,79 @@ import SignUpModal from "./components/SignUpModal";
 import VersionChecker from "./components/VersionChecker";
 import BannerDisplay from "./components/BannerDisplay";
 import MapaEsteticaSync from "./components/MapaEsteticaSync";
-import { TranslationProvider } from "./components/TranslationProvider";
+import { TranslationProvider, useTranslation } from "./components/TranslationProvider";
 import LanguageSelector from "./components/LanguageSelector";
 
-const navigationItems = [
-  {
-    title: "Início",
-    url: createPageUrl("Home"),
-    icon: Home,
-  },
-  {
-    title: "Notícias",
-    url: createPageUrl("News"),
-    icon: Newspaper,
-  },
-  {
-    title: "Nossos Produtos",
-    url: createPageUrl("Products"),
-    icon: Package,
-  },
-  {
-    title: "Beauty Coin",
-    url: createPageUrl("BeautyCoin"),
-    icon: Coins,
-  },
-  {
-    title: "Dr. Beleza",
-    url: createPageUrl("DrBeleza"),
-    icon: Bot,
-  },
-  {
-    title: "Mapa da Estética",
-    url: createPageUrl("MapaDaEstetica"),
-    icon: MapPin,
-  },
-  {
-    title: "EdBeauty",
-    url: createPageUrl("EdBeauty"),
-    icon: GraduationCap,
-  },
-  {
-    title: "Golden Doctors",
-    url: createPageUrl("GoldenDoctors"),
-    icon: Briefcase,
-  },
-  {
-    title: "Clube+",
-    url: createPageUrl("ClubePlus"),
-    icon: Heart,
-  },
-  {
-    title: "Eventos",
-    url: createPageUrl("Eventos"),
-    icon: Award,
-  },
-  {
-    title: "Planos",
-    url: createPageUrl("Plans"),
-    icon: Users,
-  },
-  {
-    title: "Meu Perfil",
-    url: createPageUrl("MyProfile"),
-    icon: UserIcon,
-  },
-  {
-    title: "Controle",
-    url: createPageUrl("Control"),
-    icon: Shield,
-  },
-];
-
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
+  const { t } = useTranslation();
+  
+  const navigationItems = [
+    {
+      title: t("nav.home"),
+      url: createPageUrl("Home"),
+      icon: Home,
+    },
+    {
+      title: t("nav.news"),
+      url: createPageUrl("News"),
+      icon: Newspaper,
+    },
+    {
+      title: t("nav.products"),
+      url: createPageUrl("Products"),
+      icon: Package,
+    },
+    {
+      title: t("nav.beautyCoin"),
+      url: createPageUrl("BeautyCoin"),
+      icon: Coins,
+    },
+    {
+      title: t("nav.drBeleza"),
+      url: createPageUrl("DrBeleza"),
+      icon: Bot,
+    },
+    {
+      title: t("nav.map"),
+      url: createPageUrl("MapaDaEstetica"),
+      icon: MapPin,
+    },
+    {
+      title: t("nav.edBeauty"),
+      url: createPageUrl("EdBeauty"),
+      icon: GraduationCap,
+    },
+    {
+      title: t("nav.goldenDoctors"),
+      url: createPageUrl("GoldenDoctors"),
+      icon: Briefcase,
+    },
+    {
+      title: t("nav.clubePlus"),
+      url: createPageUrl("ClubePlus"),
+      icon: Heart,
+    },
+    {
+      title: t("nav.events"),
+      url: createPageUrl("Eventos"),
+      icon: Award,
+    },
+    {
+      title: t("nav.plans"),
+      url: createPageUrl("Plans"),
+      icon: Users,
+    },
+    {
+      title: t("nav.profile"),
+      url: createPageUrl("MyProfile"),
+      icon: UserIcon,
+    },
+    {
+      title: t("nav.control"),
+      url: createPageUrl("Control"),
+      icon: Shield,
+    },
+  ];
   const location = useLocation();
   const [showTopBanner, setShowTopBanner] = useState(true);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
@@ -321,7 +322,6 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   return (
-    <TranslationProvider>
     <SidebarProvider>
       <style>{`
         :root {
@@ -350,7 +350,7 @@ export default function Layout({ children, currentPageName }) {
           <SidebarContent className="p-3">
             <SidebarGroup>
               <SidebarGroupLabel className="text-xs font-light text-[#D4AF37] uppercase tracking-widest px-2 py-2">
-                Navegação
+                {t("nav.navigation")}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -380,14 +380,14 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-800 p-4">
-            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-gray-900 rounded-lg transition-all duration-300 group">
-              <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center">
+          <SidebarFooter className="border-t border-gray-800 p-4 bg-black">
+            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-gray-900 rounded-lg transition-all duration-300 group bg-gray-800/50">
+              <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
                 <Phone className="w-5 h-5 text-black" />
               </div>
-              <div>
-                <p className="text-xs text-gray-400 font-light">Contato</p>
-                <p className="text-sm font-light text-white">(31) 97259-5643</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-300 font-medium">{t("common.contact")}</p>
+                <p className="text-sm font-semibold text-white">(31) 97259-5643</p>
               </div>
             </a>
           </SidebarFooter>
@@ -407,8 +407,8 @@ export default function Layout({ children, currentPageName }) {
                     <div className="flex items-center gap-3 flex-1">
                       <Crown className="w-5 h-5 hidden md:block flex-shrink-0" />
                       <p className="text-sm font-medium text-center md:text-left flex-1">
-                        <span className="hidden md:inline">🎉 Cadastre-se agora e ganhe benefícios exclusivos! </span>
-                        <span className="md:hidden">🎉 Cadastre-se e ganhe benefícios!</span>
+                        <span className="hidden md:inline">🎉 {t("banner.signup")} </span>
+                        <span className="md:hidden">🎉 {t("banner.signupShort")}</span>
                       </p>
                     </div>
                     
@@ -419,7 +419,7 @@ export default function Layout({ children, currentPageName }) {
                         className="bg-[#D4AF37] text-black hover:bg-[#E5C158] text-xs px-3 py-1 h-auto font-medium"
                       >
                         <Users className="w-3 h-3 mr-1" />
-                        Cadastrar
+                        {t("common.register")}
                       </Button>
                       
                       <button
@@ -468,6 +468,13 @@ export default function Layout({ children, currentPageName }) {
         )}
       </div>
     </SidebarProvider>
+  );
+}
+
+export default function Layout(props) {
+  return (
+    <TranslationProvider>
+      <LayoutContent {...props} />
     </TranslationProvider>
   );
 }
