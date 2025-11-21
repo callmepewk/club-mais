@@ -32,6 +32,8 @@ import SignUpModal from "./components/SignUpModal";
 import VersionChecker from "./components/VersionChecker";
 import BannerDisplay from "./components/BannerDisplay";
 import MapaEsteticaSync from "./components/MapaEsteticaSync";
+import { TranslationProvider } from "./components/TranslationProvider";
+import LanguageSelector from "./components/LanguageSelector";
 
 const navigationItems = [
   {
@@ -319,6 +321,7 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   return (
+    <TranslationProvider>
     <SidebarProvider>
       <style>{`
         :root {
@@ -459,5 +462,6 @@ export default function Layout({ children, currentPageName }) {
         )}
       </div>
     </SidebarProvider>
+    </TranslationProvider>
   );
 }
