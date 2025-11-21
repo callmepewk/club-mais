@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useTranslation } from "../TranslationProvider";
 
 export default function HeroSection() {
   const { t } = useTranslation();
