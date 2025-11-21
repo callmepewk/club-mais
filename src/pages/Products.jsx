@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { 
   ExternalLink, MapPin, Zap, Stethoscope, 
-  Sparkles, CheckCircle, ArrowRight, Star, Bot
+  Sparkles, CheckCircle, ArrowRight, Star, Bot, Crown
 } from "lucide-react";
 
 const products = [
@@ -91,6 +91,27 @@ const products = [
       { label: "Médicos", value: "200+" },
       { label: "Consultas", value: "5k+" },
       { label: "Usuários", value: "3k+" }
+    ]
+  },
+  {
+    name: "Eccellenza",
+    tagline: "Excelência em Estética Premium",
+    description: "Plataforma premium de agendamento e gestão para clínicas de estética de alto padrão. Experiência VIP completa com gestão inteligente de clientes e protocolos personalizados.",
+    icon: Crown,
+    color: "from-amber-500 to-amber-700",
+    url: "https://eccellenza.base44.app",
+    image: "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=800&h=500&fit=crop",
+    features: [
+      "Agendamento VIP personalizado",
+      "Gestão premium de clientes",
+      "Protocolos de tratamento exclusivos",
+      "Dashboard analítico avançado",
+      "Experiência de luxo end-to-end"
+    ],
+    stats: [
+      { label: "Clínicas Premium", value: "50+" },
+      { label: "Clientes VIP", value: "2k+" },
+      { label: "Satisfação", value: "99%" }
     ]
   }
 ];
