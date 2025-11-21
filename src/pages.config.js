@@ -24,6 +24,7 @@ import TermsOfService from './pages/TermsOfService';
 import Plans from './pages/Plans';
 import EdBeautyCreateContent from './pages/EdBeautyCreateContent';
 import EdBeautyEditContent from './pages/EdBeautyEditContent';
+import TranslationManager from './pages/TranslationManager';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "Plans": Plans,
     "EdBeautyCreateContent": EdBeautyCreateContent,
     "EdBeautyEditContent": EdBeautyEditContent,
+    "TranslationManager": TranslationManager,
 }
 
 export const pagesConfig = {
