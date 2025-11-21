@@ -22,16 +22,16 @@ export default function CallToActionSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
             <Sparkles className="w-4 h-4 text-white" />
             <span className="text-sm font-medium text-white">
-              Junte-se a nós
+              {t("common.joinUs")}
             </span>
           </div>
 
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-white leading-tight">
-            Pronto para transformar sua rotina de beleza?
+            {t("common.ready")}
           </h2>
 
           <p className="text-xl text-white/90">
-            Associe-se agora e comece a aproveitar todos os benefícios exclusivos do Club da Beleza
+            {t("common.joinNow")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
@@ -40,26 +40,26 @@ export default function CallToActionSection() {
                 size="lg"
                 className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
               >
-                Começar Agora
+                {t("common.startNow")}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+                </Button>
+                </Link>
 
-            <Link to={createPageUrl("Join")}>
-              <Button 
+                <Link to={createPageUrl("Join")}>
+                <Button 
                 size="lg"
                 variant="outline"
                 className="bg-transparent border-2 border-white text-white hover:bg-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
-              >
-                Ver Todos os Benefícios
+                >
+                {t("common.viewBenefits")}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
+                </Button>
+                </Link>
+                </div>
 
-          <p className="text-sm text-white/70 pt-4">
-            Mais de 500 membros já fazem parte da nossa comunidade
-          </p>
+                <p className="text-sm text-white/70 pt-4">
+                500+ {t("common.members")}
+                </p>
         </motion.div>
       </div>
     </div>

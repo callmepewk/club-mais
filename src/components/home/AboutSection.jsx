@@ -7,38 +7,41 @@ import { createPageUrl } from "@/utils";
 import { 
   Heart, Globe, Users, Award, Target, Lightbulb, ArrowRight
 } from "lucide-react";
-
-const values = [
-  {
-    icon: Heart,
-    title: "Autocuidado",
-    description: "Acreditamos que cuidar de si mesmo é um ato de amor próprio essencial."
-  },
-  {
-    icon: Globe,
-    title: "Sustentabilidade",
-    description: "Comprometidos com práticas sustentáveis e responsáveis."
-  },
-  {
-    icon: Users,
-    title: "Comunidade",
-    description: "Construímos uma rede forte de profissionais e clientes."
-  },
-  {
-    icon: Award,
-    title: "Excelência",
-    description: "Selecionamos apenas os melhores profissionais."
-  }
-];
-
-const achievements = [
-  { number: "500+", label: "Membros Ativos" },
-  { number: "100+", label: "Parceiros Certificados" },
-  { number: "50+", label: "Cidades Atendidas" },
-  { number: "98%", label: "Satisfação" }
-];
+import { useTranslation } from "../TranslationProvider";
 
 export default function AboutSection() {
+  const { t } = useTranslation();
+  
+  const values = [
+    {
+      icon: Heart,
+      title: t("about.valueSelfcare"),
+      description: t("about.valueSelfcareDesc")
+    },
+    {
+      icon: Globe,
+      title: t("about.valueSustainability"),
+      description: t("about.valueSustainabilityDesc")
+    },
+    {
+      icon: Users,
+      title: t("about.valueCommunity"),
+      description: t("about.valueCommunityDesc")
+    },
+    {
+      icon: Award,
+      title: t("about.valueExcellence"),
+      description: t("about.valueExcellenceDesc")
+    }
+  ];
+
+  const achievements = [
+    { number: "500+", label: t("about.activeMembers") },
+    { number: "100+", label: t("about.certifiedPartners") },
+    { number: "50+", label: t("about.citiesServed") },
+    { number: "98%", label: t("hero.satisfaction") }
+  ];
+  
   return (
     <div className="py-24 px-6 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -53,25 +56,21 @@ export default function AboutSection() {
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold">
               <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
-                Nossa História
+                {t("about.story")}
               </span>
             </h2>
 
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p className="text-lg">
-                O <strong className="text-[#C8A882]">Club da Beleza</strong> nasceu da visão de democratizar 
-                o acesso a serviços de beleza e estética de qualidade no Brasil.
+                <strong className="text-[#C8A882]">Club da Beleza</strong> {t("about.storyP1")}
               </p>
 
               <p className="text-lg">
-                Criamos uma plataforma inovadora que não apenas conecta clientes a profissionais 
-                certificados, mas também oferece benefícios exclusivos, descontos especiais e uma 
-                comunidade engajada em torno do bem-estar e da beleza sustentável.
+                {t("about.storyP2")}
               </p>
 
               <p className="text-lg">
-                Através do nosso <strong className="text-[#C8A882]">Mapa da Estética</strong>, reunimos 
-                mais de 500 profissionais verificados em todo o país.
+                {t("about.storyP3")} <strong className="text-[#C8A882]">{t("nav.map")}</strong>, {t("about.storyP3b")}
               </p>
             </div>
 
@@ -80,7 +79,7 @@ export default function AboutSection() {
                 size="lg"
                 className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-medium group"
               >
-                Faça Parte
+                {t("about.joinPart")}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -119,11 +118,11 @@ export default function AboutSection() {
                 </div>
                 
                 <h3 className="font-serif text-2xl font-bold text-gray-800">
-                  Nossa Missão
+                  {t("about.mission")}
                 </h3>
                 
                 <p className="text-gray-600 leading-relaxed text-lg">
-                  Democratizar o acesso a serviços de beleza e estética de qualidade, conectando pessoas a profissionais qualificados e comprometidos com a excelência.
+                  {t("about.missionDesc")}
                 </p>
               </CardContent>
             </Card>
@@ -142,11 +141,11 @@ export default function AboutSection() {
                 </div>
                 
                 <h3 className="font-serif text-2xl font-bold text-gray-800">
-                  Nossa Visão
+                  {t("about.vision")}
                 </h3>
                 
                 <p className="text-gray-600 leading-relaxed text-lg">
-                  Ser a maior e mais confiável rede de beleza e estética do Brasil, transformando a experiência de autocuidado em algo acessível e prazeroso.
+                  {t("about.visionDesc")}
                 </p>
               </CardContent>
             </Card>
@@ -162,8 +161,7 @@ export default function AboutSection() {
           className="text-center mb-16 space-y-4"
         >
           <h2 className="font-serif text-4xl md:text-5xl font-bold">
-            <span className="text-gray-800">Nossos</span>
-            <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Valores</span>
+            <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">{t("about.values")}</span>
           </h2>
         </motion.div>
 
@@ -205,7 +203,7 @@ export default function AboutSection() {
             className="text-center mb-12"
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-white">
-              Números que Inspiram
+              {t("about.numbersInspire")}
             </h2>
           </motion.div>
 

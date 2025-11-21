@@ -56,23 +56,21 @@ export default function HeroSection() {
             >
               <Sparkles className="w-4 h-4 text-[#D4AF37]" />
               <span className="text-sm font-medium text-[#C8A882]">
-                Clube Exclusivo de Benefícios
+                {t("hero.badge")}
               </span>
             </motion.div>
 
             <div className="space-y-6">
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-[#D4AF37] via-[#C8A882] to-[#D4AF37] bg-clip-text text-transparent">
-                  Bem-vindo
+                  {t("hero.title")}
                 </span>
                 <br />
-                <span className="text-gray-800">ao seu clube</span>
+                <span className="text-gray-800">{t("hero.titleHighlight")}</span>
               </h1>
 
               <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl">
-                Este é o clube de benefícios exclusivo para quem ama o 
-                <span className="font-semibold text-[#C8A882]"> autocuidado </span>
-                e um planeta mais feliz!
+                {t("hero.subtitle")}
               </p>
             </div>
 
@@ -82,7 +80,7 @@ export default function HeroSection() {
                   size="lg"
                   className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-medium group"
                 >
-                  Começar Agora
+                  {t("hero.cta")}
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -92,7 +90,7 @@ export default function HeroSection() {
                   variant="outline"
                   className="border-2 border-[#D4AF37] text-[#C8A882] hover:bg-[#F5EFE6] px-8 py-6 text-lg font-medium transition-all duration-300"
                 >
-                  Saiba Mais
+                  {t("hero.learnMore")}
                 </Button>
               </Link>
             </div>
@@ -100,17 +98,17 @@ export default function HeroSection() {
             <div className="flex items-center gap-8 pt-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-[#D4AF37]">500+</div>
-                <div className="text-sm text-gray-600">Associados</div>
+                <div className="text-sm text-gray-600">{t("hero.members")}</div>
               </div>
               <div className="w-px h-12 bg-[#E8DCC4]"></div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-[#D4AF37]">100+</div>
-                <div className="text-sm text-gray-600">Parceiros</div>
+                <div className="text-sm text-gray-600">{t("hero.partners")}</div>
               </div>
               <div className="w-px h-12 bg-[#E8DCC4]"></div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-[#D4AF37]">98%</div>
-                <div className="text-sm text-gray-600">Satisfação</div>
+                <div className="text-sm text-gray-600">{t("hero.satisfaction")}</div>
               </div>
             </div>
           </motion.div>
@@ -150,7 +148,7 @@ export default function HeroSection() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-[#D4AF37]">Club</div>
-                  <div className="text-sm text-gray-600">Premium</div>
+                  <div className="text-sm text-gray-600">{t("hero.premium")}</div>
                 </div>
               </div>
             </motion.div>
