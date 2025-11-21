@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useTranslation } from "../TranslationProvider";
 
 export default function CallToActionSection() {
   const { t } = useTranslation();
