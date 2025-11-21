@@ -11,10 +11,10 @@ export default function LanguageSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-white/90 hover:bg-white border-[#E8DCC4]">
+        <Button variant="outline" className="gap-2 bg-white hover:bg-white/90 border-[#D4AF37] shadow-sm">
           <span className="text-xl">{currentLang.flag}</span>
-          <span className="hidden md:inline text-sm font-medium">{currentLang.code.toUpperCase()}</span>
-          <Globe className="w-4 h-4" />
+          <span className="text-sm font-medium text-gray-800">{currentLang.code.toUpperCase()}</span>
+          <Globe className="w-4 h-4 text-[#D4AF37]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
