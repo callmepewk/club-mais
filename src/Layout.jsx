@@ -334,7 +334,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
       <div className="min-h-screen flex w-full bg-[#F5EFE6]">
         <Sidebar className="border-r border-gray-200 bg-black text-white">
-          <SidebarHeader className="border-b border-gray-800 p-6">
+          <SidebarHeader className="border-b border-gray-800 p-6 space-y-4">
             <Link to={createPageUrl("Home")} className="flex items-center gap-3 group">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/2fe068660_clublogo.jpeg"
@@ -342,6 +342,9 @@ export default function Layout({ children, currentPageName }) {
                 className="h-10 object-contain"
               />
             </Link>
+            <div className="hidden md:block">
+              <LanguageSelector />
+            </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
