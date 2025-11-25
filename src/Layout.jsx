@@ -110,21 +110,24 @@ function LayoutContent({ children, currentPageName }) {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
 
   const { data: user } = useQuery({
-    queryKey: ['current-user-layout'],
-    queryFn: async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        
-        if (currentUser && (!currentUser.tipo_usuario || !currentUser.telefone || !currentUser.cpf)) {
-          setShowSignUpModal(true);
-        }
-        
-        return currentUser;
-      } catch (error) {
-        return null;
-      }
-    },
-  });
+        queryKey: ['current-user-layout'],
+        queryFn: async () => {
+          try {
+            const currentUser = await base44.auth.me();
+
+            // Não mostrar modal se usuário já sincronizou com Mapa da Estética
+            if (currentUser && 
+                !currentUser.sincronizacao_ativa && 
+                (!currentUser.tipo_usuario || !currentUser.telefone || !currentUser.cpf)) {
+              setShowSignUpModal(true);
+            }
+
+            return currentUser;
+          } catch (error) {
+            return null;
+          }
+        },
+      });
 
   const handleWhatsAppSignup = () => {
     const whatsappNumber = "5531972595643";

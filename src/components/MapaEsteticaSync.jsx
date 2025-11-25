@@ -60,14 +60,11 @@ export default function MapaEsteticaSync() {
         setSyncMessage(`✅ Sincronização completa! ${
           currentUser.clube_plano && currentUser.clube_plano !== "none" 
             ? `Plano ${currentUser.clube_plano.toUpperCase()} reconhecido.` 
-            : "Nenhum plano encontrado no Mapa da Estética."
-        }`);
+            : "Conta sincronizada!"
+        } Para completar seu perfil, vá em Meu Perfil > Editar > Salvar.`);
 
         queryClient.invalidateQueries({ queryKey: ['current-user'] });
-        
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        queryClient.invalidateQueries({ queryKey: ['current-user-layout'] });
 
         return updateData;
       } catch (error) {
