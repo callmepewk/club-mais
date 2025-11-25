@@ -7,17 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { GitBranch, Package, Calendar, CheckCircle, Zap, Sparkles } from "lucide-react";
+import { GitBranch, Package, Calendar, CheckCircle, Zap, Sparkles, Send, Clock, AlertTriangle, Users } from "lucide-react";
 
 export default function VersionsSection() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
   const [formData, setFormData] = useState({
-    versao: "", tipo_release: "patch", changelog: "", mudancas_tecnicas: ""
+    versao: "", tipo_release: "patch", changelog: "", mudancas_tecnicas: "",
+    forcar_atualizacao: false, data_agendada: ""
   });
+  const [notifyingUsers, setNotifyingUsers] = useState(false);
 
   const { data: versions = [] } = useQuery({
     queryKey: ['app-versions'],
@@ -39,14 +42,100 @@ export default function VersionsSection() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: async (versionId) => {
+    mutationFn: async ({ versionId, forceUpdate, notifyUsers }) => {
       const version = versions.find(v => v.id === versionId);
+      const cacheVersion = Date.now().toString();
+      
       await base44.entities.AppVersion.update(versionId, {
-        status: 'publicada', data_publicacao: new Date().toISOString(), cache_version: Date.now().toString(),
+        status: 'publicada', 
+        data_publicacao: new Date().toISOString(), 
+        cache_version: cacheVersion,
+        forcar_atualizacao: forceUpdate || false,
+      });
+      
+      // If force update, notify all users
+      if (notifyUsers) {
+        const users = await base44.entities.User.list();
+        const emailPromises = users.slice(0, 100).map(u => 
+          base44.integrations.Core.SendEmail({
+            to: u.email,
+            subject: `🚀 Atualização v${version.versao} - Club da Beleza`,
+            body: `
+              <div style="font-family:Arial;max-width:600px;margin:0 auto">
+                <div style="background:linear-gradient(135deg,#D4AF37,#C8A882);padding:30px;text-align:center;border-radius:10px 10px 0 0">
+                  <h1 style="color:white;margin:0">🎉 Nova Versão Disponível!</h1>
+                  <p style="color:white;margin:10px 0 0">v${version.versao}</p>
+                </div>
+                <div style="background:white;padding:30px;border-radius:0 0 10px 10px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
+                  <p>Olá <strong>${u.full_name || 'Membro'}</strong>!</p>
+                  <h3>O que há de novo:</h3>
+                  <p style="background:#f5f5f5;padding:15px;border-radius:8px;white-space:pre-line">${version.changelog}</p>
+                  <p style="margin-top:20px">Para garantir a melhor experiência, <strong>recarregue a página</strong> ou limpe o cache do navegador.</p>
+                  <p style="text-align:center;margin:30px 0">
+                    <a href="${window.location.origin}" style="background:linear-gradient(135deg,#D4AF37,#C8A882);color:white;padding:15px 40px;text-decoration:none;border-radius:30px;font-weight:bold;display:inline-block">Acessar Agora</a>
+                  </p>
+                </div>
+              </div>
+            `
+          }).catch(() => {})
+        );
+        await Promise.all(emailPromises);
+        
+        await base44.entities.AppVersion.update(versionId, { usuarios_notificados: true });
+      }
+      
+      return { cacheVersion };
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['app-versions'] }),
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: async ({ versionId, scheduledDate }) => {
+      await base44.entities.AppVersion.update(versionId, {
+        status: 'agendada',
+        data_agendada: scheduledDate,
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['app-versions'] }),
   });
+
+  const notifyAllUsers = async (version) => {
+    setNotifyingUsers(true);
+    try {
+      const users = await base44.entities.User.list();
+      const emailPromises = users.slice(0, 100).map(u => 
+        base44.integrations.Core.SendEmail({
+          to: u.email,
+          subject: `🔔 Atualize seu Club da Beleza - v${version.versao}`,
+          body: `
+            <div style="font-family:Arial;max-width:600px;margin:0 auto">
+              <div style="background:linear-gradient(135deg,#D4AF37,#C8A882);padding:30px;text-align:center;border-radius:10px 10px 0 0">
+                <h1 style="color:white;margin:0">⚡ Atualização Importante</h1>
+              </div>
+              <div style="background:white;padding:30px;border-radius:0 0 10px 10px">
+                <p>Olá <strong>${u.full_name || 'Membro'}</strong>!</p>
+                <p>Uma nova atualização está disponível. Para continuar usando o Club da Beleza sem problemas:</p>
+                <ol>
+                  <li>Feche todas as abas do site</li>
+                  <li>Limpe o cache (Ctrl+Shift+Del)</li>
+                  <li>Acesse novamente</li>
+                </ol>
+                <p style="text-align:center;margin:20px 0">
+                  <a href="${window.location.origin}?v=${Date.now()}" style="background:#D4AF37;color:white;padding:12px 30px;text-decoration:none;border-radius:25px;font-weight:bold">Acessar Site Atualizado</a>
+                </p>
+              </div>
+            </div>
+          `
+        }).catch(() => {})
+      );
+      await Promise.all(emailPromises);
+      alert(`Notificação enviada para ${Math.min(users.length, 100)} usuários!`);
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao notificar usuários');
+    }
+    setNotifyingUsers(false);
+  };
 
   const handleGenerateAI = async () => {
     if (!formData.mudancas_tecnicas || !formData.versao) return;
@@ -116,12 +205,37 @@ export default function VersionsSection() {
                         {new Date(version.created_date).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
-                    {version.status === 'em_desenvolvimento' && (
-                      <Button size="sm" onClick={() => publishMutation.mutate(version.id)}
-                        className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-                        <Zap className="w-4 h-4 mr-1" /> Publicar
-                      </Button>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      {version.status === 'em_desenvolvimento' && (
+                        <>
+                          <Button size="sm" onClick={() => publishMutation.mutate({ versionId: version.id, forceUpdate: true, notifyUsers: true })}
+                            disabled={publishMutation.isPending}
+                            className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+                            <Zap className="w-4 h-4 mr-1" /> Publicar + Notificar
+                          </Button>
+                          <Button size="sm" onClick={() => publishMutation.mutate({ versionId: version.id, forceUpdate: false, notifyUsers: false })}
+                            disabled={publishMutation.isPending} variant="outline">
+                            <CheckCircle className="w-4 h-4 mr-1" /> Publicar Silencioso
+                          </Button>
+                        </>
+                      )}
+                      {version.status === 'publicada' && !version.usuarios_notificados && (
+                        <Button size="sm" onClick={() => notifyAllUsers(version)}
+                          disabled={notifyingUsers} variant="outline" className="border-orange-400 text-orange-600">
+                          <Send className="w-4 h-4 mr-1" /> {notifyingUsers ? 'Enviando...' : 'Notificar Usuários'}
+                        </Button>
+                      )}
+                      {version.status === 'publicada' && version.usuarios_notificados && (
+                        <Badge className="bg-green-100 text-green-700">
+                          <Users className="w-3 h-3 mr-1" /> Notificados
+                        </Badge>
+                      )}
+                      {version.status === 'agendada' && (
+                        <Badge className="bg-orange-100 text-orange-700">
+                          <Clock className="w-3 h-3 mr-1" /> {new Date(version.data_agendada).toLocaleString('pt-BR')}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -166,11 +280,44 @@ export default function VersionsSection() {
               <Label>Changelog (descrição para usuários)</Label>
               <Textarea value={formData.changelog} onChange={(e) => setFormData({...formData, changelog: e.target.value})} placeholder="Descrição amigável..." className="h-32" />
             </div>
+            
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                  <Label className="text-orange-800 font-medium">Forçar Atualização</Label>
+                </div>
+                <Switch 
+                  checked={formData.forcar_atualizacao} 
+                  onCheckedChange={(v) => setFormData({...formData, forcar_atualizacao: v})} 
+                />
+              </div>
+              <p className="text-xs text-orange-700">
+                Quando ativado, todos os usuários serão obrigados a atualizar antes de continuar usando o site.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Agendar Publicação (opcional)
+              </Label>
+              <Input 
+                type="datetime-local" 
+                value={formData.data_agendada} 
+                onChange={(e) => setFormData({...formData, data_agendada: e.target.value})} 
+              />
+              <p className="text-xs text-gray-500">Deixe vazio para publicar manualmente</p>
+            </div>
+
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1">Cancelar</Button>
-              <Button onClick={() => createMutation.mutate({ ...formData, status: 'em_desenvolvimento', criado_por: user?.email })} 
+              <Button onClick={() => createMutation.mutate({ 
+                ...formData, 
+                status: formData.data_agendada ? 'agendada' : 'em_desenvolvimento', 
+                criado_por: user?.email 
+              })} 
                 disabled={createMutation.isPending} className="flex-1 bg-indigo-600 text-white">
-                {createMutation.isPending ? 'Criando...' : 'Criar'}
+                {createMutation.isPending ? 'Criando...' : formData.data_agendada ? 'Criar e Agendar' : 'Criar'}
               </Button>
             </div>
           </div>
