@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -331,13 +330,15 @@ export default function DrBelezaChat() {
           >
             <Button
               onClick={() => setIsOpen(true)}
-              className="w-20 h-20 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] shadow-2xl hover:shadow-3xl transition-all duration-300 group p-0 overflow-hidden border-4 border-white"
+              className="w-20 h-20 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] shadow-2xl hover:shadow-3xl transition-all duration-300 group p-0 overflow-hidden border-4 border-white relative"
             >
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                 alt="Dr. Beleza"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform"
               />
+              {/* Online indicator */}
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></span>
             </Button>
           </motion.div>
         )}
