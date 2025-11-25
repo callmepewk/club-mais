@@ -998,11 +998,95 @@ const translations = {
       signup: "지금 가입하고 독점 혜택을 받으세요!",
       signupShort: "가입하고 혜택을 받으세요!"
     }
+  },
+  'pt-PT': {
+    common: { 
+      welcome: "Bem-vindo", loading: "A carregar...", save: "Guardar", cancel: "Cancelar", 
+      delete: "Eliminar", edit: "Editar", search: "Pesquisar", filter: "Filtrar", 
+      close: "Fechar", yes: "Sim", no: "Não", back: "Voltar", next: "Seguinte", 
+      submit: "Enviar", continue: "Continuar", seeMore: "Ver Mais", contact: "Contacto",
+      startNow: "Começar Agora", learnMore: "Saber Mais", register: "Registar",
+      joinUs: "Junte-se a nós", ready: "Pronto para transformar a sua rotina de beleza?",
+      joinNow: "Associe-se agora e comece a usufruir de todos os benefícios exclusivos",
+      members: "membros já fazem parte da nossa comunidade", viewBenefits: "Ver Todos os Benefícios"
+    },
+    nav: { 
+      home: "Início", news: "Notícias", products: "Os Nossos Produtos", beautyCoin: "Beauty Coin", 
+      drBeleza: "Dr. Beleza", map: "Mapa da Estética", edBeauty: "EdBeauty", 
+      goldenDoctors: "Golden Doctors", clubePlus: "Clube+", events: "Eventos", 
+      plans: "Planos", profile: "O Meu Perfil", control: "Controlo", navigation: "Navegação"
+    },
+    hero: { 
+      title: "Bem-vindo", titleHighlight: "ao seu clube", 
+      subtitle: "Este é o clube de benefícios exclusivo para quem adora o autocuidado e um planeta mais feliz!", 
+      cta: "Começar Agora", learnMore: "Saber Mais", 
+      members: "Associados", partners: "Parceiros", satisfaction: "Satisfação",
+      badge: "Clube Exclusivo de Benefícios", premium: "Premium",
+      selfcare: "autocuidado"
+    },
+    benefits: { 
+      title: "Um clube completo", subtitle: "de benefícios",
+      why: "Porquê associar-se?",
+      description: "Descubra todas as vantagens de fazer parte do maior clube de beleza e bem-estar",
+      exclusive: "Benefícios Exclusivos", 
+      exclusiveDesc: "Acesso a descontos especiais em centenas de estabelecimentos parceiros de beleza e estética.",
+      selfcare: "Autocuidado",
+      selfcareDesc: "Cuide de si com os melhores profissionais e produtos selecionados especialmente para si.",
+      sustainability: "Sustentabilidade",
+      sustainabilityDesc: "Apoie marcas e profissionais comprometidos com práticas sustentáveis e um planeta mais saudável.",
+      rewards: "Recompensas",
+      rewardsDesc: "Acumule pontos e ganhe prémios exclusivos a cada compra ou serviço utilizado.",
+      community: "Comunidade",
+      communityDesc: "Faça parte de uma comunidade apaixonada por beleza, bem-estar e autocuidado.",
+      experiences: "Experiências Únicas",
+      experiencesDesc: "Acesso a eventos exclusivos, workshops e lançamentos de produtos em primeira mão."
+    },
+    about: {
+      story: "A Nossa História",
+      storyP1: "nasceu da visão de democratizar o acesso a serviços de beleza e estética de qualidade no Brasil.",
+      storyP2: "Criámos uma plataforma inovadora que não apenas conecta clientes a profissionais certificados, mas também oferece benefícios exclusivos, descontos especiais e uma comunidade empenhada no bem-estar e na beleza sustentável.",
+      storyP3: "Através do nosso",
+      storyP3b: "reunimos mais de 500 profissionais verificados em todo o país.",
+      joinPart: "Faça Parte",
+      mission: "A Nossa Missão",
+      missionDesc: "Democratizar o acesso a serviços de beleza e estética de qualidade, conectando pessoas a profissionais qualificados e comprometidos com a excelência.",
+      vision: "A Nossa Visão",
+      visionDesc: "Ser a maior e mais confiável rede de beleza e estética do Brasil, transformando a experiência de autocuidado em algo acessível e prazeroso.",
+      values: "Os Nossos Valores",
+      valueSelfcare: "Autocuidado",
+      valueSelfcareDesc: "Acreditamos que cuidar de si mesmo é um ato de amor próprio essencial.",
+      valueSustainability: "Sustentabilidade",
+      valueSustainabilityDesc: "Comprometidos com práticas sustentáveis e responsáveis.",
+      valueCommunity: "Comunidade",
+      valueCommunityDesc: "Construímos uma rede forte de profissionais e clientes.",
+      valueExcellence: "Excelência",
+      valueExcellenceDesc: "Selecionamos apenas os melhores profissionais.",
+      numbersInspire: "Números que Inspiram",
+      activeMembers: "Membros Ativos",
+      certifiedPartners: "Parceiros Certificados",
+      citiesServed: "Cidades Atendidas"
+    },
+    cta: { 
+      title: "Faça parte do maior clube de beleza do Brasil", 
+      subtitle: "Junte-se a milhares de pessoas que já transformaram a sua rotina de autocuidado", 
+      button: "Começar Agora", viewBenefits: "Ver Benefícios"
+    },
+    footer: { 
+      description: "O maior clube de benefícios de beleza e estética do Brasil", 
+      rights: "Todos os direitos reservados",
+      community: "Comunidade", ourProducts: "Produtos",
+      privacy: "Política de Privacidade", terms: "Termos de Serviço"
+    },
+    banner: {
+      signup: "Registe-se agora e ganhe benefícios exclusivos!",
+      signupShort: "Registe-se e ganhe benefícios!"
+    }
   }
 };
 
 export const languages = [
   { code: 'pt', name: 'Português (BR)', flag: '🇧🇷' },
+  { code: 'pt-PT', name: 'Português (PT)', flag: '🇵🇹' },
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -1023,7 +1107,7 @@ export function TranslationProvider({ children }) {
   useEffect(() => {
     const saved = localStorage.getItem('app_language');
     const browser = navigator.language.split('-')[0];
-    const initial = saved || (languages.find(l => l.code === browser) ? browser : 'pt');
+    const initial = saved || (languages.find(l => l.code === browser || l.code === browser.toLowerCase()) ? browser : 'pt');
     setCurrentLanguage(initial);
     
     // Apply RTL for Arabic

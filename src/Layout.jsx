@@ -36,6 +36,26 @@ import { TranslationProvider, useTranslation } from "./components/TranslationPro
 import LanguageSelector from "./components/LanguageSelector";
 import PageBlockedOverlay from "./components/PageBlockedOverlay";
 
+function PageBlockChecker({ currentPageName, user, children }) {
+  const [blockedPages, setBlockedPages] = React.useState([]);
+  
+  React.useEffect(() => {
+    const saved = localStorage.getItem('blocked_pages');
+    if (saved) {
+      setBlockedPages(JSON.parse(saved));
+    }
+  }, [currentPageName]);
+  
+  const isBlocked = blockedPages.includes(currentPageName);
+  const isAdmin = user?.role === 'admin';
+  
+  if (isBlocked && !isAdmin) {
+    return <PageBlockedOverlay pageName={currentPageName} />;
+  }
+  
+  return children;
+}
+
 function LayoutContent({ children, currentPageName }) {
   const { t } = useTranslation();
   
@@ -286,16 +306,9 @@ function LayoutContent({ children, currentPageName }) {
           </header>
 
           <div className="flex-1 overflow-auto">
-            {(() => {
-              const blockedPages = JSON.parse(localStorage.getItem('blocked_pages') || '[]');
-              const isBlocked = blockedPages.includes(currentPageName);
-              const isAdmin = user?.role === 'admin';
-              
-              if (isBlocked && !isAdmin) {
-                return <PageBlockedOverlay pageName={currentPageName} />;
-              }
-              return children;
-            })()}
+            <PageBlockChecker currentPageName={currentPageName} user={user}>
+              {children}
+            </PageBlockChecker>
             <Footer />
           </div>
         </main>
