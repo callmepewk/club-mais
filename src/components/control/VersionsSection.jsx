@@ -20,7 +20,7 @@ export default function VersionsSection() {
     versao: "", tipo_release: "patch", changelog: "", mudancas_tecnicas: "",
     forcar_atualizacao: false, data_agendada: ""
   });
-  const [notifyingUsers, setNotifyingUsers] = useState(false);
+  
 
   const { data: versions = [] } = useQuery({
     queryKey: ['app-versions'],
@@ -99,8 +99,10 @@ export default function VersionsSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['app-versions'] }),
   });
 
+  const [notifyingVersionId, setNotifyingVersionId] = useState(null);
+
   const notifyAllUsers = async (version) => {
-    setNotifyingUsers(true);
+    setNotifyingVersionId(version.id);
     try {
       const users = await base44.entities.User.list();
       const emailPromises = users.slice(0, 100).map(u => 
@@ -110,11 +112,13 @@ export default function VersionsSection() {
           body: `
             <div style="font-family:Arial;max-width:600px;margin:0 auto">
               <div style="background:linear-gradient(135deg,#D4AF37,#C8A882);padding:30px;text-align:center;border-radius:10px 10px 0 0">
-                <h1 style="color:white;margin:0">⚡ Atualização Importante</h1>
+                <h1 style="color:white;margin:0">⚡ Atualização v${version.versao}</h1>
               </div>
               <div style="background:white;padding:30px;border-radius:0 0 10px 10px">
                 <p>Olá <strong>${u.full_name || 'Membro'}</strong>!</p>
-                <p>Uma nova atualização está disponível. Para continuar usando o Club da Beleza sem problemas:</p>
+                <h3>O que há de novo:</h3>
+                <p style="background:#f5f5f5;padding:15px;border-radius:8px">${version.changelog}</p>
+                <p>Para continuar usando o Club da Beleza sem problemas:</p>
                 <ol>
                   <li>Feche todas as abas do site</li>
                   <li>Limpe o cache (Ctrl+Shift+Del)</li>
@@ -129,12 +133,14 @@ export default function VersionsSection() {
         }).catch(() => {})
       );
       await Promise.all(emailPromises);
-      alert(`Notificação enviada para ${Math.min(users.length, 100)} usuários!`);
+      await base44.entities.AppVersion.update(version.id, { usuarios_notificados: true });
+      queryClient.invalidateQueries({ queryKey: ['app-versions'] });
+      alert(`Notificação da v${version.versao} enviada para ${Math.min(users.length, 100)} usuários!`);
     } catch (e) {
       console.error(e);
       alert('Erro ao notificar usuários');
     }
-    setNotifyingUsers(false);
+    setNotifyingVersionId(null);
   };
 
   const handleGenerateAI = async () => {
@@ -221,8 +227,8 @@ export default function VersionsSection() {
                       )}
                       {version.status === 'publicada' && !version.usuarios_notificados && (
                         <Button size="sm" onClick={() => notifyAllUsers(version)}
-                          disabled={notifyingUsers} variant="outline" className="border-orange-400 text-orange-600">
-                          <Send className="w-4 h-4 mr-1" /> {notifyingUsers ? 'Enviando...' : 'Notificar Usuários'}
+                          disabled={notifyingVersionId === version.id} variant="outline" className="border-orange-400 text-orange-600">
+                          <Send className="w-4 h-4 mr-1" /> {notifyingVersionId === version.id ? 'Enviando...' : 'Notificar Usuários'}
                         </Button>
                       )}
                       {version.status === 'publicada' && version.usuarios_notificados && (
