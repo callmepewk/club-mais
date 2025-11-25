@@ -563,6 +563,22 @@ export default function DrBeleza() {
                 melhores profissionais e tratamentos personalizados para suas necessidades
               </p>
             </div>
+
+            <div className="pt-6">
+              <a 
+                href="https://dr-beleza-ai.base44.app" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              >
+                <Sparkles className="w-5 h-5" />
+                Acessar Dr. Beleza AI - O ChatGPT da Saúde e Estética
+                <ArrowRight className="w-5 h-5" />
+              </a>
+              <p className="text-sm text-gray-500 mt-2">
+                Converse com IA especializada, envie fotos e receba orientações personalizadas
+              </p>
+            </div>
           </motion.div>
         </div>
       </div>

@@ -400,46 +400,46 @@ function LayoutContent({ children, currentPageName }) {
 
         <main className="flex-1 flex flex-col">
           <AnimatePresence>
-            {showTopBanner && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="bg-white text-black overflow-hidden border-b border-[#D4AF37]"
-              >
-                <div className="relative">
-                  <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 flex-1">
-                      <Crown className="w-5 h-5 hidden md:block flex-shrink-0" />
-                      <p className="text-sm font-medium text-center md:text-left flex-1">
-                        <span className="hidden md:inline">🎉 {t("banner.signup")} </span>
-                        <span className="md:hidden">🎉 {t("banner.signupShort")}</span>
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => setShowSignUpModal(true)}
-                        size="sm"
-                        className="bg-[#D4AF37] text-black hover:bg-[#E5C158] text-xs px-3 py-1 h-auto font-medium"
-                      >
-                        <Users className="w-3 h-3 mr-1" />
-                        {t("common.register")}
-                      </Button>
-                      
-                      <button
-                        onClick={() => setShowTopBanner(false)}
-                        className="text-white/80 hover:text-white transition-colors p-1"
-                        aria-label="Fechar"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                            {showTopBanner && !user?.sincronizacao_ativa && !user?.origem_cadastro && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="bg-white text-black overflow-hidden border-b border-[#D4AF37]"
+                              >
+                                <div className="relative">
+                                  <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3 flex-1">
+                                      <Crown className="w-5 h-5 hidden md:block flex-shrink-0" />
+                                      <p className="text-sm font-medium text-center md:text-left flex-1">
+                                        <span className="hidden md:inline">🎉 {t("banner.signup")} </span>
+                                        <span className="md:hidden">🎉 {t("banner.signupShort")}</span>
+                                      </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        onClick={() => setShowSignUpModal(true)}
+                                        size="sm"
+                                        className="bg-[#D4AF37] text-black hover:bg-[#E5C158] text-xs px-3 py-1 h-auto font-medium"
+                                      >
+                                        <Users className="w-3 h-3 mr-1" />
+                                        {t("common.register")}
+                                      </Button>
+
+                                      <button
+                                        onClick={() => setShowTopBanner(false)}
+                                        className="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                                        aria-label="Fechar"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
 
           <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden sticky top-0 z-50">
             <div className="flex items-center gap-4 justify-between">
