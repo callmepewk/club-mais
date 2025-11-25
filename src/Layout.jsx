@@ -34,6 +34,7 @@ import BannerDisplay from "./components/BannerDisplay";
 import MapaEsteticaSync from "./components/MapaEsteticaSync";
 import { TranslationProvider, useTranslation } from "./components/TranslationProvider";
 import LanguageSelector from "./components/LanguageSelector";
+import PageBlockedOverlay from "./components/PageBlockedOverlay";
 
 function LayoutContent({ children, currentPageName }) {
   const { t } = useTranslation();
@@ -139,192 +140,21 @@ function LayoutContent({ children, currentPageName }) {
 
   useEffect(() => {
     const removeBase44Button = () => {
-      const allElements = document.querySelectorAll('*');
-      allElements.forEach(el => {
-        const text = el.textContent?.toLowerCase() || '';
-        const html = el.innerHTML?.toLowerCase() || '';
-        
-        if ((text.includes('edit') && text.includes('base44')) ||
-            (html.includes('edit') && html.includes('base44'))) {
-          if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button') {
-            el.remove();
-          }
-        }
-      });
-
-      const classPatterns = [
-        '[class*="base44"]',
-        '[class*="Base44"]',
-        '[class*="edit"]',
-        '[class*="Edit"]'
-      ];
-      
-      classPatterns.forEach(pattern => {
-        document.querySelectorAll(pattern).forEach(el => {
-          const text = el.textContent?.toLowerCase() || '';
-          if (text.includes('edit') && text.includes('base44')) {
-            el.remove();
-          }
-        });
-      });
-
-      const attrPatterns = [
-        '[aria-label*="edit"]',
-        '[aria-label*="Edit"]',
-        '[title*="edit"]',
-        '[title*="Edit"]',
-        '[data-*="edit"]'
-      ];
-      
-      attrPatterns.forEach(pattern => {
-        document.querySelectorAll(pattern).forEach(el => {
-          const ariaLabel = el.getAttribute('aria-label')?.toLowerCase() || '';
-          const title = el.getAttribute('title')?.toLowerCase() || '';
-          if ((ariaLabel.includes('base44') || title.includes('base44'))) {
-            el.remove();
-          }
-        });
-      });
-
-      document.querySelectorAll('*').forEach(el => {
-        if (el.shadowRoot) {
-          const shadowEls = el.shadowRoot.querySelectorAll('*');
-          shadowEls.forEach(shadowEl => {
-            const text = shadowEl.textContent?.toLowerCase() || '';
-            if (text.includes('edit') && text.includes('base44')) {
-              shadowEl.remove();
-            }
-          });
-        }
-      });
-
-      const portals = document.querySelectorAll(
-        '[data-radix-portal], [data-radix-popper-content-wrapper], [data-radix-tooltip-content]'
-      );
-      portals.forEach(portal => {
-        const els = portal.querySelectorAll('*');
-        els.forEach(el => {
-          const text = el.textContent?.toLowerCase() || '';
-          if (text.includes('edit') && text.includes('base44')) {
-            el.remove();
-          }
-        });
-      });
-
       document.querySelectorAll('button, a, [role="button"]').forEach(el => {
-        const style = window.getComputedStyle(el);
         const text = el.textContent?.toLowerCase() || '';
-        
-        if ((style.position === 'fixed' || style.position === 'absolute') &&
-            text.includes('edit') && text.includes('base44')) {
-          el.remove();
+        if (text.includes('edit') && text.includes('base44')) {
+          el.style.display = 'none';
         }
       });
     };
 
     removeBase44Button();
+    const interval = setInterval(removeBase44Button, 500);
 
-    const observer = new MutationObserver((mutations) => {
-      removeBase44Button();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'id', 'style', 'aria-label', 'title']
-    });
-
-    const interval = setInterval(removeBase44Button, 50);
-
-    const events = ['DOMContentLoaded', 'load', 'mousemove', 'scroll', 'click', 'focus', 'blur', 'resize'];
-    events.forEach(event => {
-      window.addEventListener(event, removeBase44Button, true);
-    });
-
-    const rafLoop = () => {
-      removeBase44Button();
-      requestAnimationFrame(rafLoop);
-    };
-    rafLoop();
-
-    return () => {
-      observer.disconnect();
-      clearInterval(interval);
-      events.forEach(event => {
-        window.removeEventListener(event, removeBase44Button, true);
-      });
-    };
+    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'hide-base44-button-style';
-    style.innerHTML = `
-      button:has-text("Edit with Base44"),
-      a:has-text("Edit with Base44"),
-      [aria-label*="edit" i][aria-label*="base44" i],
-      [title*="edit" i][title*="base44" i],
-      [class*="base44"],
-      [class*="Base44"],
-      [class*="edit-with"],
-      [id*="base44"],
-      [id*="Base44"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        position: absolute !important;
-        left: -99999px !important;
-        top: -99999px !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        z-index: -99999 !important;
-      }
-
-      [data-radix-portal] button,
-      [data-radix-portal] a,
-      [data-radix-popper-content-wrapper] button,
-      [data-radix-popper-content-wrapper] a,
-      [data-radix-tooltip-content] button,
-      [data-radix-tooltip-content] a {
-        display: none !important;
-      }
-
-      button[style*="position: fixed"],
-      button[style*="position: absolute"],
-      a[style*="position: fixed"],
-      a[style*="position: absolute"] {
-        display: none !important;
-      }
-
-      *[class*="edit"] *[class*="base"],
-      *[id*="edit"] *[id*="base"] {
-        display: none !important;
-      }
-
-      ::part(edit),
-      ::part(base44) {
-        display: none !important;
-      }
-
-      [data-base44],
-      [data-edit-button] {
-        display: none !important;
-        content-visibility: hidden !important;
-      }
-    `;
-    
-    document.head.insertBefore(style, document.head.firstChild);
-
-    return () => {
-      const existingStyle = document.getElementById('hide-base44-button-style');
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-    };
-  }, []);
+  
 
   return (
     <SidebarProvider>
@@ -456,7 +286,16 @@ function LayoutContent({ children, currentPageName }) {
           </header>
 
           <div className="flex-1 overflow-auto">
-            {children}
+            {(() => {
+              const blockedPages = JSON.parse(localStorage.getItem('blocked_pages') || '[]');
+              const isBlocked = blockedPages.includes(currentPageName);
+              const isAdmin = user?.role === 'admin';
+              
+              if (isBlocked && !isAdmin) {
+                return <PageBlockedOverlay pageName={currentPageName} />;
+              }
+              return children;
+            })()}
             <Footer />
           </div>
         </main>
