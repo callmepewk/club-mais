@@ -116,8 +116,10 @@ function LayoutContent({ children, currentPageName }) {
             const currentUser = await base44.auth.me();
 
             // Não mostrar modal se usuário já sincronizou com Mapa da Estética
+            // Também não mostrar se usuário já tem dados básicos preenchidos
             if (currentUser && 
                 !currentUser.sincronizacao_ativa && 
+                !currentUser.origem_cadastro &&
                 (!currentUser.tipo_usuario || !currentUser.telefone || !currentUser.cpf)) {
               setShowSignUpModal(true);
             }

@@ -1,7 +1,61 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, TrendingUp, Users, MousePointer, Eye, Clock, Globe, Smartphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BarChart3, TrendingUp, Users, MousePointer, Eye, Clock, Globe, Smartphone, FileDown } from "lucide-react";
+
+const generateSEOPDF = (stats) => {
+  const html = `<!DOCTYPE html><html><head><title>Relatório SEO - Club da Beleza</title><style>
+    body{font-family:Arial,sans-serif;margin:30px;color:#333}
+    h1{color:#D4AF37;border-bottom:2px solid #D4AF37;padding-bottom:10px}
+    h2{color:#666;margin-top:30px}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:20px 0}
+    .stat-box{background:#f5f5f5;padding:15px;border-radius:8px;text-align:center}
+    .stat-value{font-size:24px;font-weight:bold;color:#D4AF37}
+    .stat-label{font-size:12px;color:#666}
+    table{width:100%;border-collapse:collapse;margin:15px 0}
+    th,td{border:1px solid #ddd;padding:10px;text-align:left}
+    th{background:#D4AF37;color:white}
+    .bar{height:20px;background:linear-gradient(to right,#D4AF37,#C8A882);border-radius:4px}
+    .footer{margin-top:40px;text-align:center;color:#999;font-size:11px}
+  </style></head><body>
+    <h1>📊 Relatório SEO e Analytics</h1>
+    <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+    
+    <h2>Métricas Principais</h2>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-value">${stats.pageViews.toLocaleString()}</div><div class="stat-label">Visualizações</div></div>
+      <div class="stat-box"><div class="stat-value">${stats.uniqueVisitors.toLocaleString()}</div><div class="stat-label">Visitantes Únicos</div></div>
+      <div class="stat-box"><div class="stat-value">${stats.bounceRate}%</div><div class="stat-label">Taxa de Rejeição</div></div>
+      <div class="stat-box"><div class="stat-value">${Math.floor(stats.avgSessionDuration/60)}m ${stats.avgSessionDuration%60}s</div><div class="stat-label">Tempo Médio</div></div>
+    </div>
+
+    <h2>Páginas Mais Visitadas</h2>
+    <table><tr><th>#</th><th>Página</th><th>Visualizações</th><th>Variação</th></tr>
+    ${stats.topPages.map((p,i) => `<tr><td>${i+1}</td><td>${p.page}</td><td>${p.views}</td><td>${p.change}</td></tr>`).join('')}
+    </table>
+
+    <h2>Fontes de Tráfego</h2>
+    <table><tr><th>Fonte</th><th>Porcentagem</th><th>Gráfico</th></tr>
+    ${stats.trafficSources.map(s => `<tr><td>${s.source}</td><td>${s.percentage}%</td><td><div class="bar" style="width:${s.percentage*2}px"></div></td></tr>`).join('')}
+    </table>
+
+    <h2>Dispositivos</h2>
+    <table><tr><th>Dispositivo</th><th>Porcentagem</th></tr>
+    <tr><td>Mobile</td><td>${stats.deviceStats.mobile}%</td></tr>
+    <tr><td>Desktop</td><td>${stats.deviceStats.desktop}%</td></tr>
+    <tr><td>Tablet</td><td>${stats.deviceStats.tablet}%</td></tr>
+    </table>
+
+    <h2>Visitas da Semana</h2>
+    <table><tr><th>Dia</th><th>Visitas</th></tr>
+    ${stats.dailyVisits.map(d => `<tr><td>${d.day}</td><td>${d.visits}</td></tr>`).join('')}
+    </table>
+
+    <div class="footer"><p>Club da Beleza © ${new Date().getFullYear()} - Relatório Confidencial para Administradores</p></div>
+  </body></html>`;
+  const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
+};
 
 export default function SEOReportsSection() {
   const [stats, setStats] = useState({
@@ -63,9 +117,14 @@ export default function SEOReportsSection() {
     <div className="space-y-6">
       <Card className="border-[#E8DCC4]">
         <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-lg">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6" />
-            <CardTitle>Relatórios SEO e Analytics</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-6 h-6" />
+              <CardTitle>Relatórios SEO e Analytics</CardTitle>
+            </div>
+            <Button onClick={() => generateSEOPDF(stats)} className="bg-white text-orange-600 hover:bg-white/90">
+              <FileDown className="w-4 h-4 mr-2" /> Exportar PDF
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-6">

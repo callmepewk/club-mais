@@ -77,17 +77,13 @@ export default function MapaEsteticaSync() {
 
   if (!user) return null;
 
-  // Não mostrar se já está sincronizado
-  if (user.sincronizacao_ativa && user.ultima_sincronizacao) {
-    const lastSync = new Date(user.ultima_sincronizacao);
-    const daysSinceSync = Math.floor((new Date() - lastSync) / (1000 * 60 * 60 * 24));
-    
-    // Mostrar apenas se passou mais de 30 dias
-    if (daysSinceSync < 30) return null;
+  // Não mostrar se já está sincronizado ou tem origem definida
+  if (user.sincronizacao_ativa || user.origem_cadastro) {
+    return null;
   }
 
   // Não mostrar se usuário já tem plano do Club da Beleza
-  if (user.clube_plano && user.clube_plano !== "none" && user.origem_cadastro === "club_beleza") {
+  if (user.clube_plano && user.clube_plano !== "none") {
     return null;
   }
 

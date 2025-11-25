@@ -11,8 +11,8 @@ import {
 const products = [
   {
     name: "Dr. Beleza AI",
-    tagline: "Inteligência Artificial para Medicina Estética",
-    description: "Assistente de IA especializado em medicina e medicina estética. Converse, envie fotos, gere imagens e receba orientações sobre tratamentos, procedimentos e cuidados baseados em evidências científicas.",
+    tagline: "O ChatGPT da Saúde e Estética",
+    description: "Seu assistente de IA especializado em medicina estética. Converse naturalmente, envie fotos para análise, gere imagens e receba orientações personalizadas sobre tratamentos, procedimentos e cuidados — tudo baseado em evidências científicas e protocolos atualizados.",
     icon: Bot,
     color: "from-purple-500 to-purple-700",
     url: "https://dr-beleza-ai.base44.app",

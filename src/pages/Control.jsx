@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
-  Shield, GitBranch, Clock, Megaphone, BarChart3, Users
+  Shield, GitBranch, Clock, Megaphone, BarChart3, Users, Lock, RefreshCw
 } from "lucide-react";
 
 // Lazy load sections for better performance
@@ -14,13 +14,17 @@ const TestAccountsSection = lazy(() => import("../components/control/TestAccount
 const BannersSection = lazy(() => import("../components/control/BannersSection"));
 const SEOReportsSection = lazy(() => import("../components/control/SEOReportsSection"));
 const UsersSection = lazy(() => import("../components/control/UsersSection"));
+const PageBlockSection = lazy(() => import("../components/control/PageBlockSection"));
+const CacheRefreshSection = lazy(() => import("../components/control/CacheRefreshSection"));
 
 const tabs = [
-  { id: "versions", label: "Sistema de Versões", icon: GitBranch, color: "from-indigo-500 to-indigo-600" },
-  { id: "test-accounts", label: "Contas Teste (7 dias)", icon: Clock, color: "from-green-500 to-green-600" },
-  { id: "banners", label: "Banners e Anúncios", icon: Megaphone, color: "from-purple-500 to-purple-600" },
-  { id: "seo", label: "Relatórios SEO", icon: BarChart3, color: "from-orange-500 to-orange-600" },
-  { id: "users", label: "Lista de Usuários", icon: Users, color: "from-[#D4AF37] to-[#C8A882]" },
+  { id: "versions", label: "Versões", icon: GitBranch },
+  { id: "test-accounts", label: "Contas Teste", icon: Clock },
+  { id: "banners", label: "Banners", icon: Megaphone },
+  { id: "page-block", label: "Bloquear Páginas", icon: Lock },
+  { id: "cache", label: "Cache/URLs", icon: RefreshCw },
+  { id: "seo", label: "SEO", icon: BarChart3 },
+  { id: "users", label: "Usuários", icon: Users },
 ];
 
 export default function Control() {
@@ -93,6 +97,8 @@ export default function Control() {
             {activeTab === "versions" && <VersionsSection />}
             {activeTab === "test-accounts" && <TestAccountsSection />}
             {activeTab === "banners" && <BannersSection />}
+            {activeTab === "page-block" && <PageBlockSection />}
+            {activeTab === "cache" && <CacheRefreshSection />}
             {activeTab === "seo" && <SEOReportsSection />}
             {activeTab === "users" && <UsersSection />}
           </Suspense>
