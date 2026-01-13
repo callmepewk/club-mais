@@ -35,6 +35,7 @@ import MapaEsteticaSync from "./components/MapaEsteticaSync";
 import { TranslationProvider, useTranslation } from "./components/TranslationProvider";
 import LanguageSelector from "./components/LanguageSelector";
 import PageBlockedOverlay from "./components/PageBlockedOverlay";
+import PageViewTracker from "./components/PageViewTracker";
 
 function PageBlockChecker({ currentPageName, user, children }) {
   const [blockedPages, setBlockedPages] = React.useState([]);

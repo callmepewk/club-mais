@@ -2,6 +2,7 @@ import About from './pages/About';
 import AvatarScanner from './pages/AvatarScanner';
 import BeautyCoin from './pages/BeautyCoin';
 import Benefits from './pages/Benefits';
+import CardPortal from './pages/CardPortal';
 import ClubePlus from './pages/ClubePlus';
 import Contact from './pages/Contact';
 import Control from './pages/Control';
@@ -24,7 +25,6 @@ import Plans from './pages/Plans';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Products from './pages/Products';
 import TermsOfService from './pages/TermsOfService';
-import CardPortal from './pages/CardPortal';
 import __Layout from './Layout.jsx';
 
 
@@ -33,6 +33,7 @@ export const PAGES = {
     "AvatarScanner": AvatarScanner,
     "BeautyCoin": BeautyCoin,
     "Benefits": Benefits,
+    "CardPortal": CardPortal,
     "ClubePlus": ClubePlus,
     "Contact": Contact,
     "Control": Control,
@@ -55,7 +56,6 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "Products": Products,
     "TermsOfService": TermsOfService,
-    "CardPortal": CardPortal,
 }
 
 export const pagesConfig = {
