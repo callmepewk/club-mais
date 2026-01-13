@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import AdminEventManager from "../components/card/AdminEventManager";
+import BuyBeautyCoinModal from "../components/BuyBeautyCoinModal";
 
 export default function CardPortal() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,6 +28,7 @@ export default function CardPortal() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAddBalanceModal, setShowAddBalanceModal] = useState(false);
+  const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
 

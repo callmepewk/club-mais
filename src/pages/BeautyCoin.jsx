@@ -134,25 +134,25 @@ export default function BeautyCoin() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg"
-                  onClick={() => setShowBuyModal(true)}
-                  className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-2xl hover:shadow-3xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
-                >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Comprar Beauty Coins
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+              <div className="flex flex-col gap-4">
                 <Link to={createPageUrl("Join")}>
                   <Button 
                     size="lg"
-                    variant="outline"
-                    className="border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-2xl hover:shadow-3xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
                   >
                     Ganhar Coins Grátis
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
+                <Button 
+                  size="lg"
+                  onClick={() => setShowBuyModal(true)}
+                  variant="outline"
+                  className="w-full border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white shadow-2xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Comprar Beauty Coins
+                </Button>
               </div>
             </motion.div>
 

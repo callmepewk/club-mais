@@ -137,7 +137,7 @@ export default function BuyBeautyCoinModal({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif flex items-center gap-2">
             <Coins className="w-6 h-6 text-[#D4AF37]" />
