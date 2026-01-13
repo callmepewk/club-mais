@@ -25,6 +25,7 @@ export default function CardPortal() {
   const [isNewAccount, setIsNewAccount] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showAddBalanceModal, setShowAddBalanceModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: savedAccounts = [] } = useQuery({
@@ -38,8 +39,31 @@ export default function CardPortal() {
 
   const { data: account, refetch: refetchAccount } = useQuery({
     queryKey: ['current-card-account'],
-    queryFn: () => currentAccount,
-    enabled: isLoggedIn
+    queryFn: async () => {
+      const acc = await base44.entities.CardAccount.filter({ id: currentAccount.id });
+      if (acc.length > 0) {
+        // Sync beauty coins with user profile if linked
+        const updated = acc[0];
+        if (updated.user_email) {
+          try {
+            const users = await base44.entities.User.filter({ email: updated.user_email });
+            if (users.length > 0) {
+              const user = users[0];
+              if (user.beauty_coins !== updated.beauty_coins) {
+                await base44.entities.CardAccount.update(updated.id, {
+                  beauty_coins: user.beauty_coins || 0
+                });
+                updated.beauty_coins = user.beauty_coins || 0;
+              }
+            }
+          } catch (e) {}
+        }
+        return updated;
+      }
+      return currentAccount;
+    },
+    enabled: isLoggedIn,
+    refetchInterval: 10000
   });
 
   const { data: events = [] } = useQuery({
@@ -77,7 +101,23 @@ export default function CardPortal() {
 
   const registerMutation = useMutation({
     mutationFn: async (data) => {
-      const numeroCartao = `BC-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const numeroCartao = Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
+      
+      // Check if user exists and sync beauty coins
+      try {
+        const users = await base44.entities.User.filter({ cpf: data.cpf });
+        if (users.length > 0) {
+          const user = users[0];
+          return await base44.entities.CardAccount.create({
+            ...data,
+            numero_cartao: numeroCartao,
+            tipo_cartao: 'basic',
+            beauty_coins: user.beauty_coins || 0,
+            user_email: user.email
+          });
+        }
+      } catch (e) {}
+      
       return await base44.entities.CardAccount.create({
         ...data,
         numero_cartao: numeroCartao,
@@ -288,6 +328,12 @@ export default function CardPortal() {
                   </div>
                 </div>
               </div>
+              <Button 
+                onClick={() => setShowAddBalanceModal(true)}
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Wallet className="w-4 h-4 mr-2" /> Adicionar Saldo
+              </Button>
             </CardContent>
           </Card>
 
@@ -445,7 +491,213 @@ export default function CardPortal() {
           }}
         />
       )}
+
+      {/* Add Balance Modal */}
+      <AddBalanceModal
+        account={account}
+        isOpen={showAddBalanceModal}
+        onClose={() => setShowAddBalanceModal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries(['current-card-account']);
+          setShowAddBalanceModal(false);
+        }}
+      />
     </div>
+  );
+}
+
+function AddBalanceModal({ account, isOpen, onClose, onSuccess }) {
+  const [amount, setAmount] = useState('');
+  const [pixCode, setPixCode] = useState('');
+  const [expiresAt, setExpiresAt] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [transactionId, setTransactionId] = useState(null);
+  const queryClient = useQueryClient();
+
+  const generatePixMutation = useMutation({
+    mutationFn: async (valor) => {
+      const qrCode = `PIX${Date.now()}${Math.random().toString(36).substr(2, 15).toUpperCase()}`;
+      const expiration = new Date(Date.now() + 60000); // 1 minute
+      
+      const transaction = await base44.entities.PixTransaction.create({
+        conta_id: account.id,
+        qr_code: qrCode,
+        valor: parseFloat(valor),
+        data_expiracao: expiration.toISOString(),
+        status: 'pendente'
+      });
+
+      return { qrCode, expiration, transactionId: transaction.id };
+    },
+    onSuccess: ({ qrCode, expiration, transactionId }) => {
+      setPixCode(qrCode);
+      setExpiresAt(expiration);
+      setTransactionId(transactionId);
+      setTimeLeft(60);
+    }
+  });
+
+  const confirmPaymentMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.PixTransaction.update(transactionId, {
+        status: 'confirmado',
+        confirmado_em: new Date().toISOString()
+      });
+
+      await base44.entities.CardAccount.update(account.id, {
+        saldo_reais: account.saldo_reais + parseFloat(amount)
+      });
+    },
+    onSuccess: () => {
+      onSuccess();
+      handleReset();
+    }
+  });
+
+  React.useEffect(() => {
+    if (!pixCode || !expiresAt) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = expiresAt.getTime() - now;
+      const seconds = Math.max(0, Math.floor(diff / 1000));
+      
+      setTimeLeft(seconds);
+
+      if (seconds === 0) {
+        base44.entities.PixTransaction.update(transactionId, { status: 'expirado' });
+        clearInterval(interval);
+        alert('QR Code expirado! Gere um novo código.');
+        handleReset();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [pixCode, expiresAt]);
+
+  const handleGenerate = () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      alert('Digite um valor válido');
+      return;
+    }
+    generatePixMutation.mutate(amount);
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(pixCode);
+    alert('Código PIX copiado!');
+  };
+
+  const handleReset = () => {
+    setAmount('');
+    setPixCode('');
+    setExpiresAt(null);
+    setTimeLeft(60);
+    setTransactionId(null);
+  };
+
+  const handleClose = () => {
+    handleReset();
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-serif">Adicionar Saldo</DialogTitle>
+        </DialogHeader>
+
+        {!pixCode ? (
+          <div className="space-y-4">
+            <div>
+              <Label>Valor a Adicionar</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="1"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="R$ 0,00"
+                className="text-2xl font-bold"
+              />
+            </div>
+
+            <Button
+              onClick={handleGenerate}
+              disabled={generatePixMutation.isPending}
+              className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg"
+            >
+              {generatePixMutation.isPending ? 'Gerando...' : 'Gerar QR Code PIX'}
+            </Button>
+
+            <p className="text-xs text-gray-500 text-center">
+              O código PIX será válido por 1 minuto
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-gradient-to-br from-[#D4AF37] to-[#C8A882] p-6 rounded-lg text-center text-white">
+              <p className="text-lg font-bold mb-2">Valor</p>
+              <p className="text-4xl font-bold">R$ {parseFloat(amount).toFixed(2)}</p>
+            </div>
+
+            <div className="bg-gray-50 border-2 border-[#D4AF37] rounded-lg p-6 space-y-4">
+              <div className="flex items-center justify-center">
+                <QrCode className="w-32 h-32 text-gray-800" />
+              </div>
+
+              <div className="bg-white p-3 rounded border border-gray-200">
+                <p className="font-mono text-xs break-all text-center">{pixCode}</p>
+              </div>
+
+              <Button
+                onClick={handleCopyCode}
+                variant="outline"
+                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+              >
+                Copiar Código PIX
+              </Button>
+
+              <div className="text-center">
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+                  timeLeft > 30 ? 'bg-green-100 text-green-800' :
+                  timeLeft > 10 ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  <Clock className="w-4 h-4" />
+                  <span className="font-mono font-bold">{timeLeft}s</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Tempo restante para pagamento</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Button
+                onClick={() => confirmPaymentMutation.mutate()}
+                disabled={confirmPaymentMutation.isPending}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-6"
+              >
+                <CheckCircle className="w-5 h-5 mr-2" />
+                {confirmPaymentMutation.isPending ? 'Confirmando...' : 'Confirmar Pagamento'}
+              </Button>
+
+              <Button
+                onClick={handleReset}
+                variant="outline"
+                className="w-full"
+              >
+                Gerar Novo Código
+              </Button>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              Após realizar o pagamento, clique em "Confirmar Pagamento" para adicionar o saldo à sua conta.
+            </p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
