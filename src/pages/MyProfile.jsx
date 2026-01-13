@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -229,50 +228,118 @@ export default function MyProfile() {
     }
   };
 
-  const [supportForm, setSupportForm] = useState({
-    title: "",
-    description: ""
-  });
+  const [chatMessages, setChatMessages] = useState([
+    {
+      role: 'assistant',
+      content: '👋 Olá! Sou o assistente virtual do Club da Beleza. Como posso ajudá-lo hoje? Posso responder dúvidas sobre o site, seus planos, Beauty Coins, saldo, eventos e muito mais!'
+    }
+  ]);
+  const [userMessage, setUserMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  const sendSupportEmail = useMutation({
-    mutationFn: async (data) => {
-      const emailBody = `
-        <h2>Nova Solicitação de Suporte</h2>
-        <hr/>
-        <p><strong>De:</strong> ${user?.full_name || 'N/A'} (${user?.email || 'N/A'})</p>
-        <p><strong>Tipo de Usuário:</strong> ${userType === 'profissional' ? 'Profissional' : 'Paciente'}</p>
-        <p><strong>Plano Club:</strong> ${clubePlanInfo.name}</p>
-        ${userType === 'profissional' ? `<p><strong>Plano EdBeauty:</strong> ${edbeautyPlanInfo.name}</p>` : ''}
-        <hr/>
-        <h3>Título: ${data.title}</h3>
-        <p><strong>Descrição:</strong></p>
-        <p>${data.description}</p>
-        <hr/>
-        <p><small>Data: ${new Date().toLocaleString('pt-BR')}</small></p>
-      `;
-      return base44.integrations.Core.SendEmail({
-        to: "pedro_hbfreitas@hotmail.com",
-        subject: `[Suporte] ${data.title} - ${user?.full_name || 'Usuário Desconhecido'}`,
-        body: emailBody
+  const sendChatMessage = useMutation({
+    mutationFn: async (message) => {
+      const conversationContext = chatMessages.map(msg => 
+        `${msg.role === 'user' ? 'Usuário' : 'Assistente'}: ${msg.content}`
+      ).join('\n');
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é o assistente virtual do Club da Beleza, uma plataforma premium de beleza e estética.
+
+Informações do usuário atual:
+- Nome: ${user?.full_name || 'Não informado'}
+- Email: ${user?.email}
+- Tipo: ${userType === 'profissional' ? 'Profissional' : 'Paciente'}
+- Plano Club: ${clubePlanInfo.name}
+- Pontos: ${pontosClube}
+- Beauty Coins: ${beautyCoins}
+${userType === 'profissional' ? `- Plano EdBeauty: ${edbeautyPlanInfo.name}` : ''}
+
+IMPORTANTE - Detecção de Problemas Graves:
+Se o usuário relatar que:
+1. Realizou um pagamento via PIX mas o saldo OU beauty coins NÃO foram creditados
+2. Está com problemas de pagamento ou transação não processada
+3. Perdeu acesso a recursos pagos
+4. Teve desconto de saldo indevido
+
+Você DEVE responder com um JSON no formato:
+{
+  "resposta": "sua mensagem empática ao usuário informando que o problema foi encaminhado",
+  "problema_grave": true,
+  "detalhes": "descrição técnica do problema relatado pelo usuário"
+}
+
+Para dúvidas normais, responda naturalmente ajudando o usuário sobre:
+- Funcionalidades do site (Mapa da Estética, DrBeleza, EdBeauty, Eventos, Golden Doctors)
+- Planos e benefícios (Light, Gold, VIP)
+- Beauty Coins e pontos
+- Como usar a plataforma
+- Procedimentos estéticos em geral
+
+Histórico da conversa:
+${conversationContext}
+
+Nova mensagem do usuário: ${message}
+
+Responda de forma amigável, profissional e útil.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            resposta: { type: "string" },
+            problema_grave: { type: "boolean" },
+            detalhes: { type: "string" }
+          }
+        }
       });
+
+      return response;
     },
-    onSuccess: () => {
-      alert('Mensagem enviada com sucesso! Nossa equipe entrará em contato em breve.');
-      setSupportForm({ title: "", description: "" });
+    onSuccess: async (data) => {
+      setIsTyping(false);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.resposta }]);
+      
+      if (data.problema_grave) {
+        await base44.integrations.Core.SendEmail({
+          to: "pedro_hbfreitas@hotmail.com",
+          subject: `🚨 PROBLEMA GRAVE - ${user?.full_name || 'Usuário'}`,
+          body: `
+            <h2 style="color: #D4AF37;">⚠️ Problema Grave Detectado</h2>
+            <hr/>
+            <p><strong>Usuário:</strong> ${user?.full_name || 'N/A'} (${user?.email || 'N/A'})</p>
+            <p><strong>Tipo:</strong> ${userType === 'profissional' ? 'Profissional' : 'Paciente'}</p>
+            <p><strong>Plano Club:</strong> ${clubePlanInfo.name}</p>
+            <p><strong>Beauty Coins Atual:</strong> ${beautyCoins}</p>
+            <p><strong>Pontos Atual:</strong> ${pontosClube}</p>
+            <hr/>
+            <h3 style="color: #C8A882;">Detalhes do Problema:</h3>
+            <p>${data.detalhes}</p>
+            <hr/>
+            <h4>Conversa Completa:</h4>
+            ${chatMessages.map(msg => `<p><strong>${msg.role === 'user' ? 'Usuário' : 'Assistente'}:</strong> ${msg.content}</p>`).join('')}
+            <hr/>
+            <p><small>Data: ${new Date().toLocaleString('pt-BR')}</small></p>
+          `
+        });
+      }
     },
-    onError: (error) => {
-      console.error("Error sending support email:", error);
-      alert('Erro ao enviar mensagem. Tente novamente.');
+    onError: () => {
+      setIsTyping(false);
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Desculpe, ocorreu um erro. Por favor, tente novamente ou entre em contato diretamente em pedro_hbfreitas@hotmail.com' 
+      }]);
     }
   });
 
-  const handleSupportSubmit = (e) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!supportForm.title || !supportForm.description) {
-      alert('Por favor, preencha o título e a descrição.');
-      return;
-    }
-    sendSupportEmail.mutate(supportForm);
+    if (!userMessage.trim()) return;
+
+    const message = userMessage.trim();
+    setChatMessages(prev => [...prev, { role: 'user', content: message }]);
+    setUserMessage('');
+    setIsTyping(true);
+    sendChatMessage.mutate(message);
   };
 
   return (
@@ -997,7 +1064,7 @@ export default function MyProfile() {
               </Card>
             </motion.div>
 
-            {/* Support Section */}
+            {/* Support Chat Section */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1007,69 +1074,72 @@ export default function MyProfile() {
                 <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
                   <CardTitle className="font-serif text-2xl text-gray-800 flex items-center gap-2">
                     <MessageSquare className="w-6 h-6 text-[#D4AF37]" />
-                    Suporte
+                    Chat de Suporte com IA
                   </CardTitle>
                   <p className="text-gray-600 mt-2">
-                    Precisa de ajuda? Entre em contato conosco
+                    Tire suas dúvidas em tempo real com nosso assistente inteligente
                   </p>
                 </CardHeader>
-                <CardContent className="p-8">
-                  <form onSubmit={handleSupportSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="support-title" className="text-gray-700">
-                        Título
-                      </Label>
-                      <Input
-                        id="support-title"
-                        value={supportForm.title}
-                        onChange={(e) => setSupportForm(prev => ({ ...prev, title: e.target.value }))}
-                        placeholder="Resumo do problema ou dúvida"
-                        className="border-[#E8DCC4] focus:border-[#D4AF37]"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="support-description" className="text-gray-700">
-                        Descrição
-                      </Label>
-                      <Textarea
-                        id="support-description"
-                        value={supportForm.description}
-                        onChange={(e) => setSupportForm(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Descreva detalhadamente seu problema ou dúvida"
-                        className="border-[#E8DCC4] focus:border-[#D4AF37] min-h-[150px]"
-                        required
-                      />
-                    </div>
-
-                    <div className="bg-[#F5EFE6] rounded-lg p-4">
-                      <p className="text-sm text-gray-700">
-                        <strong>Email de suporte:</strong> pedro_hbfreitas@hotmail.com
-                      </p>
-                      <p className="text-xs text-gray-600 mt-2">
-                        Responderemos sua solicitação o mais breve possível
-                      </p>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={sendSupportEmail.isPending}
-                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg font-semibold"
-                    >
-                      {sendSupportEmail.isPending ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-5 h-5 mr-2" />
-                          Enviar Mensagem
-                        </>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="h-96 overflow-y-auto border border-[#E8DCC4] rounded-xl p-4 bg-gradient-to-b from-white to-[#F5EFE6] space-y-4">
+                      {chatMessages.map((msg, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[80%] rounded-2xl p-4 ${
+                            msg.role === 'user'
+                              ? 'bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white'
+                              : 'bg-white border border-[#E8DCC4] text-gray-800'
+                          }`}>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                      
+                      {isTyping && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-white border border-[#E8DCC4] rounded-2xl p-4">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-[#D4AF37] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-2 h-2 bg-[#D4AF37] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-2 h-2 bg-[#D4AF37] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                          </div>
+                        </motion.div>
                       )}
-                    </Button>
-                  </form>
+                    </div>
+
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input
+                        value={userMessage}
+                        onChange={(e) => setUserMessage(e.target.value)}
+                        placeholder="Digite sua dúvida ou problema..."
+                        className="border-[#E8DCC4] focus:border-[#D4AF37]"
+                        disabled={isTyping}
+                      />
+                      <Button
+                        type="submit"
+                        disabled={isTyping || !userMessage.trim()}
+                        className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </form>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-xs text-yellow-800">
+                        💡 <strong>Dica:</strong> Relate problemas com pagamentos, Beauty Coins ou saldo não creditado que encaminhamos automaticamente para pedro_hbfreitas@hotmail.com
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
