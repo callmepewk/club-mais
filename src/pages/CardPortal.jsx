@@ -10,12 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   CreditCard, Wallet, Coins, Calendar, MapPin, 
   Users, LogOut, Eye, EyeOff, TrendingUp, Gift,
-  AlertCircle, CheckCircle, Clock, QrCode, X
+  AlertCircle, CheckCircle, Clock, QrCode, X, Upload, Sparkles, Plus, Edit, Trash
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import AdminEventManager from "../components/card/AdminEventManager";
 
 export default function CardPortal() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -26,7 +27,23 @@ export default function CardPortal() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAddBalanceModal, setShowAddBalanceModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      base44.auth.me().then(user => {
+        if (user && user.role === 'admin') {
+          setIsAdmin(true);
+        }
+      }).catch(() => {});
+      
+      const savedName = localStorage.getItem('last_logged_name');
+      if (savedName && !loginData.nome) {
+        setLoginData(prev => ({ ...prev, nome: savedName }));
+      }
+    }
+  }, [isLoggedIn]);
 
   const { data: savedAccounts = [] } = useQuery({
     queryKey: ['card-accounts-local'],
@@ -96,6 +113,7 @@ export default function CardPortal() {
       const accounts = savedAccounts.filter(a => a.cpf !== acc.cpf);
       accounts.push({ nome: acc.nome_completo, cpf: acc.cpf });
       localStorage.setItem('card_accounts', JSON.stringify(accounts.slice(-3)));
+      localStorage.setItem('last_logged_name', acc.nome_completo);
     }
   });
 
@@ -127,6 +145,7 @@ export default function CardPortal() {
     onSuccess: (acc) => {
       setCurrentAccount(acc);
       setIsLoggedIn(true);
+      localStorage.setItem('last_logged_name', acc.nome_completo);
     }
   });
 
@@ -357,9 +376,10 @@ export default function CardPortal() {
 
         {/* Tabs */}
         <Tabs defaultValue="events" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="events">Eventos Disponíveis</TabsTrigger>
             <TabsTrigger value="my-events">Minhas Inscrições</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin-events">Gerenciar Eventos</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="events" className="space-y-6">
@@ -470,6 +490,12 @@ export default function CardPortal() {
               })}
             </div>
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin-events">
+              <AdminEventManager />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
