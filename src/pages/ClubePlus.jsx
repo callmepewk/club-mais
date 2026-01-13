@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -147,6 +146,19 @@ export default function ClubePlus() {
                 Tenha acesso a benefícios exclusivos, descontos especiais e Beauty Coins
                 com o cartão Club da Beleza
               </p>
+
+              <div className="flex gap-4 justify-center pt-4">
+                <Link to={createPageUrl("CardPortal")}>
+                  <Button
+                    size="lg"
+                    className="bg-white/20 backdrop-blur-sm text-white border-2 border-white hover:bg-white hover:text-[#D4AF37] shadow-xl transition-all duration-300 px-8 py-6 text-lg font-semibold group"
+                  >
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    Acessar Meu Cartão
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>

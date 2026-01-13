@@ -1,59 +1,61 @@
-import Home from './pages/Home';
-import Benefits from './pages/Benefits';
-import Join from './pages/Join';
 import About from './pages/About';
-import Products from './pages/Products';
-import GoldenDoctors from './pages/GoldenDoctors';
-import News from './pages/News';
-import Contact from './pages/Contact';
-import ClubePlus from './pages/ClubePlus';
-import DrBeleza from './pages/DrBeleza';
-import MapaDaEstetica from './pages/MapaDaEstetica';
-import BeautyCoin from './pages/BeautyCoin';
-import MapaInterativo from './pages/MapaInterativo';
-import EdBeauty from './pages/EdBeauty';
-import EdBeautyUpload from './pages/EdBeautyUpload';
-import EdBeautyPlans from './pages/EdBeautyPlans';
-import MyPlan from './pages/MyPlan';
 import AvatarScanner from './pages/AvatarScanner';
-import MyProfile from './pages/MyProfile';
-import Eventos from './pages/Eventos';
+import BeautyCoin from './pages/BeautyCoin';
+import Benefits from './pages/Benefits';
+import ClubePlus from './pages/ClubePlus';
+import Contact from './pages/Contact';
 import Control from './pages/Control';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import Plans from './pages/Plans';
+import DrBeleza from './pages/DrBeleza';
+import EdBeauty from './pages/EdBeauty';
 import EdBeautyCreateContent from './pages/EdBeautyCreateContent';
 import EdBeautyEditContent from './pages/EdBeautyEditContent';
+import EdBeautyPlans from './pages/EdBeautyPlans';
+import EdBeautyUpload from './pages/EdBeautyUpload';
+import Eventos from './pages/Eventos';
+import GoldenDoctors from './pages/GoldenDoctors';
+import Home from './pages/Home';
+import Join from './pages/Join';
+import MapaDaEstetica from './pages/MapaDaEstetica';
+import MapaInterativo from './pages/MapaInterativo';
+import MyPlan from './pages/MyPlan';
+import MyProfile from './pages/MyProfile';
+import News from './pages/News';
+import Plans from './pages/Plans';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Products from './pages/Products';
+import TermsOfService from './pages/TermsOfService';
+import CardPortal from './pages/CardPortal';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "Benefits": Benefits,
-    "Join": Join,
     "About": About,
-    "Products": Products,
-    "GoldenDoctors": GoldenDoctors,
-    "News": News,
-    "Contact": Contact,
-    "ClubePlus": ClubePlus,
-    "DrBeleza": DrBeleza,
-    "MapaDaEstetica": MapaDaEstetica,
-    "BeautyCoin": BeautyCoin,
-    "MapaInterativo": MapaInterativo,
-    "EdBeauty": EdBeauty,
-    "EdBeautyUpload": EdBeautyUpload,
-    "EdBeautyPlans": EdBeautyPlans,
-    "MyPlan": MyPlan,
     "AvatarScanner": AvatarScanner,
-    "MyProfile": MyProfile,
-    "Eventos": Eventos,
+    "BeautyCoin": BeautyCoin,
+    "Benefits": Benefits,
+    "ClubePlus": ClubePlus,
+    "Contact": Contact,
     "Control": Control,
-    "PrivacyPolicy": PrivacyPolicy,
-    "TermsOfService": TermsOfService,
-    "Plans": Plans,
+    "DrBeleza": DrBeleza,
+    "EdBeauty": EdBeauty,
     "EdBeautyCreateContent": EdBeautyCreateContent,
     "EdBeautyEditContent": EdBeautyEditContent,
+    "EdBeautyPlans": EdBeautyPlans,
+    "EdBeautyUpload": EdBeautyUpload,
+    "Eventos": Eventos,
+    "GoldenDoctors": GoldenDoctors,
+    "Home": Home,
+    "Join": Join,
+    "MapaDaEstetica": MapaDaEstetica,
+    "MapaInterativo": MapaInterativo,
+    "MyPlan": MyPlan,
+    "MyProfile": MyProfile,
+    "News": News,
+    "Plans": Plans,
+    "PrivacyPolicy": PrivacyPolicy,
+    "Products": Products,
+    "TermsOfService": TermsOfService,
+    "CardPortal": CardPortal,
 }
 
 export const pagesConfig = {

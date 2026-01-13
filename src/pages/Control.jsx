@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
-  Shield, GitBranch, Clock, Megaphone, BarChart3, Users, Lock, RefreshCw
+  Shield, GitBranch, Clock, Megaphone, BarChart3, Users, Lock, RefreshCw, Calendar
 } from "lucide-react";
 
 // Lazy load sections for better performance
 const VersionsSection = lazy(() => import("../components/control/VersionsSection"));
 const TestAccountsSection = lazy(() => import("../components/control/TestAccountsSection"));
 const BannersSection = lazy(() => import("../components/control/BannersSection"));
+const CardEventsSection = lazy(() => import("../components/control/CardEventsSection"));
 const SEOReportsSection = lazy(() => import("../components/control/SEOReportsSection"));
 const UsersSection = lazy(() => import("../components/control/UsersSection"));
 const PageBlockSection = lazy(() => import("../components/control/PageBlockSection"));
@@ -21,6 +22,7 @@ const tabs = [
   { id: "versions", label: "Versões", icon: GitBranch },
   { id: "test-accounts", label: "Contas Teste", icon: Clock },
   { id: "banners", label: "Banners", icon: Megaphone },
+  { id: "card-events", label: "Eventos Cartão", icon: Calendar },
   { id: "page-block", label: "Bloquear Páginas", icon: Lock },
   { id: "cache", label: "Cache/URLs", icon: RefreshCw },
   { id: "seo", label: "SEO", icon: BarChart3 },
@@ -97,6 +99,7 @@ export default function Control() {
             {activeTab === "versions" && <VersionsSection />}
             {activeTab === "test-accounts" && <TestAccountsSection />}
             {activeTab === "banners" && <BannersSection />}
+            {activeTab === "card-events" && <CardEventsSection />}
             {activeTab === "page-block" && <PageBlockSection />}
             {activeTab === "cache" && <CacheRefreshSection />}
             {activeTab === "seo" && <SEOReportsSection />}
