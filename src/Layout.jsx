@@ -313,6 +313,7 @@ function LayoutContent({ children, currentPageName }) {
           </div>
         </main>
 
+        <PageViewTracker />
         <DrBelezaChat />
         <SignUpPopup />
         <CookieConsent />
