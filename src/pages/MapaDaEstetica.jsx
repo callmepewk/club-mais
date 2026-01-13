@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -217,9 +216,53 @@ export default function MapaDaEstetica() {
   const [loadingLocation, setLoadingLocation] = useState(false);
 
   const { data: estabelecimentos = [], isLoading } = useQuery({
-    queryKey: ['estabelecimentos-mapa'],
-    queryFn: () => base44.entities.EstabelecimentoParceiro.list(),
+    queryKey: ['estabelecimentos-mapa', filters.estado, filters.cidade, filters.categoria],
+    queryFn: async () => {
+      // Buscar estabelecimentos locais primeiro
+      const localEstabs = await base44.entities.EstabelecimentoParceiro.list();
+      
+      // Buscar dados do site oficial Mapa da Estética usando IA
+      try {
+        const searchQuery = `site:mapa-da-estetica.base44.app estabelecimentos ${filters.estado !== 'todos' ? filters.estado : ''} ${filters.cidade !== 'todas' ? filters.cidade : ''} ${filters.categoria !== 'todas' ? filters.categoria : ''}`;
+        
+        const externalData = await base44.integrations.Core.InvokeLLM({
+          prompt: `Extraia informações de estabelecimentos de estética do site oficial Mapa da Estética (mapa-da-estetica.base44.app). Retorne dados estruturados com: nome, categoria, endereço, cidade, estado, telefone, latitude, longitude. Busque por: ${searchQuery}`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              estabelecimentos: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    nome: { type: "string" },
+                    categoria: { type: "string" },
+                    endereco: { type: "string" },
+                    cidade: { type: "string" },
+                    estado: { type: "string" },
+                    telefone: { type: "string" },
+                    latitude: { type: "number" },
+                    longitude: { type: "number" }
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Combinar dados locais com dados externos
+        if (externalData?.estabelecimentos && externalData.estabelecimentos.length > 0) {
+          return [...localEstabs, ...externalData.estabelecimentos];
+        }
+      } catch (error) {
+        console.log('Usando apenas dados locais');
+      }
+      
+      return localEstabs;
+    },
     initialData: [],
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
   });
 
   const getUserLocation = () => {
