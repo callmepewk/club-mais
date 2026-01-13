@@ -372,6 +372,13 @@ export default function CardPortal() {
                   </div>
                 </div>
               </div>
+              <Button 
+                onClick={() => setShowBuyCoinsModal(true)}
+                variant="outline"
+                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+              >
+                <Coins className="w-4 h-4 mr-2" /> Comprar Coins
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -529,6 +536,11 @@ export default function CardPortal() {
           queryClient.invalidateQueries(['current-card-account']);
           setShowAddBalanceModal(false);
         }}
+      />
+
+      <BuyBeautyCoinModal 
+        isOpen={showBuyCoinsModal}
+        onClose={() => setShowBuyCoinsModal(false)}
       />
     </div>
   );
