@@ -1,86 +1,88 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { 
   Newspaper, ExternalLink, Calendar, Search, 
-  Sparkles, TrendingUp, Clock, Eye
+  Sparkles, TrendingUp, Clock, Eye, Plus, Shield
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function News() {
-  const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [lastUpdate, setLastUpdate] = useState(null);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [newsUrl, setNewsUrl] = useState("");
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    checkAndFetchNews();
-  }, []);
+  const { data: user } = useQuery({
+    queryKey: ['current-user-news'],
+    queryFn: () => base44.auth.me().catch(() => null),
+  });
 
-  const checkAndFetchNews = async () => {
-    const lastUpdateDate = localStorage.getItem('newsLastUpdate');
-    const cachedNews = localStorage.getItem('cachedNews');
-    const now = new Date().getTime();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 dias em milissegundos
+  const { data: news = [], isLoading: loading } = useQuery({
+    queryKey: ['news-articles'],
+    queryFn: async () => {
+      const articles = await base44.entities.NewsArticle.filter({ ativa: true }, '-created_date');
+      
+      // Check if need to auto-update (every 7 days)
+      const lastUpdate = localStorage.getItem('newsLastAutoUpdate');
+      const now = Date.now();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      
+      if (!lastUpdate || (now - parseInt(lastUpdate)) > sevenDays) {
+        autoGenerateNews();
+        localStorage.setItem('newsLastAutoUpdate', now.toString());
+      }
+      
+      return articles;
+    },
+    refetchInterval: 60000, // Refetch every minute to check for new articles
+  });
 
-    // Se passou mais de uma semana ou não há cache, busca novas notícias
-    if (!lastUpdateDate || !cachedNews || (now - parseInt(lastUpdateDate)) > oneWeek) {
-      await fetchNews();
-    } else {
-      // Usa o cache
-      setNews(JSON.parse(cachedNews));
-      setLastUpdate(new Date(parseInt(lastUpdateDate)));
-      setLoading(false);
-    }
-  };
-
-  const fetchNews = async () => {
-    setLoading(true);
+  const autoGenerateNews = async () => {
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Busque as últimas 12 notícias REAIS e VERIFICÁVEIS sobre estética, beleza, saúde da pele e tratamentos estéticos de sites OFICIAIS brasileiros.
+        prompt: `Gere 6 notícias REAIS e ATUAIS sobre: saúde, medicina, medicina estética, qualidade de vida.
         
-        IMPORTANTE: Use apenas URLs REAIS e VERIFICÁVEIS de sites brasileiros como:
-        - Vogue Brasil (vogue.globo.com)
-        - Marie Claire (revistamarieclaire.globo.com)
-        - Glamour Brasil (revistaglamour.globo.com)
+        Use fontes brasileiras confiáveis como:
+        - Ministério da Saúde (gov.br/saude)
         - Sociedade Brasileira de Dermatologia (sbd.org.br)
-        - Portal da Estética (portaldaestetica.com.br)
-        - Beleza Extraordinária (belezaextraordinaria.com.br)
+        - Vogue Brasil (vogue.globo.com)
+        - Bem Estar - G1 (g1.globo.com/bemestar)
         
-        Para cada notícia, forneça:
-        - title: título exato da notícia
-        - description: resumo de 2-3 frases
-        - source: nome da fonte/jornal (use apenas os sites acima)
-        - url: link REAL e VERIFICÁVEL da notícia original
-        - image_url: URL de imagem relevante do Unsplash relacionada ao tema (use termos como: beauty, skincare, facial treatment, cosmetics, spa)
-        - published_date: data de publicação real da notícia no formato ISO
-        - category: "Estética Facial", "Estética Corporal", "Saúde da Pele", "Tendências", ou "Tecnologia"
-        
-        Certifique-se de que os links sejam válidos e acessíveis.`,
+        Para cada notícia forneça:
+        - titulo: título da notícia
+        - descricao: resumo em 2-3 frases
+        - link_original: URL real da fonte
+        - imagem_url: imagem do Unsplash relacionada (use termos: health, medicine, wellness, beauty, skincare)
+        - categoria: saude, medicina, estetica, ou qualidade_vida
+        - fonte: nome do portal
+        - data_publicacao: data atual`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
           properties: {
-            articles: {
+            noticias: {
               type: "array",
               items: {
                 type: "object",
                 properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  source: { type: "string" },
-                  url: { type: "string" },
-                  image_url: { type: "string" },
-                  published_date: { type: "string" },
-                  category: { type: "string" }
+                  titulo: { type: "string" },
+                  descricao: { type: "string" },
+                  link_original: { type: "string" },
+                  imagem_url: { type: "string" },
+                  categoria: { type: "string" },
+                  fonte: { type: "string" },
+                  data_publicacao: { type: "string" }
                 }
               }
             }
@@ -88,94 +90,109 @@ export default function News() {
         }
       });
 
-      const articles = response.articles || [];
-      setNews(articles);
-      
-      // Salva no cache
-      const now = new Date().getTime();
-      localStorage.setItem('cachedNews', JSON.stringify(articles));
-      localStorage.setItem('newsLastUpdate', now.toString());
-      setLastUpdate(new Date(now));
-      
-    } catch (error) {
-      console.error("Error fetching news:", error);
-      // Fallback com notícias padrão
-      const fallbackNews = [
-        {
-          title: "Tendências em Harmonização Facial para 2025",
-          description: "As principais técnicas de harmonização facial que estão transformando a estética brasileira e conquistando pacientes em todo o país.",
-          source: "Portal da Estética",
-          url: "https://portaldaestetica.com.br",
-          image_url: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Estética Facial"
-        },
-        {
-          title: "Skincare: Os Ativos Mais Eficazes para a Pele Brasileira",
-          description: "Dermatologistas revelam os ingredientes essenciais para tratar as principais preocupações de pele no clima tropical.",
-          source: "Sociedade Brasileira de Dermatologia",
-          url: "https://sbd.org.br",
-          image_url: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Saúde da Pele"
-        },
-        {
-          title: "Criolipólise: Avanços na Redução de Gordura Localizada",
-          description: "Nova geração de equipamentos promete resultados ainda mais eficazes no tratamento de gordura localizada sem cirurgia.",
-          source: "Vogue Brasil",
-          url: "https://vogue.globo.com",
-          image_url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Estética Corporal"
-        },
-        {
-          title: "Toxina Botulínica: Mitos e Verdades sobre o Tratamento",
-          description: "Especialistas esclarecem as principais dúvidas sobre o uso de botox na prevenção e tratamento de rugas.",
-          source: "Marie Claire",
-          url: "https://revistamarieclaire.globo.com",
-          image_url: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Estética Facial"
-        },
-        {
-          title: "Lasers em Dermatologia: O Futuro do Rejuvenescimento",
-          description: "Tecnologias a laser revolucionam tratamentos para manchas, cicatrizes e rejuvenescimento da pele.",
-          source: "Portal da Estética",
-          url: "https://portaldaestetica.com.br",
-          image_url: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Tecnologia"
-        },
-        {
-          title: "Microagulhamento Associado ao Drug Delivery",
-          description: "Técnica combina microagulhamento com ativos potentes para resultados surpreendentes no rejuvenescimento facial.",
-          source: "Glamour Brasil",
-          url: "https://revistaglamour.globo.com",
-          image_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80",
-          published_date: new Date().toISOString(),
-          category: "Estética Facial"
+      if (response?.noticias) {
+        const proxima = new Date();
+        proxima.setDate(proxima.getDate() + 7);
+        
+        for (const noticia of response.noticias) {
+          await base44.entities.NewsArticle.create({
+            ...noticia,
+            gerada_por_ia: true,
+            ativa: true,
+            proxima_atualizacao: proxima.toISOString()
+          });
         }
-      ];
-      setNews(fallbackNews);
-      localStorage.setItem('cachedNews', JSON.stringify(fallbackNews));
-      localStorage.setItem('newsLastUpdate', new Date().getTime().toString());
-      setLastUpdate(new Date()); // Set lastUpdate for fallback
+        
+        queryClient.invalidateQueries(['news-articles']);
+      }
+    } catch (e) {
+      console.error('Erro ao gerar notícias:', e);
     }
-    setLoading(false);
   };
 
+  useEffect(() => {
+    checkAutoUpdate();
+  }, []);
+
+  const checkAutoUpdate = async () => {
+    const lastUpdate = localStorage.getItem('newsLastAutoUpdate');
+    const now = Date.now();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    
+    if (!lastUpdate || (now - parseInt(lastUpdate)) > sevenDays) {
+      await autoGenerateNews();
+      localStorage.setItem('newsLastAutoUpdate', now.toString());
+    }
+  };
+
+  const addNewsMutation = useMutation({
+    mutationFn: async (url) => {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Extraia informações da notícia no link: ${url}
+        
+        Forneça:
+        - titulo: título da notícia
+        - descricao: resumo em 2-3 frases
+        - link_original: ${url}
+        - imagem_url: encontre uma imagem relevante no artigo ou use uma do Unsplash sobre o tema
+        - categoria: saude, medicina, estetica, ou qualidade_vida
+        - fonte: nome do site/portal
+        - data_publicacao: data de publicação da notícia`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            titulo: { type: "string" },
+            descricao: { type: "string" },
+            link_original: { type: "string" },
+            imagem_url: { type: "string" },
+            categoria: { type: "string" },
+            fonte: { type: "string" },
+            data_publicacao: { type: "string" }
+          }
+        }
+      });
+
+      const proxima = new Date();
+      proxima.setDate(proxima.getDate() + 7);
+      
+      return await base44.entities.NewsArticle.create({
+        ...response,
+        gerada_por_ia: false,
+        ativa: true,
+        proxima_atualizacao: proxima.toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['news-articles']);
+      setShowAdminModal(false);
+      setNewsUrl("");
+      alert('Notícia adicionada com sucesso!');
+    },
+  });
+
   const filteredNews = news.filter(article =>
-    article.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    article.titulo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    article.descricao?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    article.categoria?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const categoryColors = {
-    "Estética Facial": "bg-blue-100 text-blue-800 border-blue-200",
-    "Estética Corporal": "bg-purple-100 text-purple-800 border-purple-200",
-    "Saúde da Pele": "bg-green-100 text-green-800 border-green-200",
-    "Tendências": "bg-pink-100 text-pink-800 border-pink-200",
-    "Tecnologia": "bg-orange-100 text-orange-800 border-orange-200"
+    "saude": "bg-green-100 text-green-800 border-green-200",
+    "medicina": "bg-blue-100 text-blue-800 border-blue-200",
+    "estetica": "bg-purple-100 text-purple-800 border-purple-200",
+    "qualidade_vida": "bg-pink-100 text-pink-800 border-pink-200",
+    "tecnologia": "bg-orange-100 text-orange-800 border-orange-200",
+    "procedimentos": "bg-indigo-100 text-indigo-800 border-indigo-200"
+  };
+
+  const categoryLabels = {
+    "saude": "Saúde",
+    "medicina": "Medicina",
+    "estetica": "Estética",
+    "qualidade_vida": "Qualidade de Vida",
+    "tecnologia": "Tecnologia",
+    "procedimentos": "Procedimentos"
   };
 
   return (
@@ -223,10 +240,14 @@ export default function News() {
               Fique por dentro das últimas tendências, novidades e descobertas do mundo da estética e saúde
             </p>
 
-            {lastUpdate && (
-              <p className="text-sm text-gray-500">
-                Última atualização: {format(lastUpdate, "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })}
-              </p>
+            {user?.role === 'admin' && (
+              <Button
+                onClick={() => setShowAdminModal(true)}
+                className="mt-4 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Notícia
+              </Button>
             )}
           </motion.div>
         </div>
@@ -246,11 +267,15 @@ export default function News() {
               />
             </div>
             <Button
-              onClick={fetchNews}
+              onClick={() => {
+                autoGenerateNews();
+                queryClient.invalidateQueries(['news-articles']);
+              }}
               variant="outline"
               className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
             >
-              Atualizar Agora
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Atualizar Notícias
             </Button>
           </div>
         </div>
@@ -288,64 +313,73 @@ export default function News() {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
                   <Card className="h-full overflow-hidden border-[#E8DCC4] hover:border-[#D4AF37] transition-all duration-300 hover:shadow-xl group bg-white">
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={article.image_url}
-                        alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                      <Badge 
-                        className={`absolute top-4 left-4 ${categoryColors[article.category] || 'bg-gray-100 text-gray-800'} border`}
-                      >
-                        {article.category}
-                      </Badge>
-                    </div>
+                   <div className="relative h-48 overflow-hidden bg-gray-100">
+                     {article.imagem_url ? (
+                       <img
+                         src={article.imagem_url}
+                         alt={article.titulo}
+                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                         onError={(e) => {
+                           e.target.style.display = 'none';
+                         }}
+                       />
+                     ) : (
+                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4]">
+                         <Newspaper className="w-16 h-16 text-[#D4AF37] opacity-30" />
+                       </div>
+                     )}
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                     <Badge 
+                       className={`absolute top-4 left-4 ${categoryColors[article.categoria] || 'bg-gray-100 text-gray-800'} border`}
+                     >
+                       {categoryLabels[article.categoria] || article.categoria}
+                     </Badge>
+                   </div>
 
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {article.published_date 
-                            ? format(new Date(article.published_date), "dd 'de' MMMM, yyyy", { locale: ptBR })
-                            : "Data não disponível"
-                          }
-                        </span>
-                      </div>
+                   <CardContent className="p-6 space-y-4">
+                     <div className="flex items-center gap-2 text-sm text-gray-500">
+                       <Clock className="w-4 h-4" />
+                       <span>
+                         {article.data_publicacao || article.created_date
+                           ? format(new Date(article.data_publicacao || article.created_date), "dd 'de' MMMM, yyyy", { locale: ptBR })
+                           : "Data não disponível"
+                         }
+                       </span>
+                     </div>
 
-                      <h3 className="font-serif text-xl font-bold text-gray-800 line-clamp-2 group-hover:text-[#D4AF37] transition-colors">
-                        {article.title}
-                      </h3>
+                     <h3 className="font-serif text-xl font-bold text-gray-800 line-clamp-2 group-hover:text-[#D4AF37] transition-colors">
+                       {article.titulo}
+                     </h3>
 
-                      <p className="text-gray-600 line-clamp-3">
-                        {article.description}
-                      </p>
+                     <p className="text-gray-600 line-clamp-3">
+                       {article.descricao}
+                     </p>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-[#E8DCC4]">
-                        <div className="flex items-center gap-2">
-                          <Newspaper className="w-4 h-4 text-[#C8A882]" />
-                          <span className="text-sm font-medium text-[#C8A882]">
-                            {article.source}
-                          </span>
-                        </div>
+                     <div className="flex items-center justify-between pt-4 border-t border-[#E8DCC4]">
+                       <div className="flex items-center gap-2">
+                         <Newspaper className="w-4 h-4 text-[#C8A882]" />
+                         <span className="text-sm font-medium text-[#C8A882]">
+                           {article.fonte || 'Fonte'}
+                         </span>
+                       </div>
 
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[#D4AF37] hover:text-[#C8A882] hover:bg-[#F5EFE6] group"
-                          >
-                            Ler mais
-                            <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </a>
-                      </div>
-                    </CardContent>
+                       <a
+                         href={article.link_original}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         onClick={(e) => e.stopPropagation()}
+                       >
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           className="text-[#D4AF37] hover:text-[#C8A882] hover:bg-[#F5EFE6] group"
+                         >
+                           Ler mais
+                           <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                         </Button>
+                       </a>
+                     </div>
+                   </CardContent>
                   </Card>
                 </motion.div>
               ))}
@@ -394,6 +428,49 @@ export default function News() {
           </motion.div>
         </div>
       </div>
+
+      {/* Admin Modal */}
+      <Dialog open={showAdminModal} onOpenChange={setShowAdminModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-serif flex items-center gap-2">
+              <Shield className="w-6 h-6 text-[#D4AF37]" />
+              Adicionar Notícia
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Link da Notícia</Label>
+              <Input
+                value={newsUrl}
+                onChange={(e) => setNewsUrl(e.target.value)}
+                placeholder="https://exemplo.com/noticia"
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Cole o link de uma notícia oficial e a IA gerará automaticamente o card
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowAdminModal(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => addNewsMutation.mutate(newsUrl)}
+                disabled={!newsUrl || addNewsMutation.isPending}
+                className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+              >
+                {addNewsMutation.isPending ? 'Gerando...' : 'Adicionar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
