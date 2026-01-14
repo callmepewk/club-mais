@@ -164,7 +164,7 @@ export default function EdBeauty() {
               </Badge>
 
               <h1 className="font-serif text-3xl md:text-5xl lg:text-7xl font-bold text-white leading-tight">
-                EdBeauty
+                Universidade da Beleza
               </h1>
 
               <p className="text-lg md:text-2xl lg:text-3xl text-white/90 font-medium">
@@ -200,7 +200,7 @@ export default function EdBeauty() {
               Conteúdo Exclusivo para Membros
             </h3>
             <p className="text-sm md:text-base text-gray-600 px-4">
-              Para acessar a plataforma EdBeauty, você precisa ser membro do Club da Beleza
+              Para acessar a plataforma Universidade da Beleza, você precisa ser membro do Club da Beleza
             </p>
             <Link to={createPageUrl("Join")}>
               <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">

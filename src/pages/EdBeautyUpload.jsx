@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -103,14 +102,14 @@ export default function EdBeautyUpload() {
           <div className="max-w-2xl mx-auto text-center space-y-6">
             <AlertCircle className="w-16 h-16 text-amber-600 mx-auto" />
             <h2 className="font-serif text-3xl font-bold text-gray-800">
-              Plano EdBeauty Necessário
+              Plano Universidade da Beleza Necessário
             </h2>
             <p className="text-gray-600">
-              Você precisa de um plano EdBeauty para profissionais para enviar conteúdos.
+              Você precisa de um plano Universidade da Beleza para profissionais para enviar conteúdos.
             </p>
             <Link to={createPageUrl("EdBeautyPlans")}>
               <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white">
-                Ver Planos EdBeauty
+                Ver Planos Universidade da Beleza
               </Button>
             </Link>
           </div>
@@ -141,7 +140,7 @@ export default function EdBeautyUpload() {
           </span>
         </h1>
         <p className="text-gray-600">
-          Compartilhe seu conhecimento com a comunidade EdBeauty
+          Compartilhe seu conhecimento com a comunidade Universidade da Beleza
         </p>
       </motion.div>
 

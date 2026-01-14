@@ -109,7 +109,7 @@ export default function EdBeautyPlans() {
             </Badge>
 
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-              Planos EdBeauty
+              Planos Universidade da Beleza
             </h1>
 
             <p className="text-2xl md:text-3xl text-white/90 font-medium">
@@ -134,8 +134,8 @@ export default function EdBeautyPlans() {
             className="text-center mb-16 space-y-4"
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold">
-              <span className="text-gray-800">Por que ensinar no</span>
-              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> EdBeauty?</span>
+              <span className="text-gray-800">Por que ensinar na</span>
+              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Universidade da Beleza?</span>
             </h2>
           </motion.div>
 

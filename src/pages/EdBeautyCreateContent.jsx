@@ -278,7 +278,7 @@ export default function EdBeautyCreateContent() {
           <Link to={createPageUrl("EdBeauty")}>
             <Button className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar para EdBeauty
+              Voltar para Universidade da Beleza
             </Button>
           </Link>
         </div>

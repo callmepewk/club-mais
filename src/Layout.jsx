@@ -92,7 +92,7 @@ function LayoutContent({ children, currentPageName }) {
       icon: MapPin,
     },
     {
-      title: t("nav.edBeauty"),
+      title: "Universidade da Beleza",
       url: createPageUrl("EdBeauty"),
       icon: GraduationCap,
     },
