@@ -16,7 +16,7 @@ const benefits = [
   {
     icon: Crown,
     title: "Status Premium",
-    description: "Seja reconhecido como profissional de elite com selo Golden Doctors exclusivo"
+    description: "Seja reconhecido como profissional de elite com selo Golden Circle exclusivo"
   },
   {
     icon: TrendingUp,
@@ -74,7 +74,7 @@ export default function GoldenDoctors() {
 
   const handleCandidateseAgora = () => {
     const whatsappNumber = "5531972595643";
-    const message = encodeURIComponent("Olá! Gostaria de fazer parte da comunidade exclusiva Golden Doctors. Tenho interesse em me candidatar!");
+    const message = encodeURIComponent("Olá! Gostaria de fazer parte da comunidade exclusiva Golden Circle. Tenho interesse em me candidatar!");
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
@@ -115,7 +115,7 @@ export default function GoldenDoctors() {
       return true;
     },
     onSuccess: () => {
-      alert('✅ Pagamento confirmado! Você receberá informações sobre o próximo encontro Golden Doctors por e-mail.');
+      alert('✅ Pagamento confirmado! Você receberá informações sobre o próximo encontro Golden Circle por e-mail.');
       setShowInscricaoModal(false);
       setPixQRCode(null);
       setTransactionId(null);
@@ -169,7 +169,7 @@ export default function GoldenDoctors() {
               </Badge>
               
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-                Golden Doctors
+                Golden Circle
               </h1>
 
               <p className="text-2xl md:text-3xl text-white/90 font-medium">
@@ -177,8 +177,8 @@ export default function GoldenDoctors() {
               </p>
 
               <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-                Uma comunidade exclusiva que reúne os melhores e mais renomados 
-                profissionais de estética e beleza do país
+                Uma comunidade exclusiva que capacita e reúne os melhores Golden Doctors - 
+                profissionais de elite da estética e beleza do país
               </p>
             </div>
 
@@ -253,27 +253,27 @@ export default function GoldenDoctors() {
                     O que é
                   </span>
                   <br />
-                  <span className="text-gray-800">Golden Doctors?</span>
+                  <span className="text-gray-800">Golden Circle?</span>
                 </h2>
               </div>
 
               <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
                 <p>
-                  <strong className="text-[#C8A882]">Golden Doctors</strong> é uma comunidade 
-                  exclusiva do Club da Beleza que reúne profissionais de elite da estética, 
-                  dermatologia, medicina estética e áreas relacionadas.
+                  <strong className="text-[#C8A882]">Golden Circle</strong> é a elite da estética brasileira - 
+                  uma comunidade exclusiva do Club da Beleza que capacita e reúne os melhores profissionais 
+                  da estética, dermatologia, medicina estética e áreas relacionadas, os chamados <strong>Golden Doctors</strong>.
                 </p>
 
                 <p>
-                  Nossos membros são criteriosamente selecionados com base em sua experiência, 
+                  Nossos membros Golden Doctors são criteriosamente selecionados com base em sua experiência, 
                   qualificações, avaliações de clientes e comprometimento com a excelência. 
                   Eles representam o mais alto padrão de qualidade no setor.
                 </p>
 
                 <p>
-                  Ao fazer parte dos Golden Doctors, você não apenas ganha reconhecimento 
-                  como profissional de elite, mas também acessa uma rede de benefícios 
-                  exclusivos, oportunidades de networking e ferramentas para impulsionar 
+                  Ao fazer parte do Golden Circle, você não apenas ganha reconhecimento 
+                  como Golden Doctor e profissional de elite, mas também acessa uma rede de capacitação, 
+                  benefícios exclusivos, oportunidades de networking e ferramentas para impulsionar 
                   seu negócio.
                 </p>
               </div>
@@ -335,7 +335,7 @@ export default function GoldenDoctors() {
               <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Exclusivos</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Vantagens especiais para membros Golden Doctors
+              Vantagens especiais para membros do Golden Circle
             </p>
           </motion.div>
 
@@ -385,7 +385,7 @@ export default function GoldenDoctors() {
                   <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent"> Candidatura</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">
-                  Critérios para se tornar um Golden Doctor
+                  Critérios para se tornar um membro Golden Doctor do Circle
                 </p>
               </CardHeader>
               <CardContent className="p-8">
@@ -417,7 +417,7 @@ export default function GoldenDoctors() {
                     className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
                   >
                     <Crown className="w-5 h-5 mr-2" />
-                    Candidatar-se aos Golden Doctors
+                    Candidatar-se ao Golden Circle
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </div>
@@ -433,7 +433,7 @@ export default function GoldenDoctors() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-serif flex items-center gap-2">
               <Ticket className="w-6 h-6 text-[#D4AF37]" />
-              Inscrição - Próximo Encontro Golden Doctors
+              Inscrição - Próximo Encontro Golden Circle
             </DialogTitle>
           </DialogHeader>
 
