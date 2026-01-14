@@ -97,7 +97,7 @@ function LayoutContent({ children, currentPageName }) {
       icon: GraduationCap,
     },
     {
-      title: t("nav.goldenDoctors"),
+      title: "Golden Circle",
       url: createPageUrl("GoldenDoctors"),
       icon: Briefcase,
     },
