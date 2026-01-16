@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   CreditCard, Sparkles, Gift, Percent, Star,
   Coins, TrendingUp, Award, CheckCircle, Crown,
-  ArrowRight, Zap, Shield
+  ArrowRight, Zap, Shield, Ticket
 } from "lucide-react";
 
 const cardBenefits = [
@@ -108,6 +114,64 @@ const beautyClubCards = [
 ];
 
 export default function ClubePlus() {
+  const [showSolicitacaoModal, setShowSolicitacaoModal] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [formData, setFormData] = useState({
+    nome_completo: "",
+    cpf: "",
+    telefone: "",
+    endereco_completo: ""
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['current-user-clube'],
+    queryFn: () => base44.auth.me().catch(() => null),
+  });
+
+  const solicitarCartaoMutation = useMutation({
+    mutationFn: async (data) => {
+      return await base44.entities.CartaoSolicitacao.create({
+        usuario_email: user?.email || 'guest',
+        tipo_cartao: selectedCard,
+        status: 'aguardando_verificacao',
+        ...data
+      });
+    },
+    onSuccess: () => {
+      alert('✅ Solicitação enviada! Seu pedido está aguardando verificação do Beauty Banking. Você receberá um e-mail com atualizações.');
+      setShowSolicitacaoModal(false);
+      setFormData({
+        nome_completo: "",
+        cpf: "",
+        telefone: "",
+        endereco_completo: ""
+      });
+    },
+    onError: () => {
+      alert('❌ Erro ao enviar solicitação. Tente novamente.');
+    }
+  });
+
+  const handleSolicitarCartao = (cardType) => {
+    if (!user) {
+      alert('Faça login para solicitar um cartão');
+      return;
+    }
+    setSelectedCard(cardType);
+    setFormData({
+      nome_completo: user.full_name || "",
+      cpf: user.cpf || "",
+      telefone: user.telefone || "",
+      endereco_completo: user.endereco || ""
+    });
+    setShowSolicitacaoModal(true);
+  };
+
+  const handleSubmitSolicitacao = (e) => {
+    e.preventDefault();
+    solicitarCartaoMutation.mutate(formData);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
@@ -285,14 +349,13 @@ export default function ClubePlus() {
                       ))}
                     </ul>
 
-                    <Link to={createPageUrl("Join")} className="block">
-                      <Button
-                        className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg font-semibold group-hover:shadow-xl transition-all"
-                      >
-                        Solicitar Cartão
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={() => handleSolicitarCartao(card.name === 'Beauty Club Basic' ? 'basic' : card.name === 'Beauty Club Pro' ? 'pro' : 'exclusive')}
+                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg font-semibold group-hover:shadow-xl transition-all"
+                    >
+                      Solicitar Cartão
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -452,19 +515,116 @@ export default function ClubePlus() {
               Junte-se aos milhares de membros que já estão economizando e acumulando Beauty Coins
             </p>
 
-            <Link to={createPageUrl("Join")}>
-              <Button
-                size="lg"
-                className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
-              >
-                <CreditCard className="w-5 h-5 mr-2" />
-                Solicitar Meu Cartão
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => handleSolicitarCartao('basic')}
+              size="lg"
+              className="bg-white text-[#D4AF37] hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
+            >
+              <CreditCard className="w-5 h-5 mr-2" />
+              Solicitar Meu Cartão
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </motion.div>
         </div>
       </div>
+
+      {/* Modal de Solicitação */}
+      <Dialog open={showSolicitacaoModal} onOpenChange={setShowSolicitacaoModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-serif flex items-center gap-2">
+              <Ticket className="w-6 h-6 text-[#D4AF37]" />
+              Solicitar Cartão Beauty Club
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmitSolicitacao} className="space-y-4">
+            <div className="bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-8 h-8 text-[#D4AF37]" />
+                <div>
+                  <div className="font-semibold text-gray-800">
+                    {selectedCard === 'basic' ? 'Beauty Club Basic' : selectedCard === 'pro' ? 'Beauty Club Pro' : 'Beauty Club Exclusive'}
+                  </div>
+                  <div className="text-xs text-gray-600">Sua solicitação será analisada</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nome Completo *</Label>
+              <Input
+                value={formData.nome_completo}
+                onChange={(e) => setFormData({...formData, nome_completo: e.target.value})}
+                placeholder="Seu nome completo"
+                required
+                className="border-[#E8DCC4]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>CPF *</Label>
+              <Input
+                value={formData.cpf}
+                onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                placeholder="000.000.000-00"
+                required
+                className="border-[#E8DCC4]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Telefone *</Label>
+              <Input
+                value={formData.telefone}
+                onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                placeholder="(00) 00000-0000"
+                required
+                className="border-[#E8DCC4]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Endereço Completo *</Label>
+              <Textarea
+                value={formData.endereco_completo}
+                onChange={(e) => setFormData({...formData, endereco_completo: e.target.value})}
+                placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
+                required
+                className="border-[#E8DCC4] h-24"
+              />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex gap-2 text-sm text-blue-800">
+                <Ticket className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p>
+                  Sua solicitação será enviada para o Beauty Banking e ficará com status "Aguardando Verificação". 
+                  Você receberá atualizações por e-mail.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowSolicitacaoModal(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={solicitarCartaoMutation.isPending}
+                className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
+              >
+                {solicitarCartaoMutation.isPending ? 'Enviando...' : 'Enviar Solicitação'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
