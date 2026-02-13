@@ -25,6 +25,7 @@ import {
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
 import { Link } from "react-router-dom";
 import AvatarScanner from "./AvatarScanner";
+import DrBelezaHeroImmersive from "../components/DrBelezaHeroImmersive";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -509,7 +510,9 @@ export default function DrBeleza() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
+    <div className="min-h-screen bg-black">
+      <DrBelezaHeroImmersive />
+
       <div className="relative py-12 md:py-20 px-4 md:px-6 overflow-hidden bg-gradient-to-br from-white via-[#F5EFE6] to-[#E8DCC4]">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
