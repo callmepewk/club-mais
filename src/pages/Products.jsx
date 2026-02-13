@@ -7,6 +7,7 @@ import {
   ExternalLink, MapPin, Zap, Stethoscope, 
   Sparkles, CheckCircle, ArrowRight, Star, Bot, Crown
 } from "lucide-react";
+import { useEffect } from "react";
 
 const products = [
   {
@@ -28,6 +29,27 @@ const products = [
       { label: "Precisão", value: "95%+" },
       { label: "Procedimentos", value: "1000+" },
       { label: "Consultas", value: "10k+" }
+    ]
+  },
+  {
+    name: "Dermahelp",
+    tagline: "Sua Pele Merece Cuidado Profissional",
+    description: "Plataforma revolucionária de diagnóstico e tratamento de dermatologia integrada. Tecnologia de IA para análise de pele, consultas dermatológicas online, prescrições personalizadas e acompanhamento de tratamentos — tudo em um único lugar.",
+    icon: Sparkles,
+    color: "from-emerald-500 to-emerald-700",
+    url: "https://dermahelp.base44.app",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=500&fit=crop",
+    features: [
+      "Análise inteligente de pele com IA",
+      "Consultas com dermatologistas online",
+      "Prescrições personalizadas e monitoradas",
+      "Histórico completo de tratamentos",
+      "Resultados antes e depois documentados"
+    ],
+    stats: [
+      { label: "Acurácia", value: "98%+" },
+      { label: "Condições", value: "500+" },
+      { label: "Pacientes", value: "15k+" }
     ]
   },
   {
@@ -117,6 +139,10 @@ const products = [
 ];
 
 export default function Products() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
       {/* Hero Section */}
