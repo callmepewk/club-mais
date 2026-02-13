@@ -11,8 +11,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,8 +20,8 @@ import L from "leaflet";
 import {
   Sparkles, Search, Calendar, DollarSign,
   MapPin, Phone, ArrowRight, Award,
-  CheckCircle, Heart, Locate, Map as MapIcon, User, Scan
-} from "lucide-react";
+  CheckCircle, Heart, Locate, Map as MapIcon, User, Scan } from
+"lucide-react";
 import CardEstabelecimento from "../components/mapa/CardEstabelecimento";
 import { Link } from "react-router-dom";
 import AvatarScanner from "./AvatarScanner";
@@ -30,7 +30,7 @@ delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
 const userIcon = new L.Icon({
@@ -41,7 +41,7 @@ const userIcon = new L.Icon({
     </svg>
   `),
   iconSize: [40, 40],
-  iconAnchor: [20, 20],
+  iconAnchor: [20, 20]
 });
 
 const estabelecimentoIcon = new L.Icon({
@@ -60,10 +60,10 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
@@ -80,37 +80,37 @@ function MapController({ center }) {
 }
 
 const treatmentCategories = [
-  "Limpeza de Pele", "Hidratação Facial", "Esfoliação", "Revitalização Facial",
-  "Microagulhamento", "Skinbooster", "Preenchimento Facial", "Ácido Hialurônico",
-  "Toxina Botulínica (Botox)", "Peeling Químico", "Peeling Físico", "Peeling Enzimático",
-  "Radiofrequência Facial", "Microdermoabrasão",
-  "Tratamento de Acne", "Tratamento de Melasma", "Tratamento de Manchas",
-  "Tratamento de Olheiras", "Tratamento de Cicatrizes", "Tratamento de Flacidez Facial",
-  "Harmonização Facial (HOF)", "Bioestimuladores de Colágeno", "Fios de Sustentação",
-  "Criolipólise", "Ultracavitação", "Radiofrequência Corporal", "Carboxiterapia",
-  "Lipoenzimática (Intradermoterapia)", "Massagem Modeladora",
-  "Ondas de Choque", "Subcisão", "Endermologia",
-  "Tratamento de Celulite", "Tratamento de Estrias",
-  "Ultrassom Micro e Macrofocado (HIFU)", "Correntes Russa", "Correntes Aussie",
-  "Depilação a Laser", "Luz Intensa Pulsada (IPL)", "Depilação a LED",
-  "Drenagem Linfática Manual", "Drenagem Pós-operatória", "Drenagem Gestacional",
-  "Tratamento de Queda de Cabelo", "Tratamento de Alopécia", "Tratamento de Caspa",
-  "Tratamento de Oleosidade Capilar", "Tratamento de Dermatite Seborreica",
-  "Microagulhamento Capilar", "Mesoterapia Capilar", "Laser Capilar", "LED Capilar",
-  "Transplante Capilar",
-  "Manicure", "Pedicure", "Estética Avançada dos Pés", "Podologia",
-  "Tratamento de Unhas Encravadas", "Tratamento de Calosidades",
-  "Tratamento de Micoses", "Pé Diabético",
-  "Design de Sobrancelhas", "Micropigmentação Fio a Fio", "Shadow",
-  "Microblading", "Delineador Permanente", "Micropigmentação Labial",
-  "Revitalização Labial", "Extensão de Cílios", "Alongamento de Cílios", "Lash Lifting",
-  "Cirurgia Plástica", "Dermatologia", "Medicina Integrativa",
-  "Nutrologia", "Fisioterapia Dermato Funcional", "Pilates",
-  "Nutrição Esportiva", "Nutrição Clínica", "Nutrição Funcional",
-  "Psicologia da Autoestima", "Coaching de Imagem Corporal",
-  "Acupuntura Estética", "Aromaterapia", "Terapias Holísticas",
-  "Personal Training Estético", "Spa e Relaxamento"
-];
+"Limpeza de Pele", "Hidratação Facial", "Esfoliação", "Revitalização Facial",
+"Microagulhamento", "Skinbooster", "Preenchimento Facial", "Ácido Hialurônico",
+"Toxina Botulínica (Botox)", "Peeling Químico", "Peeling Físico", "Peeling Enzimático",
+"Radiofrequência Facial", "Microdermoabrasão",
+"Tratamento de Acne", "Tratamento de Melasma", "Tratamento de Manchas",
+"Tratamento de Olheiras", "Tratamento de Cicatrizes", "Tratamento de Flacidez Facial",
+"Harmonização Facial (HOF)", "Bioestimuladores de Colágeno", "Fios de Sustentação",
+"Criolipólise", "Ultracavitação", "Radiofrequência Corporal", "Carboxiterapia",
+"Lipoenzimática (Intradermoterapia)", "Massagem Modeladora",
+"Ondas de Choque", "Subcisão", "Endermologia",
+"Tratamento de Celulite", "Tratamento de Estrias",
+"Ultrassom Micro e Macrofocado (HIFU)", "Correntes Russa", "Correntes Aussie",
+"Depilação a Laser", "Luz Intensa Pulsada (IPL)", "Depilação a LED",
+"Drenagem Linfática Manual", "Drenagem Pós-operatória", "Drenagem Gestacional",
+"Tratamento de Queda de Cabelo", "Tratamento de Alopécia", "Tratamento de Caspa",
+"Tratamento de Oleosidade Capilar", "Tratamento de Dermatite Seborreica",
+"Microagulhamento Capilar", "Mesoterapia Capilar", "Laser Capilar", "LED Capilar",
+"Transplante Capilar",
+"Manicure", "Pedicure", "Estética Avançada dos Pés", "Podologia",
+"Tratamento de Unhas Encravadas", "Tratamento de Calosidades",
+"Tratamento de Micoses", "Pé Diabético",
+"Design de Sobrancelhas", "Micropigmentação Fio a Fio", "Shadow",
+"Microblading", "Delineador Permanente", "Micropigmentação Labial",
+"Revitalização Labial", "Extensão de Cílios", "Alongamento de Cílios", "Lash Lifting",
+"Cirurgia Plástica", "Dermatologia", "Medicina Integrativa",
+"Nutrologia", "Fisioterapia Dermato Funcional", "Pilates",
+"Nutrição Esportiva", "Nutrição Clínica", "Nutrição Funcional",
+"Psicologia da Autoestima", "Coaching de Imagem Corporal",
+"Acupuntura Estética", "Aromaterapia", "Terapias Holísticas",
+"Personal Training Estético", "Spa e Relaxamento"];
+
 
 const treatmentToAreasMap = {
   "Limpeza de Pele": ["Rosto"],
@@ -203,61 +203,61 @@ const treatmentToAreasMap = {
 };
 
 const budgets = [
-  "Até R$ 500",
-  "R$ 500 - R$ 1.000",
-  "R$ 1.000 - R$ 2.000",
-  "R$ 2.000 - R$ 5.000",
-  "Acima de R$ 5.000"
-];
+"Até R$ 500",
+"R$ 500 - R$ 1.000",
+"R$ 1.000 - R$ 2.000",
+"R$ 2.000 - R$ 5.000",
+"Acima de R$ 5.000"];
+
 
 const timeframes = [
-  "Imediato",
-  "Próximos 7 dias",
-  "Próximos 30 dias",
-  "Próximos 3 meses",
-  "Planejando para depois"
-];
+"Imediato",
+"Próximos 7 dias",
+"Próximos 30 dias",
+"Próximos 3 meses",
+"Planejando para depois"];
+
 
 const estadosBrasileiros = [
-  { sigla: "AC", nome: "Acre" },
-  { sigla: "AL", nome: "Alagoas" },
-  { sigla: "AP", nome: "Amapá" },
-  { sigla: "AM", nome: "Amazonas" },
-  { sigla: "BA", nome: "Bahia" },
-  { sigla: "CE", nome: "Ceará" },
-  { sigla: "DF", nome: "Distrito Federal" },
-  { sigla: "ES", nome: "Espírito Santo" },
-  { sigla: "GO", nome: "Goiás" },
-  { sigla: "MA", nome: "Maranhão" },
-  { sigla: "MT", nome: "Mato Grosso" },
-  { sigla: "MS", nome: "Mato Grosso do Sul" },
-  { sigla: "MG", nome: "Minas Gerais" },
-  { sigla: "PA", nome: "Pará" },
-  { sigla: "PB", nome: "Paraíba" },
-  { sigla: "PR", nome: "Paraná" },
-  { sigla: "PE", nome: "Pernambuco" },
-  { sigla: "PI", nome: "Piauí" },
-  { sigla: "RJ", nome: "Rio de Janeiro" },
-  { sigla: "RN", nome: "Rio Grande do Norte" },
-  { sigla: "RS", nome: "Rio Grande do Sul" },
-  { sigla: "RO", nome: "Rondônia" },
-  { sigla: "RR", nome: "Roraima" },
-  { sigla: "SC", nome: "Santa Catarina" },
-  { sigla: "SP", nome: "São Paulo" },
-  { sigla: "SE", nome: "Sergipe" },
-  { sigla: "TO", nome: "Tocantins" }
-];
+{ sigla: "AC", nome: "Acre" },
+{ sigla: "AL", nome: "Alagoas" },
+{ sigla: "AP", nome: "Amapá" },
+{ sigla: "AM", nome: "Amazonas" },
+{ sigla: "BA", nome: "Bahia" },
+{ sigla: "CE", nome: "Ceará" },
+{ sigla: "DF", nome: "Distrito Federal" },
+{ sigla: "ES", nome: "Espírito Santo" },
+{ sigla: "GO", nome: "Goiás" },
+{ sigla: "MA", nome: "Maranhão" },
+{ sigla: "MT", nome: "Mato Grosso" },
+{ sigla: "MS", nome: "Mato Grosso do Sul" },
+{ sigla: "MG", nome: "Minas Gerais" },
+{ sigla: "PA", nome: "Pará" },
+{ sigla: "PB", nome: "Paraíba" },
+{ sigla: "PR", nome: "Paraná" },
+{ sigla: "PE", nome: "Pernambuco" },
+{ sigla: "PI", nome: "Piauí" },
+{ sigla: "RJ", nome: "Rio de Janeiro" },
+{ sigla: "RN", nome: "Rio Grande do Norte" },
+{ sigla: "RS", nome: "Rio Grande do Sul" },
+{ sigla: "RO", nome: "Rondônia" },
+{ sigla: "RR", nome: "Roraima" },
+{ sigla: "SC", nome: "Santa Catarina" },
+{ sigla: "SP", nome: "São Paulo" },
+{ sigla: "SE", nome: "Sergipe" },
+{ sigla: "TO", nome: "Tocantins" }];
+
 
 const paises = [
-  "Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
-  "Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
-  "França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
-  "Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
-  "Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
-  "Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
-  "Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
-  "Israel", "Arábia Saudita", "Outros"
-];
+"Brasil", "Argentina", "Chile", "Uruguai", "Paraguai", "Bolívia", "Peru", "Colômbia",
+"Venezuela", "Equador", "Estados Unidos", "Canadá", "México", "Portugal", "Espanha",
+"França", "Itália", "Alemanha", "Reino Unido", "Suíça", "Holanda", "Bélgica",
+"Áustria", "Suécia", "Noruega", "Dinamarca", "Finlândia", "Polônia", "República Tcheca",
+"Hungria", "Grécia", "Turquia", "Rússia", "China", "Japão", "Coreia do Sul",
+"Índia", "Tailândia", "Singapura", "Malásia", "Indonésia", "Filipinas", "Vietnã",
+"Austrália", "Nova Zelândia", "África do Sul", "Egito", "Marrocos", "Emirados Árabes",
+"Israel", "Arábia Saudita", "Outros"];
+
 
 const cidadesPrincipaisPorEstado = {
   "SP": ["São Paulo", "Campinas", "Santos", "Ribeirão Preto", "Sorocaba", "São José dos Campos", "Guarulhos", "Osasco"],
@@ -289,40 +289,40 @@ const cidadesPrincipaisPorEstado = {
 };
 
 const distanceRanges = [
-  { value: "0.5", label: "Até 500m" },
-  { value: "1", label: "500m - 1km" },
-  { value: "2", label: "1km - 2km" },
-  { value: "5", label: "2km - 5km" },
-  { value: "10", label: "5km - 10km" },
-  { value: "20", label: "10km - 20km" },
-  { value: "50", label: "20km - 50km" },
-  { value: "100", label: "50km - 100km" },
-  { value: "500", label: "100km - 500km" },
-  { value: "all", label: "Todas as distâncias" }
-];
+{ value: "0.5", label: "Até 500m" },
+{ value: "1", label: "500m - 1km" },
+{ value: "2", label: "1km - 2km" },
+{ value: "5", label: "2km - 5km" },
+{ value: "10", label: "5km - 10km" },
+{ value: "20", label: "10km - 20km" },
+{ value: "50", label: "20km - 50km" },
+{ value: "100", label: "50km - 100km" },
+{ value: "500", label: "100km - 500km" },
+{ value: "all", label: "Todas as distâncias" }];
+
 
 const features = [
-  {
-    icon: Heart,
-    title: "Inteligência Artificial",
-    description: "Tecnologia avançada para encontrar o tratamento perfeito"
-  },
-  {
-    icon: MapPin,
-    title: "Geolocalização",
-    description: "Profissionais próximos a você com um clique"
-  },
-  {
-    icon: Award,
-    title: "Profissionais Verificados",
-    description: "Apenas os melhores e mais qualificados"
-  },
-  {
-    icon: Heart,
-    title: "Personalizado",
-    description: "Recomendações baseadas no seu perfil"
-  }
-];
+{
+  icon: Heart,
+  title: "Inteligência Artificial",
+  description: "Tecnologia avançada para encontrar o tratamento perfeito"
+},
+{
+  icon: MapPin,
+  title: "Geolocalização",
+  description: "Profissionais próximos a você com um clique"
+},
+{
+  icon: Award,
+  title: "Profissionais Verificados",
+  description: "Apenas os melhores e mais qualificados"
+},
+{
+  icon: Heart,
+  title: "Personalizado",
+  description: "Recomendações baseadas no seu perfil"
+}];
+
 
 async function getCityFromCoordinates(lat, lng) {
   try {
@@ -373,7 +373,7 @@ export default function DrBeleza() {
   const { data: estabelecimentos = [] } = useQuery({
     queryKey: ['estabelecimentos'],
     queryFn: () => base44.entities.EstabelecimentoParceiro.list(),
-    initialData: [],
+    initialData: []
   });
 
   const availableAreas = useMemo(() => {
@@ -384,7 +384,7 @@ export default function DrBeleza() {
   }, [formData.treatment]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newData = { ...prev, [field]: value };
       if (field === "treatment") {
         newData.area = "";
@@ -410,7 +410,7 @@ export default function DrBeleza() {
             position.coords.longitude
           );
 
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6),
@@ -441,36 +441,36 @@ export default function DrBeleza() {
   const filteredEstabelecimentos = useMemo(() => {
     if (!showResults) return [];
 
-    return estabelecimentos
-      .filter(est => {
-        const matchCountry = !formData.pais || est.pais === formData.pais;
-        const matchState = formData.state === "todos" ||
-                           (formData.pais === "Brasil" && est.estado === formData.state) ||
-                           (formData.pais !== "Brasil");
-        const matchCity = formData.city === "todas" ||
-                          est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
+    return estabelecimentos.
+    filter((est) => {
+      const matchCountry = !formData.pais || est.pais === formData.pais;
+      const matchState = formData.state === "todos" ||
+      formData.pais === "Brasil" && est.estado === formData.state ||
+      formData.pais !== "Brasil";
+      const matchCity = formData.city === "todas" ||
+      est.cidade?.toLowerCase().includes(formData.city.toLowerCase());
 
-        return matchCountry && matchState && matchCity;
-      })
-      .map(est => ({
-        ...est,
-        distancia: userLocation ? calcularDistancia(
-          userLocation[0],
-          userLocation[1],
-          est.latitude,
-          est.longitude
-        ) : null
-      }))
-      .filter(est => {
-        if (formData.maxDistance === "all") return true;
-        if (!est.distancia) return true;
-        return est.distancia <= parseFloat(formData.maxDistance);
-      })
-      .sort((a, b) => {
-        if (a.distancia === null) return 1;
-        if (b.distancia === null) return -1;
-        return a.distancia - b.distancia;
-      });
+      return matchCountry && matchState && matchCity;
+    }).
+    map((est) => ({
+      ...est,
+      distancia: userLocation ? calcularDistancia(
+        userLocation[0],
+        userLocation[1],
+        est.latitude,
+        est.longitude
+      ) : null
+    })).
+    filter((est) => {
+      if (formData.maxDistance === "all") return true;
+      if (!est.distancia) return true;
+      return est.distancia <= parseFloat(formData.maxDistance);
+    }).
+    sort((a, b) => {
+      if (a.distancia === null) return 1;
+      if (b.distancia === null) return -1;
+      return a.distancia - b.distancia;
+    });
   }, [estabelecimentos, formData.pais, formData.city, formData.state, formData.maxDistance, userLocation, showResults]);
 
   const handleSearch = () => {
@@ -511,15 +511,15 @@ export default function DrBeleza() {
           <motion.div
             animate={{
               scale: [1, 1.2, 1],
-              rotate: [0, 90, 0],
+              rotate: [0, 90, 0]
             }}
             transition={{
               duration: 20,
               repeat: Infinity,
               ease: "linear"
             }}
-            className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-[#D4AF37]/10 to-transparent rounded-full blur-3xl"
-          />
+            className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-[#D4AF37]/10 to-transparent rounded-full blur-3xl" />
+
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -527,19 +527,19 @@ export default function DrBeleza() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center space-y-6 md:space-y-8"
-          >
+            className="text-center space-y-6 md:space-y-8">
+
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="inline-block"
-            >
+              className="inline-block">
+
               <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-2xl border-4 border-white">
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                   alt="Dr. Beleza"
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" />
+
               </div>
             </motion.div>
 
@@ -565,15 +565,15 @@ export default function DrBeleza() {
             </div>
 
             <div className="pt-6">
-              <a 
-                href="https://dr-beleza-ai.base44.app" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-              >
-                <Sparkles className="w-5 h-5" />
-                Acessar Dr. Beleza AI - O ChatGPT da Saúde e Estética
-                <ArrowRight className="w-5 h-5" />
+              <a
+                href="https://dr-beleza-ai.base44.app"
+                target="_blank"
+                rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">Acessar Dr. Beleza AI - O Agente da Saúde e Estética
+
+
+
+
+
               </a>
               <p className="text-sm text-gray-500 mt-2">
                 Converse com IA especializada, envie fotos e receba orientações personalizadas
@@ -590,8 +590,8 @@ export default function DrBeleza() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16 space-y-4"
-          >
+            className="text-center mb-16 space-y-4">
+
             <Badge className="bg-[#F5EFE6] text-[#D4AF37] px-4 py-2 text-base">
               <Scan className="w-4 h-4 mr-2" />
               Tecnologia Avançada
@@ -615,8 +615,8 @@ export default function DrBeleza() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="space-y-6"
-            >
+              className="space-y-6">
+
               <div className="space-y-4">
                 <h3 className="font-serif text-3xl font-bold text-gray-800">
                   Visualize Seu Futuro
@@ -669,8 +669,8 @@ export default function DrBeleza() {
               <Button
                 onClick={() => setShowAvatarForm(!showAvatarForm)}
                 size="lg"
-                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
-              >
+                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group">
+
                 <Scan className="w-5 h-5 mr-2" />
                 {showAvatarForm ? 'Fechar Criador de Avatar' : 'Criar Meu Avatar Agora'}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -682,14 +682,14 @@ export default function DrBeleza() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative"
-            >
+              className="relative">
+
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#E8DCC4]">
                 <img
                   src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=800&q=80"
                   alt="Avatar Preview"
-                  className="w-full h-[600px] object-cover"
-                />
+                  className="w-full h-[600px] object-cover" />
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
                 <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
@@ -710,17 +710,17 @@ export default function DrBeleza() {
           </div>
 
           <AnimatePresence>
-            {showAvatarForm && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mt-12"
-              >
+            {showAvatarForm &&
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mt-12">
+
                 <AvatarScanner />
               </motion.div>
-            )}
+            }
           </AnimatePresence>
         </div>
       </div>
@@ -732,16 +732,16 @@ export default function DrBeleza() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="w-full"
-          >
+            className="w-full">
+
             <Card className="border-[#E8DCC4] shadow-2xl bg-white w-full">
               <CardHeader className="text-center p-4 md:p-8 border-b border-[#E8DCC4]">
                 <div className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-full overflow-hidden shadow-lg border-4 border-white">
                   <img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690ca5886318e973c6e913bb/9af1641b0_drbeleza.png"
                     alt="Dr. Beleza"
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" />
+
                 </div>
                 <CardTitle className="font-serif text-2xl md:text-3xl lg:text-4xl font-bold px-2">
                   <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
@@ -766,9 +766,9 @@ export default function DrBeleza() {
                           <SelectValue placeholder="Selecione o tratamento" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
-                          {treatmentCategories.map((cat) => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                          ))}
+                          {treatmentCategories.map((cat) =>
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -781,15 +781,15 @@ export default function DrBeleza() {
                       <Select
                         value={formData.area}
                         onValueChange={(value) => handleInputChange("area", value)}
-                        disabled={!formData.treatment}
-                      >
+                        disabled={!formData.treatment}>
+
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder={formData.treatment ? "Selecione a área" : "Selecione primeiro o tratamento"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableAreas.map((area) => (
-                            <SelectItem key={area} value={area}>{area}</SelectItem>
-                          ))}
+                          {availableAreas.map((area) =>
+                          <SelectItem key={area} value={area}>{area}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -804,9 +804,9 @@ export default function DrBeleza() {
                           <SelectValue placeholder="Selecione o orçamento" />
                         </SelectTrigger>
                         <SelectContent>
-                          {budgets.map((budget) => (
-                            <SelectItem key={budget} value={budget}>{budget}</SelectItem>
-                          ))}
+                          {budgets.map((budget) =>
+                          <SelectItem key={budget} value={budget}>{budget}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -821,9 +821,9 @@ export default function DrBeleza() {
                           <SelectValue placeholder="Selecione o prazo" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeframes.map((time) => (
-                            <SelectItem key={time} value={time}>{time}</SelectItem>
-                          ))}
+                          {timeframes.map((time) =>
+                          <SelectItem key={time} value={time}>{time}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -838,24 +838,24 @@ export default function DrBeleza() {
                         onClick={getUserLocation}
                         disabled={loadingLocation}
                         variant="outline"
-                        className="w-full border-[#E8DCC4] hover:border-[#D4AF37] hover:bg-[#F5EFE6]"
-                      >
-                        {loadingLocation ? (
-                          <>
+                        className="w-full border-[#E8DCC4] hover:border-[#D4AF37] hover:bg-[#F5EFE6]">
+
+                        {loadingLocation ?
+                        <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#D4AF37] mr-2" />
                             Obtendo localização...
-                          </>
-                        ) : userLocation ? (
-                          <>
+                          </> :
+                        userLocation ?
+                        <>
                             <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
                             Localização Obtida
-                          </>
-                        ) : (
-                          <>
+                          </> :
+
+                        <>
                             <Locate className="w-4 h-4 mr-2" />
                             Usar Minha Localização
                           </>
-                        )}
+                        }
                       </Button>
                     </div>
 
@@ -866,15 +866,15 @@ export default function DrBeleza() {
                       </Label>
                       <Select
                         value={formData.pais}
-                        onValueChange={(value) => handleInputChange("pais", value)}
-                      >
+                        onValueChange={(value) => handleInputChange("pais", value)}>
+
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
-                          {paises.map((pais) => (
-                            <SelectItem key={pais} value={pais}>{pais}</SelectItem>
-                          ))}
+                          {paises.map((pais) =>
+                          <SelectItem key={pais} value={pais}>{pais}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -886,18 +886,18 @@ export default function DrBeleza() {
                       </Label>
                       <Select
                         value={formData.state}
-                        onValueChange={(value) => handleInputChange("state", value)}
-                      >
+                        onValueChange={(value) => handleInputChange("state", value)}>
+
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione o estado" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           <SelectItem value="todos">Todos os estados</SelectItem>
-                          {estadosBrasileiros.map((estado) => (
-                            <SelectItem key={estado.sigla} value={estado.sigla}>
+                          {estadosBrasileiros.map((estado) =>
+                          <SelectItem key={estado.sigla} value={estado.sigla}>
                               {estado.nome} ({estado.sigla})
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -907,33 +907,33 @@ export default function DrBeleza() {
                         <MapPin className="w-4 h-4 text-[#D4AF37]" />
                         Cidade
                       </Label>
-                      {formData.pais === "Brasil" && cidadesDisponiveis.length > 0 && formData.state !== "todos" ? (
-                        <Select
-                          value={formData.city}
-                          onValueChange={(value) => handleInputChange("city", value)}
-                          disabled={formData.state === "todos"}
-                        >
+                      {formData.pais === "Brasil" && cidadesDisponiveis.length > 0 && formData.state !== "todos" ?
+                      <Select
+                        value={formData.city}
+                        onValueChange={(value) => handleInputChange("city", value)}
+                        disabled={formData.state === "todos"}>
+
                           <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                             <SelectValue placeholder="Selecione a cidade" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
                             <SelectItem value="todas">Todas as Cidades</SelectItem>
-                            {cidadesDisponiveis.map((cidade) => (
-                              <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
-                            ))}
+                            {cidadesDisponiveis.map((cidade) =>
+                          <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                          )}
                             <SelectItem value="__custom__">Outra cidade...</SelectItem>
                           </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          id="city"
-                          value={formData.city === "todas" ? "" : formData.city}
-                          onChange={(e) => handleInputChange("city", e.target.value || "todas")}
-                          placeholder={formData.state !== "todos" ? "Digite a cidade" : "Selecione o estado"}
-                          className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
-                          disabled={formData.state === "todos" && formData.pais === "Brasil"}
-                        />
-                      )}
+                        </Select> :
+
+                      <Input
+                        id="city"
+                        value={formData.city === "todas" ? "" : formData.city}
+                        onChange={(e) => handleInputChange("city", e.target.value || "todas")}
+                        placeholder={formData.state !== "todos" ? "Digite a cidade" : "Selecione o estado"}
+                        className="border-[#E8DCC4] focus:border-[#D4AF37] w-full"
+                        disabled={formData.state === "todos" && formData.pais === "Brasil"} />
+
+                      }
                     </div>
 
 
@@ -947,8 +947,8 @@ export default function DrBeleza() {
                         value={formData.latitude}
                         readOnly
                         placeholder="Obtida automaticamente"
-                        className="border-[#E8DCC4] bg-gray-50 w-full"
-                      />
+                        className="border-[#E8DCC4] bg-gray-50 w-full" />
+
                     </div>
 
                     <div className="space-y-2 w-full">
@@ -961,8 +961,8 @@ export default function DrBeleza() {
                         value={formData.longitude}
                         readOnly
                         placeholder="Obtida automaticamente"
-                        className="border-[#E8DCC4] bg-gray-50 w-full"
-                      />
+                        className="border-[#E8DCC4] bg-gray-50 w-full" />
+
                     </div>
 
                     <div className="space-y-2 w-full">
@@ -972,22 +972,22 @@ export default function DrBeleza() {
                       </Label>
                       <Select
                         value={formData.maxDistance}
-                        onValueChange={(value) => handleInputChange("maxDistance", value)}
-                      >
+                        onValueChange={(value) => handleInputChange("maxDistance", value)}>
+
                         <SelectTrigger className="border-[#E8DCC4] focus:border-[#D4AF37] w-full">
                           <SelectValue placeholder="Selecione a distância" />
                         </SelectTrigger>
                         <SelectContent>
-                          {distanceRanges.map((range) => (
-                            <SelectItem key={range.value} value={range.value}>{range.label}</SelectItem>
-                          ))}
+                          {distanceRanges.map((range) =>
+                          <SelectItem key={range.value} value={range.value}>{range.label}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
-                      {!userLocation && formData.maxDistance !== "all" && (
-                        <p className="text-xs text-amber-600">
+                      {!userLocation && formData.maxDistance !== "all" &&
+                      <p className="text-xs text-amber-600">
                           ⚠️ Distância será calculada apenas com geolocalização ativa
                         </p>
-                      )}
+                      }
                     </div>
                   </div>
 
@@ -995,27 +995,27 @@ export default function DrBeleza() {
                     <Button
                       onClick={handleSearch}
                       disabled={isSearching}
-                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-5 md:py-6 text-base md:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
-                    >
-                      {isSearching ? (
-                        <>
+                      className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-5 md:py-6 text-base md:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group">
+
+                      {isSearching ?
+                      <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
                           Buscando...
-                        </>
-                      ) : (
-                        <>
+                        </> :
+
+                      <>
                           <Search className="w-5 h-5 mr-2" />
                           Buscar Profissionais
                           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </>
-                      )}
+                      }
                     </Button>
 
                     <Button
                       onClick={handleTeleconsulta}
                       variant="outline"
-                      className="w-full border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] py-5 md:py-6 text-base md:text-lg font-semibold"
-                    >
+                      className="w-full border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6] py-5 md:py-6 text-base md:text-lg font-semibold">
+
                       <Phone className="w-5 h-5 mr-2" />
                       Agendar Teleconsulta
                     </Button>
@@ -1030,13 +1030,13 @@ export default function DrBeleza() {
             </Card>
           </motion.div>
 
-          {showResults && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="mt-12"
-            >
+          {showResults &&
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mt-12">
+
               <Card className="border-[#E8DCC4] shadow-2xl bg-white">
                 <CardHeader>
                   <CardTitle className="font-serif text-2xl md:text-3xl">
@@ -1051,51 +1051,51 @@ export default function DrBeleza() {
                 <CardContent className="p-4 md:p-6 space-y-6">
                   <div className="w-full h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-xl border-4 border-[#E8DCC4]">
                     <MapContainer
-                      center={mapCenter}
-                      zoom={13}
-                      style={{ height: '100%', width: '100%' }}
-                      className="z-0"
-                    >
+                    center={mapCenter}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                    className="z-0">
+
                       <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
 
                       <MapController center={mapCenter} />
 
-                      {userLocation && (
-                        <Marker position={userLocation} icon={userIcon}>
+                      {userLocation &&
+                    <Marker position={userLocation} icon={userIcon}>
                           <Popup>
                             <div className="text-center p-2">
                               <p className="font-semibold text-blue-600">Você está aqui</p>
                             </div>
                           </Popup>
                         </Marker>
-                      )}
+                    }
 
-                      {filteredEstabelecimentos.map((est) => (
-                        <Marker
-                          key={est.id}
-                          position={[est.latitude, est.longitude]}
-                          icon={estabelecimentoIcon}
-                          eventHandlers={{
-                            click: () => handleSelectEstabelecimento(est)
-                          }}
-                        >
+                      {filteredEstabelecimentos.map((est) =>
+                    <Marker
+                      key={est.id}
+                      position={[est.latitude, est.longitude]}
+                      icon={estabelecimentoIcon}
+                      eventHandlers={{
+                        click: () => handleSelectEstabelecimento(est)
+                      }}>
+
                           <Popup>
                             <div className="p-2 min-w-[200px]">
                               <h3 className="font-serif font-bold text-gray-800 mb-1">{est.nome}</h3>
                               <p className="text-sm text-[#C8A882] mb-2">{est.categoria}</p>
                               <p className="text-xs text-gray-600 mb-2">{est.endereco}</p>
-                              {est.distancia !== null && (
-                                <Badge className="bg-[#F5EFE6] text-[#D4AF37] text-xs">
+                              {est.distancia !== null &&
+                          <Badge className="bg-[#F5EFE6] text-[#D4AF37] text-xs">
                                   {est.distancia.toFixed(1)} km de você
                                 </Badge>
-                              )}
+                          }
                             </div>
                           </Popup>
                         </Marker>
-                      ))}
+                    )}
                     </MapContainer>
                   </div>
 
@@ -1103,32 +1103,32 @@ export default function DrBeleza() {
                     <h3 className="font-serif text-xl md:text-2xl font-bold text-gray-800 mb-6">
                       Estabelecimentos Encontrados
                     </h3>
-                    {filteredEstabelecimentos.length === 0 ? (
-                      <div className="text-center py-12">
+                    {filteredEstabelecimentos.length === 0 ?
+                  <div className="text-center py-12">
                         <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-600 text-lg">Nenhum estabelecimento encontrado</p>
                         <p className="text-sm text-gray-500 mt-2">Tente ajustar os filtros ou aumentar a distância de busca</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredEstabelecimentos.map((est) => (
-                          <CardEstabelecimento
-                            key={est.id}
-                            estabelecimento={est}
-                            distancia={est.distancia}
-                            onSelect={handleSelectEstabelecimento}
-                            isSelected={selectedEstabelecimento?.id === est.id}
-                          />
-                        ))}
-                      </div>
+                      </div> :
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredEstabelecimentos.map((est) =>
+                    <CardEstabelecimento
+                      key={est.id}
+                      estabelecimento={est}
+                      distancia={est.distancia}
+                      onSelect={handleSelectEstabelecimento}
+                      isSelected={selectedEstabelecimento?.id === est.id} />
+
                     )}
+                      </div>
+                  }
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          )}
+          }
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
