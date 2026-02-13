@@ -12,8 +12,8 @@ import { useEffect } from "react";
 const products = [
   {
     name: "Dr. Beleza AI",
-    tagline: "Assistente Inteligente de Saúde e Estética",
-    description: "Seu assistente de IA especializado em medicina estética. Converse naturalmente, envie fotos para análise, gere imagens e receba orientações personalizadas sobre tratamentos, procedimentos e cuidados — tudo baseado em evidências científicas e protocolos atualizados.",
+    tagline: "Seu Consultor de IA Especializado em Estética",
+    description: "Assistente inteligente que revoluciona a forma como você busca informações sobre procedimentos estéticos. Converse naturalmente, envie fotos para análise profissional, gere simulações visuais e receba orientações personalizadas baseadas em evidências científicas e protocolos atualizados da medicina estética.",
     icon: Bot,
     color: "from-purple-500 to-purple-700",
     url: "https://dr-beleza-ai.base44.app",
