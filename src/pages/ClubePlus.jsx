@@ -14,7 +14,7 @@ import { createPageUrl } from "@/utils";
 import {
   CreditCard, Sparkles, Gift, Percent, Star,
   Coins, TrendingUp, Award, CheckCircle, Crown,
-  ArrowRight, Zap, Shield, Ticket
+  ArrowRight, Zap, Shield, Ticket, Users, Heart, Rocket, Lock
 } from "lucide-react";
 
 const cardBenefits = [
@@ -70,6 +70,60 @@ const beautyCoinFeatures = [
     icon: Gift,
     title: "Múltiplos Usos",
     description: "Use em produtos, serviços, eventos e troque com outros membros"
+  }
+];
+
+const clubPlusMetrics = [
+  {
+    icon: Users,
+    value: "50k+",
+    label: "Membros Ativos",
+    color: "from-purple-500 to-purple-600"
+  },
+  {
+    icon: TrendingUp,
+    value: "R$ 100M+",
+    label: "Transações Mensais",
+    color: "from-green-500 to-green-600"
+  },
+  {
+    icon: Heart,
+    value: "98%",
+    label: "Satisfação",
+    color: "from-red-500 to-red-600"
+  },
+  {
+    icon: Coins,
+    value: "1M+",
+    label: "Beauty Coins Movimentadas",
+    color: "from-yellow-500 to-yellow-600"
+  }
+];
+
+const clubVantagens = [
+  {
+    title: "Economia Garantida",
+    description: "Economize até R$ 5.000 por ano com descontos exclusivos",
+    icon: Percent,
+    savings: "até 25%"
+  },
+  {
+    title: "Rewards Infinitos",
+    description: "Ganhe Beauty Coins em cada transação e resgate quando quiser",
+    icon: Coins,
+    reward: "até 10%"
+  },
+  {
+    title: "Acesso VIP",
+    description: "Prioridade em agendamentos e acesso a eventos exclusivos",
+    icon: Crown,
+    benefit: "Premium"
+  },
+  {
+    title: "Segurança Total",
+    description: "Proteção completa com tecnologia blockchain",
+    icon: Lock,
+    benefit: "Garantido"
   }
 ];
 
@@ -225,6 +279,110 @@ export default function ClubePlus() {
               </div>
             </div>
           </motion.div>
+        </div>
+      </div>
+
+      {/* Métricas Gerais */}
+      <div className="py-16 px-6 bg-gradient-to-br from-black via-gray-900 to-black">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16 space-y-4"
+          >
+            <h2 className="font-serif text-4xl md:text-5xl font-bold text-white">
+              Clube+ em Números
+            </h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              O programa de fidelização mais poderoso da beleza brasileira
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {clubPlusMetrics.map((metric, index) => {
+              const Icon = metric.icon;
+              return (
+                <motion.div
+                  key={metric.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="bg-white/5 backdrop-blur-sm border border-[#D4AF37]/20 rounded-2xl p-8 text-center hover:border-[#D4AF37]/50 transition-all duration-300 group"
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${metric.color} rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent mb-2">
+                    {metric.value}
+                  </div>
+                  <div className="text-gray-300 font-medium">
+                    {metric.label}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Vantagens Principais */}
+      <div className="py-24 px-6 bg-gradient-to-b from-white via-[#F5EFE6] to-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16 space-y-4"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#F5EFE6] rounded-full border border-[#D4AF37]/20">
+              <Rocket className="w-4 h-4 text-[#D4AF37]" />
+              <span className="text-sm font-medium text-[#C8A882]">Por que escolher o Clube+</span>
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl font-bold">
+              <span className="text-gray-800">4 Razões Poderosas</span>
+              <br />
+              <span className="bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">Para se Juntar Agora</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {clubVantagens.map((vantagem, index) => {
+              const Icon = vantagem.icon;
+              return (
+                <motion.div
+                  key={vantagem.title}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="bg-white rounded-2xl p-8 border border-[#E8DCC4] hover:border-[#D4AF37] hover:shadow-2xl transition-all duration-300 group"
+                >
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-[#D4AF37] to-[#C8A882] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Icon className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-serif text-2xl font-bold text-gray-800 mb-2">
+                        {vantagem.title}
+                      </h3>
+                      <p className="text-gray-600 mb-3">
+                        {vantagem.description}
+                      </p>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-[#D4AF37]/10 to-[#C8A882]/10 rounded-lg">
+                        <span className="text-sm font-semibold bg-gradient-to-r from-[#D4AF37] to-[#C8A882] bg-clip-text text-transparent">
+                          {vantagem.savings || vantagem.reward || vantagem.benefit}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
