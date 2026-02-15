@@ -251,21 +251,21 @@ export default function VersionsSection() {
       </Card>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Versão</DialogTitle>
-            <DialogDescription>Crie uma nova versão do sistema</DialogDescription>
+            <DialogTitle className="text-lg">Nova Versão</DialogTitle>
+            <DialogDescription className="text-xs">Crie uma nova versão do sistema</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Versão</Label>
-                <Input value={formData.versao} onChange={(e) => setFormData({...formData, versao: e.target.value})} placeholder="1.0.0" />
+          <div className="space-y-3 py-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-sm">Versão</Label>
+                <Input value={formData.versao} onChange={(e) => setFormData({...formData, versao: e.target.value})} placeholder="1.0.0" className="h-8 text-sm" />
               </div>
-              <div className="space-y-2">
-                <Label>Tipo</Label>
+              <div className="space-y-1">
+                <Label className="text-sm">Tipo</Label>
                 <Select value={formData.tipo_release} onValueChange={(v) => setFormData({...formData, tipo_release: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="major">Major</SelectItem>
                     <SelectItem value="minor">Minor</SelectItem>
@@ -275,54 +275,52 @@ export default function VersionsSection() {
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Mudanças Técnicas (para IA)</Label>
-              <Textarea value={formData.mudancas_tecnicas} onChange={(e) => setFormData({...formData, mudancas_tecnicas: e.target.value})} placeholder="Descreva o que foi alterado..." className="h-20" />
-              <Button type="button" onClick={handleGenerateAI} disabled={generatingAI} variant="outline" className="w-full">
-                <Sparkles className="w-4 h-4 mr-2" /> {generatingAI ? 'Gerando...' : 'Gerar com IA'}
+            <div className="space-y-1">
+              <Label className="text-sm">Mudanças Técnicas</Label>
+              <Textarea value={formData.mudancas_tecnicas} onChange={(e) => setFormData({...formData, mudancas_tecnicas: e.target.value})} placeholder="Descreva o que foi alterado..." className="h-16 text-sm" />
+              <Button type="button" onClick={handleGenerateAI} disabled={generatingAI} variant="outline" size="sm" className="w-full text-xs">
+                <Sparkles className="w-3 h-3 mr-1" /> {generatingAI ? 'Gerando...' : 'Gerar com IA'}
               </Button>
             </div>
-            <div className="space-y-2">
-              <Label>Changelog (descrição para usuários)</Label>
-              <Textarea value={formData.changelog} onChange={(e) => setFormData({...formData, changelog: e.target.value})} placeholder="Descrição amigável..." className="h-32" />
+            <div className="space-y-1">
+              <Label className="text-sm">Changelog</Label>
+              <Textarea value={formData.changelog} onChange={(e) => setFormData({...formData, changelog: e.target.value})} placeholder="Descrição amigável..." className="h-20 text-sm" />
             </div>
             
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-orange-600" />
-                  <Label className="text-orange-800 font-medium">Forçar Atualização</Label>
+                  <AlertTriangle className="w-4 h-4 text-orange-600" />
+                  <Label className="text-orange-800 font-medium text-xs">Forçar Atualização</Label>
                 </div>
                 <Switch 
                   checked={formData.forcar_atualizacao} 
                   onCheckedChange={(v) => setFormData({...formData, forcar_atualizacao: v})} 
                 />
               </div>
-              <p className="text-xs text-orange-700">
-                Quando ativado, todos os usuários serão obrigados a atualizar antes de continuar usando o site.
-              </p>
+              <p className="text-xs text-orange-700">Força atualização obrigatória para todos usuários.</p>
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Agendar Publicação (opcional)
+            <div className="space-y-1">
+              <Label className="flex items-center gap-2 text-sm">
+                <Clock className="w-3 h-3" /> Agendar (opcional)
               </Label>
               <Input 
                 type="datetime-local" 
                 value={formData.data_agendada} 
-                onChange={(e) => setFormData({...formData, data_agendada: e.target.value})} 
+                onChange={(e) => setFormData({...formData, data_agendada: e.target.value})}
+                className="h-8 text-sm"
               />
-              <p className="text-xs text-gray-500">Deixe vazio para publicar manualmente</p>
             </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1">Cancelar</Button>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowModal(false)} size="sm" className="flex-1">Cancelar</Button>
               <Button onClick={() => createMutation.mutate({ 
                 ...formData, 
                 status: formData.data_agendada ? 'agendada' : 'em_desenvolvimento', 
                 criado_por: user?.email 
               })} 
-                disabled={createMutation.isPending} className="flex-1 bg-indigo-600 text-white">
+                disabled={createMutation.isPending} size="sm" className="flex-1 bg-indigo-600 text-white">
                 {createMutation.isPending ? 'Criando...' : formData.data_agendada ? 'Criar e Agendar' : 'Criar'}
               </Button>
             </div>
