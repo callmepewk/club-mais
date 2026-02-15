@@ -9,13 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Plus, Edit, Trash, Users, MapPin, Clock } from "lucide-react";
+import { Calendar, Plus, Edit, Trash, Users, MapPin, Clock, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function CardEventsSection() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
   const [formData, setFormData] = useState({
     titulo: "", descricao: "", data_hora: "", localizacao: "",
     tipo_inscricao: "gratuito", valor_inscricao: 0, imagem: "",
@@ -62,6 +63,24 @@ export default function CardEventsSection() {
       vagas_totais: 50, tipos_cartao_permitidos: ["basic", "pro", "exclusive"]
     });
     setEditingEvent(null);
+  };
+
+  const handleGenerateTitleWithAI = async () => {
+    if (!formData.descricao) {
+      alert('Preencha a descrição primeiro');
+      return;
+    }
+    setLoadingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Com base nesta descrição de evento do cartão Beauty Club: "${formData.descricao}", crie um título chamativo e profissional de no máximo 60 caracteres.`,
+      });
+      setFormData(prev => ({ ...prev, titulo: result }));
+    } catch (error) {
+      console.error('Erro ao gerar título:', error);
+      alert('Erro ao gerar título. Tente novamente.');
+    }
+    setLoadingAI(false);
   };
 
   const handleSubmit = (e) => {
@@ -183,8 +202,25 @@ export default function CardEventsSection() {
             <DialogTitle>{editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 mb-4">
+              <p className="text-sm text-purple-800 font-medium">💡 Dica: Use a IA para gerar um título profissional a partir da descrição!</p>
+            </div>
             <div>
-              <Label>Título</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Título</Label>
+                {formData.descricao && !formData.titulo && (
+                  <Button
+                    type="button"
+                    onClick={handleGenerateTitleWithAI}
+                    disabled={loadingAI}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {loadingAI ? 'Gerando...' : 'Gerar com IA'}
+                  </Button>
+                )}
+              </div>
               <Input value={formData.titulo} onChange={(e) => setFormData({...formData, titulo: e.target.value})} required />
             </div>
             <div>
