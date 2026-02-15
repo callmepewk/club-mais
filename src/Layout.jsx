@@ -154,7 +154,7 @@ function LayoutContent({ children, currentPageName }) {
       });
 
   const handleWhatsAppSignup = () => {
-    const whatsappNumber = "5531972595643";
+    const whatsappNumber = "5521980343873";
     const message = encodeURIComponent("Olá! Gostaria de me cadastrar no Club da Beleza.");
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
@@ -237,13 +237,13 @@ function LayoutContent({ children, currentPageName }) {
           </SidebarContent>
 
           <SidebarFooter className="border-t border-gray-800 p-4 bg-black">
-            <a href="tel:+5531972595643" className="flex items-center gap-3 p-3 hover:bg-gray-900 rounded-lg transition-all duration-300 group bg-gray-800/50">
+            <a href="tel:+5521980343873" className="flex items-center gap-3 p-3 hover:bg-gray-900 rounded-lg transition-all duration-300 group bg-gray-800/50">
               <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center flex-shrink-0">
                 <Phone className="w-5 h-5 text-black" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-300 font-medium">{t("common.contact")}</p>
-                <p className="text-sm font-semibold text-white">(31) 97259-5643</p>
+                <p className="text-sm font-semibold text-white">(21) 98034-3873</p>
               </div>
             </a>
           </SidebarFooter>

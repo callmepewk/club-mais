@@ -1019,17 +1019,17 @@ export default function Eventos() {
                       </div>
 
                       {evento.link_inscricao && (
-                        <a
-                          href={evento.link_inscricao}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block"
-                        >
-                          <Button className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white group">
-                            Inscrever-se
-                            <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </a>
+                       <a
+                         href={evento.link_inscricao}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="block"
+                       >
+                         <Button className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-2 text-sm group">
+                           Inscrever-se
+                           <ExternalLink className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                         </Button>
+                       </a>
                       )}
                     </CardContent>
                   </Card>
