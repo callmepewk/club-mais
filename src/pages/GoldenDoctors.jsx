@@ -61,10 +61,6 @@ const stats = [
 ];
 
 export default function GoldenDoctors() {
-  const [showInscricaoModal, setShowInscricaoModal] = useState(false);
-  const [pixQRCode, setPixQRCode] = useState(null);
-  const [timeRemaining, setTimeRemaining] = useState(60);
-  const [transactionId, setTransactionId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -78,67 +74,7 @@ export default function GoldenDoctors() {
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  const gerarPixMutation = useMutation({
-    mutationFn: async () => {
-      const valor = 500; // Valor da inscrição R$ 500
-      
-      const qrCode = `00020126580014br.gov.bcb.pix0136${Math.random().toString(36).substring(2, 15)}520400005303986540${valor.toFixed(2)}5802BR5925Club da Beleza6009SAO PAULO62070503***6304`;
-      
-      const expiracaoDate = new Date();
-      expiracaoDate.setMinutes(expiracaoDate.getMinutes() + 1);
-      
-      const transaction = await base44.entities.PixTransaction.create({
-        conta_id: user?.email || 'guest',
-        qr_code: qrCode,
-        valor: valor,
-        status: 'pendente',
-        data_expiracao: expiracaoDate.toISOString()
-      });
-      
-      return { qrCode, transactionId: transaction.id };
-    },
-    onSuccess: (data) => {
-      setPixQRCode(data.qrCode);
-      setTransactionId(data.transactionId);
-      setTimeRemaining(60);
-      startTimer();
-    },
-  });
 
-  const confirmarPagamentoMutation = useMutation({
-    mutationFn: async () => {
-      await base44.entities.PixTransaction.update(transactionId, {
-        status: 'confirmado',
-        confirmado_em: new Date().toISOString()
-      });
-      
-      return true;
-    },
-    onSuccess: () => {
-      alert('✅ Pagamento confirmado! Você receberá informações sobre o próximo encontro Golden Circle por e-mail.');
-      setShowInscricaoModal(false);
-      setPixQRCode(null);
-      setTransactionId(null);
-    },
-  });
-
-  const startTimer = () => {
-    const interval = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setPixQRCode(null);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(pixQRCode);
-    alert('Código PIX copiado!');
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#F5EFE6] to-white">
@@ -193,7 +129,11 @@ export default function GoldenDoctors() {
               </Button>
               
               <Button 
-                onClick={() => setShowInscricaoModal(true)}
+                onClick={() => {
+                  const whatsappNumber = "5521980343873";
+                  const message = encodeURIComponent("Olá! Gostaria de comprar a inscrição para o próximo encontro Golden Circle e obter mais informações.");
+                  window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+                }}
                 size="lg"
                 variant="outline"
                 className="bg-white/10 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-[#D4AF37] shadow-2xl hover:shadow-3xl transition-all duration-300 px-10 py-7 text-lg font-semibold group"
@@ -427,117 +367,7 @@ export default function GoldenDoctors() {
         </div>
       </div>
 
-      {/* Modal de Inscrição */}
-      <Dialog open={showInscricaoModal} onOpenChange={setShowInscricaoModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-serif flex items-center gap-2">
-              <Ticket className="w-6 h-6 text-[#D4AF37]" />
-              Inscrição - Próximo Encontro Golden Circle
-            </DialogTitle>
-          </DialogHeader>
 
-          {!pixQRCode ? (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-2xl p-6">
-                <div className="text-center space-y-3">
-                  <Crown className="w-16 h-16 text-[#D4AF37] mx-auto" />
-                  <h3 className="font-serif text-2xl font-bold text-gray-800">
-                    Encontro Exclusivo
-                  </h3>
-                  <p className="text-gray-600">
-                    Networking premium com os melhores profissionais da estética
-                  </p>
-                  <div className="pt-4">
-                    <div className="text-4xl font-bold text-[#D4AF37]">R$ 500</div>
-                    <div className="text-sm text-gray-500">Valor da inscrição</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-[#F5EFE6] rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
-                  <span className="text-sm text-gray-700">Coffee break premium</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-[#F5EFE6] rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
-                  <span className="text-sm text-gray-700">Material exclusivo</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-[#F5EFE6] rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
-                  <span className="text-sm text-gray-700">Certificado de participação</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => gerarPixMutation.mutate()}
-                disabled={gerarPixMutation.isPending || !user}
-                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6 text-lg"
-              >
-                {gerarPixMutation.isPending ? 'Gerando PIX...' : user ? 'Gerar QR Code PIX' : 'Faça login para continuar'}
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-[#F5EFE6] to-[#E8DCC4] rounded-2xl p-6 text-center">
-                <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                  <div className="text-6xl">📱</div>
-                </div>
-                <h3 className="font-serif text-xl font-bold text-gray-800 mb-2">
-                  Escaneie o QR Code
-                </h3>
-                <p className="text-3xl font-bold text-[#D4AF37]">R$ 500,00</p>
-                
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>Expira em: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
-                </div>
-              </div>
-
-              <div className="bg-white border-2 border-dashed border-[#D4AF37] rounded-xl p-4">
-                <p className="text-xs text-gray-600 break-all font-mono">{pixQRCode}</p>
-              </div>
-
-              <Button
-                onClick={copyToClipboard}
-                variant="outline"
-                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar Código PIX
-              </Button>
-
-              <div className="space-y-3">
-                <Button
-                  onClick={() => confirmarPagamentoMutation.mutate()}
-                  disabled={confirmarPagamentoMutation.isPending}
-                  className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-6"
-                >
-                  {confirmarPagamentoMutation.isPending ? 'Confirmando...' : 'Confirmar Pagamento'}
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    setPixQRCode(null);
-                    gerarPixMutation.mutate();
-                  }}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Gerar Novo QR Code
-                </Button>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-xs text-yellow-800">
-                  ⚠️ Após realizar o pagamento via PIX, clique em "Confirmar Pagamento" para validar sua inscrição.
-                </p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -94,7 +94,6 @@ const cidadesPrincipaisPorEstado = {
 
 export default function EdBeautyCreateContent() {
   const queryClient = useQueryClient();
-  const [useAI, setUseAI] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [aiGeneratedThumbnail, setAiGeneratedThumbnail] = useState(null);
@@ -149,69 +148,63 @@ export default function EdBeautyCreateContent() {
     }
   });
 
-  const handleGenerateContentWithAI = async () => {
-    if (!formData.titulo && !formData.descricao) {
-      alert('Preencha pelo menos o título ou descrição para usar a IA.');
+  const handleGenerateTituloWithAI = async () => {
+    if (!formData.descricao && !formData.titulo) {
+      alert('Preencha a descrição ou título para usar a IA.');
       return;
     }
-
     setLoadingAI(true);
-
     try {
-      const basePrompt = formData.titulo || formData.descricao;
-      
-      const contentDetails = await base44.integrations.Core.InvokeLLM({
-        prompt: `Com base neste conteúdo educacional de estética/beleza: "${basePrompt}"
-        
-        Gere um JSON completo com:
-        - titulo: título chamativo e profissional (se não fornecido)
-        - descricao: descrição detalhada e profissional (se não fornecida)
-        - categoria: escolha a categoria mais apropriada entre: Estética Facial, Estética Corporal, Harmonização, Micropigmentação, Depilação a Laser, Marketing, Gestão, Técnicas Avançadas, Outros
-        - categoria_outros: se categoria for "Outros", especifique aqui
-        - duracao: estimativa de duração (ex: "2h30min" para cursos, "45min" para vídeos, "120 páginas" para ebooks)
-        - nivel: Iniciante, Intermediário ou Avançado
-        
-        Tipo de conteúdo: ${formData.tipo}
-        
-        Retorne APENAS o JSON.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            titulo: { type: "string" },
-            descricao: { type: "string" },
-            categoria: { type: "string" },
-            categoria_outros: { type: "string" },
-            duracao: { type: "string" },
-            nivel: { type: "string" }
-          }
-        }
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Com base neste conteúdo educacional de estética/beleza: "${formData.titulo || formData.descricao}", crie um título chamativo e profissional de no máximo 60 caracteres.`,
       });
-
-      const imagePrompt = `Professional educational content thumbnail for beauty and aesthetics, ${contentDetails.titulo || formData.titulo}, ${contentDetails.categoria}, elegant, modern, high quality, professional`;
-      
-      const imageResult = await base44.integrations.Core.GenerateImage({
-        prompt: imagePrompt
-      });
-
-      setFormData(prev => ({
-        ...prev,
-        titulo: contentDetails.titulo || prev.titulo,
-        descricao: contentDetails.descricao || prev.descricao,
-        categoria: contentDetails.categoria || prev.categoria,
-        categoria_outros: contentDetails.categoria_outros || prev.categoria_outros,
-        duracao: contentDetails.duracao || prev.duracao,
-        nivel: contentDetails.nivel || prev.nivel,
-      }));
-
-      setAiGeneratedThumbnail(imageResult.url);
-      setFormData(prev => ({ ...prev, thumbnail: imageResult.url }));
-
-      alert('Conteúdo gerado com IA! Revise, ajuste e adicione os links necessários.');
+      setFormData(prev => ({ ...prev, titulo: result }));
     } catch (error) {
-      console.error('Erro ao gerar com IA:', error);
-      alert('Erro ao gerar conteúdo. Tente novamente.');
+      console.error('Erro ao gerar título:', error);
+      alert('Erro ao gerar título. Tente novamente.');
     }
+    setLoadingAI(false);
+  };
 
+  const handleGenerateDescricaoWithAI = async () => {
+    if (!formData.titulo && !formData.descricao) {
+      alert('Preencha o título ou descrição para usar a IA.');
+      return;
+    }
+    setLoadingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Com base neste tema de conteúdo educacional de estética/beleza: "${formData.titulo || formData.descricao}", crie uma descrição profissional e detalhada (2-3 parágrafos).`,
+      });
+      setFormData(prev => ({ ...prev, descricao: result }));
+    } catch (error) {
+      console.error('Erro ao gerar descrição:', error);
+      alert('Erro ao gerar descrição. Tente novamente.');
+    }
+    setLoadingAI(false);
+  };
+
+  const handleGenerarDuracaoWithAI = async () => {
+    if (!formData.titulo && !formData.descricao && !formData.categoria) {
+      alert('Preencha pelo menos o título, descrição ou categoria.');
+      return;
+    }
+    setLoadingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analise o seguinte conteúdo educacional de estética:
+Tipo: ${formData.tipo}
+Título: ${formData.titulo}
+Descrição: ${formData.descricao}
+Categoria: ${formData.categoria}
+
+Estime uma duração realista. Para vídeo use formato "XXminutos" (ex: 45minutos), para curso use "XhYZminutos" (ex: 2h30minutos), para ebook use "XXX páginas" (ex: 150 páginas). Retorne APENAS a duração no formato apropriado, nada mais.`,
+      });
+      setFormData(prev => ({ ...prev, duracao: result.trim() }));
+    } catch (error) {
+      console.error('Erro ao gerar duração:', error);
+      alert('Erro ao gerar duração. Tente novamente.');
+    }
     setLoadingAI(false);
   };
 
@@ -318,58 +311,37 @@ export default function EdBeautyCreateContent() {
         <div className="max-w-4xl mx-auto">
           <Card className="border-[#E8DCC4] shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-[#F5EFE6] to-[#E8DCC4]">
-              <div className="flex items-center justify-between">
-                <CardTitle className="font-serif text-2xl">
-                  Detalhes do Conteúdo
-                </CardTitle>
-                <Button
-                  variant={useAI ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUseAI(!useAI)}
-                  className={useAI ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white" : ""}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {useAI ? 'IA Ativada' : 'Ativar IA'}
-                </Button>
-              </div>
+              <CardTitle className="font-serif text-2xl">
+                Detalhes do Conteúdo
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {useAI && (
-                  <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-                    <div className="flex items-start gap-3 mb-4">
-                      <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-1" />
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-purple-800 mb-1">Criar Conteúdo com IA</h4>
-                        <p className="text-sm text-purple-700 mb-3">
-                          Preencha título OU descrição, selecione tipo, acesso e público-alvo. 
-                          A IA irá gerar todo o resto automaticamente!
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handleGenerateContentWithAI}
-                      disabled={loadingAI || (!formData.titulo && !formData.descricao)}
-                      className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white"
-                    >
-                      {loadingAI ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                          Gerando com IA...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-4 h-4 mr-2" />
-                          Gerar Conteúdo Completo com IA
-                        </>
-                      )}
-                    </Button>
+                <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-1" />
+                    <p className="text-sm text-purple-700">
+                      💡 Use os botões com IA ao lado dos campos para preencher conteúdo inteligentemente!
+                    </p>
                   </div>
-                )}
+                </div>
 
                 <div className="space-y-2">
-                  <Label>Título do Conteúdo *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Título do Conteúdo *</Label>
+                    {formData.descricao && !formData.titulo && (
+                      <Button
+                        type="button"
+                        onClick={handleGenerateTituloWithAI}
+                        disabled={loadingAI}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {loadingAI ? 'Gerando...' : 'Gerar com IA'}
+                      </Button>
+                    )}
+                  </div>
                   <Input
                     value={formData.titulo}
                     onChange={(e) => setFormData({...formData, titulo: e.target.value})}
@@ -380,7 +352,21 @@ export default function EdBeautyCreateContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Descrição *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Descrição *</Label>
+                    {formData.titulo && !formData.descricao && (
+                      <Button
+                        type="button"
+                        onClick={handleGenerateDescricaoWithAI}
+                        disabled={loadingAI}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {loadingAI ? 'Gerando...' : 'Gerar com IA'}
+                      </Button>
+                    )}
+                  </div>
                   <Textarea
                     value={formData.descricao}
                     onChange={(e) => setFormData({...formData, descricao: e.target.value})}
@@ -576,11 +562,25 @@ export default function EdBeautyCreateContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Duração Estimada</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Duração Estimada</Label>
+                      {(formData.titulo || formData.descricao || formData.categoria) && !formData.duracao && (
+                        <Button
+                          type="button"
+                          onClick={handleGenerarDuracaoWithAI}
+                          disabled={loadingAI}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {loadingAI ? 'Gerando...' : 'Gerar com IA'}
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       value={formData.duracao}
                       onChange={(e) => setFormData({...formData, duracao: e.target.value})}
-                      placeholder="Ex: 2h30min, 150 páginas"
+                      placeholder="Ex: 2h30min, 150 páginas, 45minutos"
                       className="border-[#E8DCC4]"
                     />
                   </div>

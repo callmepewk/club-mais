@@ -203,11 +203,11 @@ export default function CardEventsSection() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 mb-4">
-              <p className="text-sm text-purple-800 font-medium">💡 Dica: Use a IA para gerar um título profissional a partir da descrição!</p>
+              <p className="text-sm text-purple-800 font-medium">💡 Dica: Use a IA para gerar título profissional a partir da descrição do evento!</p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Título</Label>
+                <Label>Título *</Label>
                 {formData.descricao && !formData.titulo && (
                   <Button
                     type="button"

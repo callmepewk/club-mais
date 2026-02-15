@@ -77,8 +77,17 @@ const plans = [
 export default function Plans() {
   const handleAcquirePlan = (planId) => {
     const whatsappNumber = "5521980343873";
+    const plan = plans.find(p => p.id === planId);
+    const planName = plan?.name || "Plano";
+    const priceInfo = plan?.price || "";
+    const message = encodeURIComponent(`Olá! Gostaria de adquirir o ${planName} (${priceInfo}) do Club da Beleza.`);
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+  };
+
+  const handleMoreInfo = (planId) => {
+    const whatsappNumber = "5521980343873";
     const planName = plans.find(p => p.id === planId)?.name || "Plano";
-    const message = encodeURIComponent(`Olá! Gostaria de adquirir o ${planName} do Club da Beleza.`);
+    const message = encodeURIComponent(`Olá! Gostaria de mais informações sobre o ${planName} do Club da Beleza.`);
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
@@ -176,13 +185,22 @@ export default function Plans() {
                         </div>
                       )}
 
-                      <Button
-                        onClick={() => handleAcquirePlan(plan.id)}
-                        className="w-full mt-4 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-                      >
-                        Adquirir Plano
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      <div className="space-y-2 mt-4">
+                        <Button
+                          onClick={() => handleAcquirePlan(plan.id)}
+                          className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] hover:from-[#C8A882] hover:to-[#D4AF37] text-white py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
+                        >
+                          Adquirir Plano
+                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                        <Button
+                          onClick={() => handleMoreInfo(plan.id)}
+                          variant="outline"
+                          className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#F5EFE6]"
+                        >
+                          Quero Mais Informações
+                        </Button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
