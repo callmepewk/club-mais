@@ -443,13 +443,25 @@ export default function CardPortal() {
                           <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Inscrito</Badge>
                         )}
                       </div>
-                      <Button 
-                        onClick={() => handleEventClick(event)}
-                        disabled={!canRegister || isRegistered || (event.vagas_disponiveis || 0) === 0}
-                        className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
-                      >
-                        {isRegistered ? 'Já Inscrito' : 'Ver Detalhes e Inscrever-se'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleEventClick(event)}
+                          disabled={!canRegister || isRegistered || (event.vagas_disponiveis || 0) === 0}
+                          className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-2 text-sm"
+                        >
+                          {isRegistered ? 'Já Inscrito' : 'Detalhes'}
+                        </Button>
+                        <a 
+                          href="https://wa.me/5521980343873?text=Olá! Gostaria de saber o valor da inscrição e mais informações sobre o próximo encontro."
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1"
+                        >
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 text-sm">
+                            Comprar
+                          </Button>
+                        </a>
+                      </div>
                     </CardContent>
                   </Card>
                 );
