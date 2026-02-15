@@ -73,7 +73,7 @@ export default function GoldenDoctors() {
   });
 
   const handleCandidateseAgora = () => {
-    const whatsappNumber = "5531972595643";
+    const whatsappNumber = "5521980343873";
     const message = encodeURIComponent("Olá! Gostaria de fazer parte da comunidade exclusiva Golden Circle. Tenho interesse em me candidatar!");
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };

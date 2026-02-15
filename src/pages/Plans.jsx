@@ -76,7 +76,7 @@ const plans = [
 
 export default function Plans() {
   const handleAcquirePlan = (planId) => {
-    const whatsappNumber = "5531972595643";
+    const whatsappNumber = "5521980343873";
     const planName = plans.find(p => p.id === planId)?.name || "Plano";
     const message = encodeURIComponent(`Olá! Gostaria de adquirir o ${planName} do Club da Beleza.`);
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
@@ -251,7 +251,7 @@ export default function Plans() {
           </p>
           <Button
             onClick={() => {
-              const whatsappNumber = "5531972595643";
+              const whatsappNumber = "5521980343873";
               const message = encodeURIComponent("Olá! Tenho dúvidas sobre os planos do Club da Beleza.");
               window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
             }}
