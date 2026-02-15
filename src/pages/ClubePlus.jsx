@@ -763,23 +763,33 @@ export default function ClubePlus() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowSolicitacaoModal(false)}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={solicitarCartaoMutation.isPending}
-                className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white"
-              >
-                {solicitarCartaoMutation.isPending ? 'Enviando...' : 'Enviar Solicitação'}
-              </Button>
-            </div>
+            <div className="flex gap-2 pt-2 flex-col sm:flex-row">
+               <Button
+                 type="button"
+                 variant="outline"
+                 onClick={() => setShowSolicitacaoModal(false)}
+                 className="flex-1"
+               >
+                 Cancelar
+               </Button>
+               <Button
+                 type="submit"
+                 disabled={solicitarCartaoMutation.isPending}
+                 className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A882] text-white py-2 text-sm"
+               >
+                 {solicitarCartaoMutation.isPending ? 'Enviando...' : 'Enviar'}
+               </Button>
+               <a 
+                 href="https://wa.me/5521980343873?text=Olá! Gostaria de solicitar um cartão Beauty Club."
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="flex-1"
+               >
+                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 text-sm">
+                   WhatsApp
+                 </Button>
+               </a>
+             </div>
           </form>
         </DialogContent>
       </Dialog>
