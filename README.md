@@ -1,66 +1,64 @@
-💎 Clube Mais
+# Clube Mais
 
-Plataforma de benefícios, recorrência e comunidade premium.
+Plataforma de Benefícios, Recorrência e Comunidade Premium
 
-🌐 Produção: https://clube-mais.base44.app
+---
 
-Ambiente: Base44 Cloud
-Status: Em produção
+## Visão Geral
 
-📌 1. Visão Estratégica
+O **Clube Mais** é uma plataforma digital estruturada para operar como sistema de assinatura, clube de benefícios e comunidade fechada, atuando como camada estratégica de retenção dentro de um ecossistema digital maior.
 
-O Clube Mais é estruturado como:
+O projeto foi concebido para centralizar benefícios, conteúdos exclusivos e experiências premium, promovendo fidelização e aumento do valor de vida do cliente (Lifetime Value – LTV).
 
-Plataforma de assinatura
+---
 
-Clube de benefícios
+## Função Estratégica
 
-Comunidade fechada
+O Clube Mais desempenha papel essencial como:
 
-Camada de retenção do ecossistema
+* Plataforma de assinatura recorrente
+* Clube de benefícios estruturado
+* Comunidade premium fechada
+* Camada de retenção e fidelização do ecossistema
 
-Função estratégica:
+Seus objetivos principais incluem:
 
-Aumentar LTV (Lifetime Value)
+* Aumentar o LTV dos usuários
+* Criar previsibilidade de receita recorrente
+* Centralizar benefícios e conteúdos exclusivos
+* Fortalecer relacionamento com clientes e pacientes
 
-Criar recorrência previsível
+---
 
-Centralizar benefícios e conteúdos exclusivos
+## Arquitetura Técnica
 
-Fidelizar pacientes e clientes
+### Stack Principal
 
-🏗 2. Arquitetura Técnica
-Stack Principal
+**Frontend**
 
-Frontend:
+* React
+* Vite
+* TailwindCSS
+* Arquitetura modular baseada em componentes
 
-React
+**Backend**
 
-Vite
+* Runtime Base44
+* Estrutura preparada para autenticação
+* API modular e escalável
 
-TailwindCSS
+**Infraestrutura**
 
-Componentização modular
+* Deploy serverless
+* SSL automático
+* CDN integrada
+* Escalabilidade sob demanda
 
-Backend:
+---
 
-Runtime Base44
+## Estrutura do Projeto
 
-Estrutura preparada para autenticação
-
-API modular
-
-Infraestrutura:
-
-Deploy serverless
-
-SSL automático
-
-CDN integrada
-
-Escalabilidade sob demanda
-
-📂 3. Estrutura de Código
+```id="4zryrd"
 /src
   /api
   /components
@@ -68,112 +66,140 @@ Escalabilidade sob demanda
   /lib
   /pages
   /utils
+```
 
-Preparado para:
+Arquitetura preparada para:
 
-Área de membro
+* Área de membros
+* Controle por planos de acesso
+* Integração com sistemas de pagamento
+* Expansão futura para aplicações mobile
 
-Controle por plano
+---
 
-Integração com pagamentos
+## Objetivos Operacionais
 
-Expansão para app mobile
+**Curto Prazo**
 
-🎯 4. Objetivos Operacionais
+* Estruturação de planos
+* Definição de benefícios
+* Integração com gateway de pagamento
 
-Curto Prazo:
+**Médio Prazo**
 
-Estruturar planos
+* Dashboard do membro
+* Sistema de pontuação e engajamento
+* Área exclusiva de conteúdos
 
-Definir benefícios
+**Longo Prazo**
 
-Integrar gateway de pagamento
+* Marketplace interno
+* Parcerias estratégicas
+* Aplicativo dedicado
 
-Médio Prazo:
+---
 
-Dashboard do membro
+## Perfis de Usuário
 
-Sistema de pontuação
+* Visitante
+* Membro Básico
+* Membro Premium
+* Administrador
+* Parceiro (expansão futura)
 
-Área exclusiva de conteúdo
+Estrutura compatível com controle de acesso baseado em permissões (RBAC).
 
-Longo Prazo:
+---
 
-Marketplace interno
+## Modelo de Monetização
 
-Parcerias estratégicas
+O sistema permite múltiplas estratégias:
 
-Aplicativo dedicado
+* Assinatura mensal
+* Assinatura anual
+* Planos corporativos
+* Clube de benefícios e descontos
+* Plataforma educacional premium
 
-👥 5. Perfis de Usuário
+Projetado para geração de receita recorrente previsível e escalável.
 
-Visitante
+---
 
-Membro Básico
+## Segurança e Governança
 
-Membro Premium
+* Estrutura preparada para autenticação segura
+* Proteção de rotas privadas
+* Separação futura entre frontend e API
+* Adequação à legislação de proteção de dados (LGPD)
+* Controle de acesso por nível de usuário
 
-Administrador
+---
 
-Parceiro (futuro)
+## Escalabilidade
 
-Estrutura compatível com RBAC (controle por permissões).
+O projeto foi concebido para suportar:
 
-💰 6. Modelo de Monetização
+* Expansão regional e nacional
+* Modelo white-label
+* Licenciamento B2B
+* Crescimento de comunidades em larga escala
 
-Possibilidades:
+Pode atuar como o principal sistema de fidelização dentro de um ecossistema digital estruturado.
 
-Assinatura mensal
+---
 
-Assinatura anual
+## Integração com Ecossistema
 
-Plano corporativo
+O Clube Mais é projetado para integração com múltiplas soluções, incluindo:
 
-Clube de descontos
+* Plataformas educacionais
+* Sistemas médicos e estéticos
+* Motores de automação e inteligência
+* Estruturas corporativas e holdings digitais
 
-Clube educacional
+Atua como camada estratégica de retenção e relacionamento contínuo.
 
-Potencial forte de receita recorrente previsível.
+---
 
-🔐 7. Segurança e Governança
+## Status
 
-Estrutura preparada para autenticação
+Sistema em produção, com evolução contínua voltada à expansão de funcionalidades, escalabilidade e integração com novos módulos do ecossistema.
 
-Separação futura de API
+---
 
-Proteção de rotas privadas
+## Propriedade Intelectual e Proteção Legal
 
-Preparação para LGPD
+Este software é protegido pelas legislações vigentes:
 
-📈 8. Escalabilidade
+* **Lei nº 9.609/1998 (Lei do Software)**
+* **Lei nº 9.610/1998 (Lei de Direitos Autorais)**
+* **Convenção de Berna (proteção internacional automática)**
 
-Projeto ideal para:
+---
 
-Expansão regional
+### Declaração de Autoria
 
-Modelo white-label
+Toda a concepção, estrutura de recorrência, arquitetura de retenção, lógica de monetização, organização de funcionalidades e integração com ecossistemas digitais são de autoria do desenvolvedor responsável.
 
-Licenciamento B2B
+O sistema integra um conjunto maior de soluções tecnológicas interdependentes, compondo um ecossistema proprietário.
 
-Comunidade nacional
+Registros técnicos, versionamento, documentação e histórico de desenvolvimento comprovam anterioridade e titularidade intelectual.
 
-Pode se tornar o braço de fidelização oficial do ecossistema.
+# Gestão Técnica
 
-🌐 9. Integração com Ecossistema
+Responsável técnico-operacional:
+Pedro Henrique Brezolin de Freitas — CTO
 
-Conectável com:
+Modelo de gestão:
 
-TechFlix (benefício educacional incluso)
+Versionamento via Git
+Deploy contínuo
+Documentação estruturada
+Padronização de stack e arquitetura
+---
 
-Plataformas médicas
+## Licença
 
-Dr. da Beleza AI
+Proprietário – uso interno e comercial restrito.
+É proibida a reprodução, modificação, distribuição ou exploração sem autorização expressa do autor.
 
-Holding Porto Firme Digital
-
-Funciona como camada de retenção estratégica.
-
-🛡 10. Licença
-
-Projeto proprietário.
-Uso estratégico dentro do ecossistema Clube da Beleza.
